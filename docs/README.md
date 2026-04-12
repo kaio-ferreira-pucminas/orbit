@@ -85,6 +85,56 @@ Esta seção apresenta a especificação do projeto Orbit, detalhando as persona
 
 ---
 
+## Product Discovery
+
+O processo de Product Discovery foi conduzido com base em princípios de Design Thinking, com o objetivo de compreender melhor o problema e as necessidades dos usuários antes da definição da solução.
+
+---
+
+### Matriz CSD (Certezas, Suposições e Dúvidas)
+
+**Certezas:**
+- Existe alta demanda por profissionais na área de tecnologia  
+- Profissionais iniciantes enfrentam dificuldades para ingressar no mercado  
+- Projetos práticos ajudam na validação de habilidades  
+
+**Suposições:**
+- Empresas valorizam mais projetos do que currículos tradicionais  
+- Usuários iniciantes preferem plataformas mais simples e diretas  
+- A conexão direta entre empresas e profissionais pode facilitar contratações  
+
+**Dúvidas:**
+- Como garantir a confiabilidade dos perfis cadastrados?  
+- Como atrair empresas para a plataforma?  
+- Como manter o engajamento dos usuários?  
+
+---
+
+### Stakeholders
+
+Os principais stakeholders identificados no projeto são:
+
+- Desenvolvedores iniciantes  
+- Freelancers  
+- Empresas contratantes  
+- Universidades  
+- Comunidades de tecnologia  
+
+---
+
+### Pesquisa e Entendimento do Problema
+
+A análise do problema foi baseada em pesquisas realizadas em fontes confiáveis, como:
+
+- BRASSCOM (Associação Brasileira das Empresas de Tecnologia)  
+- IBGE (Instituto Brasileiro de Geografia e Estatística)  
+- Projeto ImersãoTec (PUC Minas)  
+
+Os dados analisados evidenciam que, apesar da alta demanda por profissionais de tecnologia, muitos iniciantes enfrentam dificuldades para acessar oportunidades, principalmente devido à falta de experiência prática e visibilidade no mercado.
+
+Esse cenário reforça a necessidade de soluções que conectem melhor profissionais e oportunidades, reduzindo as barreiras de entrada no setor.
+
+
 ## Personas
 
 ### 👨‍💻 Persona 1 — Kaio (Desenvolvedor Iniciante)
@@ -144,6 +194,43 @@ Com base nas personas, foram identificadas as seguintes histórias de usuários:
 |Empresa| Filtrar candidatos | Economizar tempo na seleção |
 |Empresa| Visualizar projetos | Validar habilidades técnicas |
 |Empresa| Criar oportunidades | Atrair candidatos |
+
+---
+
+## Proposta de Valor
+
+A proposta de valor da plataforma Orbit está centrada na conexão entre as necessidades dos usuários e as soluções oferecidas pela aplicação.
+
+---
+
+### Dores dos Usuários
+
+- Falta de visibilidade no mercado  
+- Dificuldade em comprovar habilidades  
+- Dependência de indicação para conseguir oportunidades  
+- Processos de contratação lentos  
+
+---
+
+### Soluções Propostas
+
+- Criação de perfis com projetos  
+- Exibição de portfólio prático  
+- Conexão direta entre profissionais e empresas  
+- Sistema de busca e filtragem de candidatos  
+
+---
+
+### Ganhos Esperados
+
+- Maior acesso a oportunidades  
+- Aumento da empregabilidade  
+- Validação prática de habilidades  
+- Facilidade na contratação de profissionais  
+
+---
+
+A proposta de valor da Orbit se diferencia por priorizar a apresentação de projetos como principal forma de validação, aproximando as necessidades das empresas das capacidades reais dos profissionais.
 
 ---
 
@@ -396,18 +483,51 @@ A organização da equipe foi baseada em práticas do framework Scrum, adaptadas
 
 A seguir está o acompanhamento das atividades realizadas durante o desenvolvimento do projeto, organizadas por sprint.
 
----
-
 ## Sprint 1
+
+Dados de exemplo
+
+Atualizado em: 20/04/2026
+
+| Responsável | Tarefa | Início | Prazo | Status | Conclusão |
+|------------|--------|--------|--------|--------|-----------|
+| Kaio | Contexto | 15/04 | 18/04 | ✔️ | 18/04 |
+| Lucas Valle | Problema e Justificativa | 15/04 | 18/04 | ✔️ | 18/04 |
+| Lucas Bonsucesso | Público-alvo | 16/04 | 19/04 | ✔️ | 19/04 |
+| Daniel | Personas | 16/04 | 19/04 | ✔️ | 19/04 |
+| Tiago | Revisão | 17/04 | 20/04 | ✔️ | 20/04 |
 
 ---
 
 ## Sprint 2
 
+Dados de exemplo
+
+Atualizado em: 25/04/2026
+
+| Responsável | Tarefa | Início | Prazo | Status | Conclusão |
+|------------|--------|--------|--------|--------|-----------|
+| Kaio | Histórias de usuário | 21/04 | 23/04 | ✔️ | 23/04 |
+| Lucas Valle | Requisitos funcionais | 21/04 | 24/04 | ✔️ | 24/04 |
+| Lucas Bonsucesso | Requisitos não funcionais | 22/04 | 24/04 | ✔️ | 24/04 |
+| Daniel | Estrutura da solução | 22/04 | 25/04 | ✔️ | 25/04 |
+| Tiago | Revisão geral | 23/04 | 25/04 | ✔️ | 25/04 |
+
 ---
 
 ## Sprint 3
----
+
+Dados de exemplo
+
+Atualizado em: 30/04/2026
+
+| Responsável | Tarefa | Início | Prazo | Status | Conclusão |
+|------------|--------|--------|--------|--------|-----------|
+| Kaio | User Flow | 26/04 | 28/04 | ✔️ | 28/04 |
+| Lucas Valle | Wireframes | 26/04 | 29/04 | ✔️ | 29/04 |
+| Lucas Bonsucesso | Protótipo Figma | 27/04 | 30/04 | ✔️ | 30/04 |
+| Daniel | Documentação | 27/04 | 30/04 | ✔️ | 30/04 |
+| Tiago | Validação final | 28/04 | 30/04 | ✔️ | 30/04 |
 
 Legenda:
 - ✔️: terminado  
