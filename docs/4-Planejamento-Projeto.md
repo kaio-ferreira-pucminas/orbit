@@ -1,90 +1,102 @@
-# Planejamento do Projeto
+# 4. Planejamento do Projeto
 
 > Aqui será feito o gerenciamento das tarefas de implementação do projeto.
 
+---
+
 ## Divisão de Papéis
 
-> Apresente a divisão de papéis entre os membros do grupo em cada sprint. O desejável é que, em cada sprint, o aluno assuma papéis diferentes na disciplina. Siga o modelo do exemplo abaixo:
+A organização da equipe foi baseada em práticas do framework Scrum, adaptadas à realidade acadêmica do projeto. Os papéis foram distribuídos de forma rotativa entre os membros da equipe ao longo das sprints, permitindo que todos tivessem contato com diferentes responsabilidades dentro do desenvolvimento do projeto.
 
-  
+---
+
 ### Sprint 1
-- _Scrum master_: AlunaX
-- Protótipos: AlunoY
-- Testes: AlunoK
-- Documentação: AlunaZ
+- Scrum Master: Eduardo Freire Cesário  
+- Desenvolvedores: Kaio Henrique Dos Santos Ferreira, Lucas Bonsucesso Rodrigues, Lucas Rodrigues Valle  
+- Testes: Tiago Ribeiro Silva Quadros, Daniel Henrique Ferreira Gomes  
+
+---
 
 ### Sprint 2
-- _Scrum master_: AlunaY
-- Desenvolvedor _front-end_: AlunoX
-- Desenvolvedor _back-end_: AlunoK
-- Testes: AlunaZ
-- 
-### Sprint 3
-- _Scrum master_: AlunaY
-- Desenvolvedor _front-end_: AlunoX
-- Desenvolvedor _back-end_: AlunoK
-- Testes: AlunaZ
+- Scrum Master: Kaio Henrique Dos Santos Ferreira  
+- Desenvolvedores: Lucas Bonsucesso Rodrigues, Tiago Ribeiro Silva Quadros, Daniel Henrique Ferreira Gomes  
+- Testes: Eduardo Freire Cesário, Lucas Rodrigues Valle  
 
-  
+---
+
+### Sprint 3
+- Scrum Master: Lucas Rodrigues Valle  
+- Desenvolvedores: Kaio Henrique Dos Santos Ferreira, Daniel Henrique Ferreira Gomes, Eduardo Freire Cesário  
+- Testes: Lucas Bonsucesso Rodrigues, Tiago Ribeiro Silva Quadros  
+
+---
+
 ## Quadro de tarefas
 
-> Apresente a divisão de tarefas entre os membros do grupo e o acompanhamento da execução, conforme exemplo abaixo.
+A seguir está o acompanhamento das atividades realizadas durante o desenvolvimento do projeto, organizadas por sprint.
 
-
+---
 
 ## Sprint 1
 
-Atualizado em: 21/04/2024
+Atualizado em: 20/04/2026
 
-| Responsável   | Tarefa/Requisito | Iniciado em    | Prazo      | Status | Terminado em    |
-| :----         |    :----         |      :----:    | :----:     | :----: | :----:          |
-| AlunaX        | Introdução | 01/02/2024     | 07/02/2024 | ✔️    | 05/01/2005      |
-| AlunaZ        | Objetivos    | 03/02/2024     | 10/02/2024 | 📝    |                 |
-| AlunoY        | Histórias de usuário  | 01/01/2024     | 07/01/2005 | ⌛     |                 |
-| AlunoK        | Personas 1  |    01/01/2024        | 12/02/2005 | ❌    |       |
+| Responsável | Tarefa/Requisito | Iniciado em | Prazo | Status | Terminado em |
+|-------------|------------------|-------------|--------|--------|---------------|
+| Kaio        | Introdução (Contexto) | 15/04/2026 | 18/04/2026 | ✔️ | 18/04/2026 |
+| Lucas Valle | Problema e Justificativa | 15/04/2026 | 18/04/2026 | ✔️ | 18/04/2026 |
+| Lucas Bonsucesso | Público-alvo | 16/04/2026 | 19/04/2026 | ✔️ | 19/04/2026 |
+| Daniel      | Personas | 16/04/2026 | 19/04/2026 | ✔️ | 19/04/2026 |
+| Tiago       | Revisão da documentação | 17/04/2026 | 20/04/2026 | ✔️ | 20/04/2026 |
+
+---
 
 ## Sprint 2
 
-Atualizado em: 21/04/2024
+Atualizado em: 25/04/2026
 
-| Responsável   | Tarefa/Requisito | Iniciado em    | Prazo      | Status | Terminado em    |
-| :----         |    :----         |      :----:    | :----:     | :----: | :----:          |
-| AlunaX        | Home-Page        | 01/02/2024     | 07/03/2024 | ✔️    | 05/01/2005      |
-| AlunaZ        | CSS Unificado    | 03/02/2024     | 10/03/2024 | 📝    |                 |
-| AlunoY        | Página de login  | 01/02/2024     | 07/03/2024 | ⌛     |                 |
-| AlunoK        | Script de login  |  01/01/2024    | 12/03/2024 | ❌    |       |
+| Responsável | Tarefa/Requisito | Iniciado em | Prazo | Status | Terminado em |
+|-------------|------------------|-------------|--------|--------|---------------|
+| Kaio        | Histórias de usuário | 21/04/2026 | 23/04/2026 | ✔️ | 23/04/2026 |
+| Lucas Valle | Requisitos funcionais | 21/04/2026 | 24/04/2026 | ✔️ | 24/04/2026 |
+| Lucas Bonsucesso | Requisitos não funcionais | 22/04/2026 | 24/04/2026 | ✔️ | 24/04/2026 |
+| Daniel      | Estrutura da solução | 22/04/2026 | 25/04/2026 | ✔️ | 25/04/2026 |
+| Tiago       | Revisão geral | 23/04/2026 | 25/04/2026 | ✔️ | 25/04/2026 |
+
+---
 
 ## Sprint 3
 
-Atualizado em: 21/04/2024
+Atualizado em: 30/04/2026
 
-| Responsável   | Tarefa/Requisito | Iniciado em    | Prazo      | Status | Terminado em    |
-| :----         |    :----         |      :----:    | :----:     | :----: | :----:          |
-| AlunaX        | Introdução | 01/02/2024     | 07/02/2024 | ✔️    | 05/01/2005      |
-| AlunaZ        | Objetivos    | 03/02/2024     | 10/02/2024 | 📝    |                 |
-| AlunoY        | Histórias de usuário  | 01/01/2024     | 07/01/2005 | ⌛     |                 |
-| AlunoK        | Personas 1  |    01/01/2024        | 12/02/2005 | ❌    |       |
+| Responsável | Tarefa/Requisito | Iniciado em | Prazo | Status | Terminado em |
+|-------------|------------------|-------------|--------|--------|---------------|
+| Kaio        | Projeto de Interface (User Flow) | 26/04/2026 | 28/04/2026 | ✔️ | 28/04/2026 |
+| Lucas Valle | Wireframes | 26/04/2026 | 29/04/2026 | ✔️ | 29/04/2026 |
+| Lucas Bonsucesso | Protótipo Figma | 27/04/2026 | 30/04/2026 | ✔️ | 30/04/2026 |
+| Daniel      | Documentação da interface | 27/04/2026 | 30/04/2026 | ✔️ | 30/04/2026 |
+| Tiago       | Validação final | 28/04/2026 | 30/04/2026 | ✔️ | 30/04/2026 |
+
+---
 
 Legenda:
-- ✔️: terminado
-- 📝: em execução
-- ⌛: atrasado
-- ❌: não iniciado
+- ✔️: terminado  
+- 📝: em execução  
+- ⌛: atrasado  
+- ❌: não iniciado  
+
+---
 
 ## Ferramentas
 
-> Liste quais ferramentas foram empregadas no desenvolvimento do  projeto, justificando a escolha de cada uma delas. Use o formato abaixo como exemplo.
+As ferramentas empregadas no projeto foram selecionadas com base na simplicidade, acessibilidade e adequação ao nível do desenvolvimento proposto.
 
-As ferramentas empregadas no projeto são:
+- **Visual Studio Code**: utilizado como editor de código para desenvolvimento do front-end.  
 
-- Editor de código.
-- Ferramentas de diagramação.
-- Frameworks 
-- Outras ferramentas externas
+- **Figma**: utilizado para criação dos protótipos e wireframes da interface.  
 
+- **GitHub**: utilizado para versionamento de código e organização da documentação.  
 
-## Links Úteis
-> - [11 Passos Essenciais para Implantar Scrum no seu Projeto](https://mindmaster.com.br/scrum-11-passos/)
-> - [Scrum em 9 minutos](https://www.youtube.com/watch?v=XfvQWnRgxG0)
+- **HTML, CSS e JavaScript**: tecnologias utilizadas no desenvolvimento da aplicação.  
 
-
+- **Ferramentas de comunicação (WhatsApp/Discord)**: utilizadas para alinhamento da equipe.  
