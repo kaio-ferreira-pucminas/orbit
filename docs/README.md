@@ -262,7 +262,7 @@ Objetivo:
 - Apresentar a proposta da aplicação  
 - Direcionar o usuário para as principais ações
 
-![Imagem da Landing Page](./images/Landing Page.png)
+![Imagem da Landing Page](./images/LandingPage.png)
 ---
 
 ### Tela de Perfil do Usuário
@@ -275,7 +275,7 @@ Elementos principais:
 Objetivo:
 - Permitir que o usuário apresente suas competências  
 - Destacar projetos como principal forma de validação  
-![Imagem da Pagina do Perfil](./images/Profile Page.png)
+![Imagem da Pagina do Perfil](./images/ProfilePage.png)
 ---
 
 ### Tela de Busca de Desenvolvedores
@@ -288,7 +288,7 @@ Elementos principais:
 Objetivo:
 - Permitir que empresas encontrem profissionais com base em critérios específicos  
 
-![Imagem da Pagina Busca de Talentos](./images/Busca de Talentos.png)
+![Imagem da Pagina Busca de Talentos](./images/BuscaTalentos.png)
 ---
 
 ### Tela de Oportunidades
@@ -301,7 +301,7 @@ Elementos principais:
 Objetivo:
 - Facilitar o acesso a oportunidades disponíveis  
 
-![Imagem da Pagina de Oportunidades](./images/Oportunidades Recomendadas.png)
+![Imagem da Pagina de Oportunidades](./images/OportunidadesRecomendadas.png)
 ---
 
 ### Tela de Detalhes da Oportunidade
@@ -313,7 +313,7 @@ Elementos principais:
 
 Objetivo:
 - Apresentar informações detalhadas e permitir ação direta do usuário  
-![Imagem da Pagina de Detalhes da Oportunidade/Vaga](./images/Detalhes da Vaga.png)
+![Imagem da Pagina de Detalhes da Oportunidade/Vaga](./images/DetalhesVaga.png)
 ---
 
 ### Tela de Dashboard da Empresa
@@ -325,7 +325,7 @@ Elementos principais:
 
 Objetivo:
 - Centralizar as principais funcionalidades da empresa em um único ambiente  
-![Imagem da Pagina do Dashboard da Empresa](./images/Dashboard da Empresa.png)
+![Imagem da Pagina do Dashboard da Empresa](./images/DashboardEmpresa.png)
 ---
 
 ## Protótipo
