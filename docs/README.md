@@ -360,7 +360,6 @@ O projeto de interface da Orbit foi desenvolvido com foco na experiência do usu
 A definição dos fluxos e wireframes contribui para uma implementação mais organizada e coerente, servindo como base para o desenvolvimento do front-end da aplicação.
 
 ## 4. Planejamento do Projeto
-# 4. Planejamento do Projeto
 
 > Aqui será feito o gerenciamento das tarefas de implementação do projeto.
 
