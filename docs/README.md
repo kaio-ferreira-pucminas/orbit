@@ -429,4 +429,5 @@ As ferramentas empregadas no projeto foram selecionadas com base na simplicidade
 
 - **HTML, CSS e JavaScript**: tecnologias utilizadas no desenvolvimento da aplicação.  
 
-- **Ferramentas de comunicação (WhatsApp/Discord)**: utilizadas para alinhamento da equipe.  
+- **Ferramentas de comunicação (WhatsApp/Discord)**: utilizadas para alinhamento da equipe.
+- **Ferramenta para controle de tarefas: Trello (https://trello.com/invite/b/69dbd14864d2202e560801be/ATTIf943c158f70a5f578cda13d9629196ba267B20EF/tiau-puc) 
