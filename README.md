@@ -1,53 +1,77 @@
-# Informações do Projeto
-`TÍTULO DO PROJETO`  
+# Informações do Projeto  
+`Orbit`  
 
-Trabalho Interdisciplinar - Aplicacões Web
+Trabalho Interdisciplinar - Aplicações Web  
 
-`CURSO`: 
+`CURSO`: Sistemas de Informação  
 
-`SEMESTRE:`
+`SEMESTRE:` 1º período  
 
-`OBJETIVO ODS:` > Inclua os numeros e a descrição do(s) objetivo(s) ODS da ONU que o Projeto vai atender. 
+`OBJETIVO ODS:`  
+- **ODS 4 – Educação de Qualidade:** Promover oportunidades de aprendizagem em tecnologia e desenvolvimento profissional.  
+- **ODS 8 – Trabalho Decente e Crescimento Econômico:** Facilitar a inserção de profissionais no mercado de trabalho por meio da conexão com oportunidades reais.  
 
-## Participantes
+---
 
-Os membros do grupo são: 
-- Fulano da Silva
-- Ciclano Albuquerque
+## Participantes  
 
-> Inclua a lista dos membros da equipe com seus nomes completos.
+Os membros do grupo são:  
+- Kaio Henrique dos Santos Ferreira  
+- Lucas Rodrigues Valle  
+- Daniel Henrique Ferreira Gomes  
+- Tiago Ribeiro Silva Quadros
+- Eduardo Freire Cesário
+- Lucas Bonsucesso Rodrigues
+---
 
-# Estrutura do Projeto
+# Estrutura do Projeto  
 
-1. [Contexto](./docs/1-Contexto.md)
-2. [Especificações do Projeto](./docs/2-Especificação.md)
-3. [Projeto da Interface](./docs/3-Interface.md)
-4. [Gerenciamento do Projeto](./docs/4-Gerenciamento-Projeto.md)
-5. [Implementação](./docs/5-Implementação.md)
-6. [Referências](./docs/6-Referências.md)
-7. [Apresentação do trabalho](./docs/apresentacao/README.md) 
+1. [Contexto](./docs/1-Contexto.md)  
+2. [Especificações do Projeto](./docs/2-Especificação.md)  
+3. [Projeto da Interface](./docs/3-Interface.md)  
+4. [Gerenciamento do Projeto](./docs/4-Gerenciamento-Projeto.md)  
+5. [Implementação](./docs/5-Implementação.md)  
+6. [Referências](./docs/6-Referências.md)  
+7. [Apresentação do trabalho](./docs/apresentacao/README.md)  
 
+---
 
+## Pasta docs  
 
-## Pasta docs
+Esta pasta armazena toda a documentação do projeto Orbit, incluindo:  
+- Contexto do problema  
+- Processo de Product Discovery  
+- Product Design  
+- Metodologia adotada  
+- Referências utilizadas  
 
-Esta pasta arquiva a documentação dos projetos.
+Na pasta `docs/images` são armazenadas todas as imagens utilizadas, como:  
+- Wireframes  
+- Diagramas  
+- Prints do Kanban  
+- Protótipos  
 
+---
 
-Na pasta `docs`, há uma subpasta `images` que deve arquivar todas as
-imagens utilizadas para a elaboração do documento.
+## Pasta src  
 
+Este diretório armazena o código fonte do projeto, desenvolvido utilizando tecnologias web básicas:
 
-## Pasta src
+- HTML5  
+- CSS3  
+- JavaScript  
 
-Este diretório armazena o código fonte do projeto e adota uma hierarquia
-básica de projetos Web simples, que utilizam as tecnologias HTML, CSS e
-JavaScript.
+A estrutura segue um padrão simples de aplicação front-end, contendo:  
+- Páginas HTML  
+- Arquivos de estilo (CSS)  
+- Scripts JavaScript  
+- Recursos visuais (imagens, ícones, etc.)  
 
-### Links Úteis:
+---
 
-Aprenda Markdown e use-o para documentar o projeto  
+## Links Úteis  
 
-> [Sintaxe básica de gravação e formatação no GitHub](https://guides.github.com/features/mastering-markdown/)
+Aprenda Markdown e use-o para documentar o projeto:  
 
-> [Suporte Github](https://help.github.com/pt/github/writing-on-github/getting-started-with-writing-and-formatting-on-github)
+- https://guides.github.com/features/mastering-markdown/  
+- https://help.github.com/pt/github/writing-on-github/getting-started-with-writing-and-formatting-on-github  
