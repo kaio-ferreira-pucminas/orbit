@@ -1,105 +1,123 @@
-# Especificações Do Projeto
+# 2. Especificações do Projeto
 
 <span style="color:red">Pré-requisitos: <a href="1-Contexto.md"> Documentação de Contexto</a></span>
 
-> Apresente uma visão geral do que será abordado nesta parte do
-> documento, enumerando as técnicas e/ou ferramentas utilizadas para
-> realizar a especificações do projeto
+Esta seção apresenta a especificação do projeto Orbit, detalhando as personas, histórias de usuário, requisitos funcionais e não funcionais, além das restrições do sistema. Para a construção desta etapa, foram utilizadas técnicas como Design Thinking, definição de personas, matriz CSD e modelagem de histórias de usuário, com o objetivo de compreender melhor as necessidades dos usuários e orientar o desenvolvimento da solução.
+
+---
 
 ## Personas
 
-Pedro Paulo tem 26 anos, é arquiteto recém-formado e autônomo. Pensa em
-se desenvolver profissionalmente através de um mestrado fora do país,
-pois adora viajar, é solteiro e sempre quis fazer um intercâmbio. Está
-buscando uma agência que o ajude a encontrar universidades na Europa
-que aceitem alunos estrangeiros.
+### 👨‍💻 Persona 1 — Kaio (Desenvolvedor Iniciante)
 
+Kaio tem 20 anos, é estudante de Sistemas de Informação e está no início da sua jornada na área de tecnologia. Ele já possui conhecimentos básicos em programação e já desenvolveu alguns projetos acadêmicos e pessoais, mas enfrenta dificuldades para conseguir sua primeira oportunidade profissional.
 
-> Enumere e detalhe as personas da sua solução. Para
-> tanto, baseie-se tanto nos documentos disponibilizados na disciplina
-> e/ou nos seguintes links:
->
-> **Links Úteis**:
-> - [Rock Content](https://rockcontent.com/blog/personas/)
-> - [Hotmart](https://blog.hotmart.com/pt-br/como-criar-persona-negocio/)
-> - [O que é persona?](https://resultadosdigitais.com.br/blog/persona-o-que-e/)
-> - [Persona x Público-alvo](https://flammo.com.br/blog/persona-e-publico-alvo-qual-a-diferenca/)
-> - [Mapa de Empatia](https://resultadosdigitais.com.br/blog/mapa-da-empatia/)
-> - [Mapa de Stalkeholders](https://www.racecomunicacao.com.br/blog/como-fazer-o-mapeamento-de-stakeholders/)
->
-> Lembre-se que você deve ser enumerar e descrever precisamente e
-> personalizada todos os clientes ideais que sua solução almeja.
+Ele utiliza frequentemente plataformas digitais, como GitHub e LinkedIn, mas sente que não consegue se destacar entre outros candidatos. Seu principal objetivo é conseguir seu primeiro emprego ou estágio na área, validando suas habilidades por meio de projetos práticos.
+
+---
+
+### 💻 Persona 2 — Lucas (Freelancer)
+
+Lucas tem 24 anos, trabalha como desenvolvedor freelancer e possui conhecimentos intermediários em desenvolvimento web. Apesar de já ter realizado alguns trabalhos, enfrenta dificuldades para manter uma renda constante devido à falta de clientes recorrentes.
+
+Ele busca uma plataforma que facilite a divulgação de seus projetos e permita conexão direta com empresas, reduzindo a dependência de intermediários e aumentando suas oportunidades de trabalho.
+
+---
+
+### 🏢 Persona 3 — Daniel (Recrutador)
+
+Daniel tem 30 anos e trabalha como recrutador em uma empresa de tecnologia. Ele é responsável por encontrar profissionais qualificados para diferentes projetos, mas enfrenta dificuldades na validação das habilidades dos candidatos, já que muitos perfis não apresentam evidências práticas suficientes.
+
+Seu objetivo é encontrar profissionais de forma rápida e eficiente, analisando projetos reais que comprovem suas competências técnicas.
+
+---
 
 ## Histórias de Usuários
 
-Com base na análise das personas forma identificadas as seguintes histórias de usuários:
+Com base nas personas, foram identificadas as seguintes histórias de usuários:
 
-|EU COMO... `PERSONA`| QUERO/PRECISO ... `FUNCIONALIDADE` |PARA ... `MOTIVO/VALOR`                 |
-|--------------------|------------------------------------|----------------------------------------|
-|Usuário do sistema  | Registrar minhas tarefas           | Não esquecer de fazê-las               |
-|Administrador       | Alterar permissões                 | Permitir que possam administrar contas |
+### 👨‍💻 Desenvolvedor Iniciante
 
-> Apresente aqui as histórias de usuário que são relevantes para o
-> projeto de sua solução. As Histórias de Usuário consistem em uma
-> ferramenta poderosa para a compreensão e elicitação dos requisitos
-> funcionais e não funcionais da sua aplicação. Se possível, agrupe as
-> histórias de usuário por contexto, para facilitar consultas
-> recorrentes à essa parte do documento.
->
-> **Links Úteis**:
-> - [Histórias de usuários com exemplos e template](https://www.atlassian.com/br/agile/project-management/user-stories)
-> - [Como escrever boas histórias de usuário (User Stories)](https://medium.com/vertice/como-escrever-boas-users-stories-hist%C3%B3rias-de-usu%C3%A1rios-b29c75043fac)
+|EU COMO...| QUERO/PRECISO ... |PARA ...|
+|----------|------------------|--------|
+|Desenvolvedor iniciante| Criar um perfil profissional | Me apresentar para o mercado |
+|Desenvolvedor iniciante| Adicionar meus projetos | Demonstrar minhas habilidades |
+|Desenvolvedor iniciante| Visualizar oportunidades | Encontrar vagas compatíveis |
+|Desenvolvedor iniciante| Me candidatar a oportunidades | Conseguir meu primeiro emprego |
+
+---
+
+### 💻 Freelancer
+
+|EU COMO...| QUERO/PRECISO ... |PARA ...|
+|----------|------------------|--------|
+|Freelancer| Divulgar meu portfólio | Atrair novos clientes |
+|Freelancer| Encontrar oportunidades | Aumentar minha renda |
+|Freelancer| Conectar com empresas | Fechar novos projetos |
+
+---
+
+### 🏢 Empresa / Recrutador
+
+|EU COMO...| QUERO/PRECISO ... |PARA ...|
+|----------|------------------|--------|
+|Empresa| Buscar desenvolvedores | Encontrar profissionais qualificados |
+|Empresa| Filtrar candidatos | Economizar tempo na seleção |
+|Empresa| Visualizar projetos | Validar habilidades técnicas |
+|Empresa| Criar oportunidades | Atrair candidatos |
+
+---
 
 ## Requisitos
 
-As tabelas que se seguem apresentam os requisitos funcionais e não funcionais que detalham o escopo do projeto.
+As tabelas a seguir apresentam os requisitos funcionais e não funcionais do sistema Orbit.
+
+---
 
 ### Requisitos Funcionais
 
 |ID    | Descrição do Requisito  | Prioridade |
-|------|-----------------------------------------|----|
-|RF-001| Permitir que o usuário cadastre tarefas | ALTA | 
-|RF-002| Emitir um relatório de tarefas no mês   | MÉDIA |
+|------|-------------------------|------------|
+|RF-001| Permitir que o usuário crie um perfil | ALTA |
+|RF-002| Permitir que o usuário adicione projetos ao perfil | ALTA |
+|RF-003| Exibir lista de oportunidades disponíveis | ALTA |
+|RF-004| Permitir que o usuário visualize detalhes de oportunidades | ALTA |
+|RF-005| Permitir que o usuário se candidate a oportunidades | MÉDIA |
+|RF-006| Permitir que empresas criem oportunidades | ALTA |
+|RF-007| Permitir que empresas busquem desenvolvedores | ALTA |
+|RF-008| Permitir a visualização de perfis de usuários | ALTA |
+|RF-009| Permitir filtro de busca por habilidades | MÉDIA |
+|RF-010| Permitir navegação entre páginas do sistema | ALTA |
 
+---
 
-### Requisitos não Funcionais
+### Requisitos Não Funcionais
 
-|ID     | Descrição do Requisito  |Prioridade |
-|-------|-------------------------|----|
-|RNF-001| O sistema deve ser responsivo para rodar em um dispositivos móvel | MÉDIA | 
-|RNF-002| Deve processar requisições do usuário em no máximo 3s |  BAIXA | 
+|ID     | Descrição do Requisito  | Prioridade |
+|-------|--------------------------|------------|
+|RNF-001| O sistema deve ser responsivo (desktop e mobile) | ALTA |
+|RNF-002| O sistema deve ter interface simples e intuitiva | ALTA |
+|RNF-003| O sistema deve carregar as páginas em até 3 segundos | MÉDIA |
+|RNF-004| O sistema deve ser compatível com navegadores modernos | ALTA |
+|RNF-005| O sistema deve utilizar HTML, CSS e JavaScript | ALTA |
+|RNF-006| O sistema deve ter organização de código clara | MÉDIA |
 
-> Com base nas Histórias de Usuário, enumere os requisitos da sua
-> solução. Classifique esses requisitos em dois grupos:
->
-> - [Requisitos Funcionais
->   (RF)](https://pt.wikipedia.org/wiki/Requisito_funcional):
->   correspondem a uma funcionalidade que deve estar presente na
->   plataforma (ex: cadastro de usuário).
->
-> - [Requisitos Não Funcionais
->   (RNF)](https://pt.wikipedia.org/wiki/Requisito_n%C3%A3o_funcional):
->   correspondem a uma característica técnica, seja de usabilidade,
->   desempenho, confiabilidade, segurança ou outro (ex: suporte a
->   dispositivos iOS e Android).
->
-> Lembre-se que cada requisito deve corresponder à uma e somente uma
-> característica alvo da sua solução. Além disso, certifique-se de que
-> todos os aspectos capturados nas Histórias de Usuário foram cobertos.
+---
 
 ## Restrições
 
-O projeto está restrito pelos itens apresentados na tabela a seguir.
+O projeto está restrito pelos seguintes fatores:
 
-|ID| Restrição                                             |
-|--|-------------------------------------------------------|
-|01| O projeto deverá ser entregue até o final do semestre |
-|02| Não pode ser desenvolvido um módulo de backend        |
+|ID| Restrição |
+|--|----------|
+|01| O projeto deve ser desenvolvido apenas com HTML, CSS e JavaScript |
+|02| Não será implementado back-end nesta fase |
+|03| O sistema não terá persistência de dados |
+|04| O projeto deve ser entregue até o final do semestre |
+|05| O desenvolvimento deve focar apenas na interface (front-end) |
 
+---
 
-> Enumere as restrições à sua solução. Lembre-se de que as restrições
-> geralmente limitam a solução candidata.
-> 
-> **Links Úteis**:
-> - [O que são Requisitos Funcionais e Requisitos Não Funcionais?](https://codificar.com.br/requisitos-funcionais-nao-funcionais/)
-> - [O que são requisitos funcionais e requisitos não funcionais?](https://analisederequisitos.com.br/requisitos-funcionais-e-requisitos-nao-funcionais-o-que-sao/)
+## Considerações Finais
+
+A especificação apresentada tem como objetivo orientar o desenvolvimento da aplicação Orbit, garantindo que as principais necessidades dos usuários sejam atendidas dentro das limitações do projeto. A utilização de personas, histórias de usuário e requisitos permite uma melhor organização e compreensão do escopo da solução.
