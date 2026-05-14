@@ -43,11 +43,17 @@ const {
 } = require('./emails/templates');
 
 // ── Configurações ────────────────────────────────────────────────────────────
-const PORT       = 3001;
-const JWT_SECRET = 'orbit-jwt-secret-2026';
+const PORT       = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'orbit-jwt-secret-2026';
 const JWT_EXPIRES = '1d';
 const DB_PATH    = path.join(__dirname, 'db.json');
 const APP_URL    = process.env.APP_URL || 'http://localhost:3000';
+
+// CORS — lista de origens permitidas (em produção, usa env CORS_ORIGINS separada por vírgula)
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3010')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
 const RESET_TOKEN_TTL_MIN  = 60;     // 1 hora
 const DEACTIVATE_CODE_TTL  = 15;     // 15 min
@@ -74,6 +80,22 @@ const router      = jsonServer.router(DB_PATH);
 const middlewares = jsonServer.defaults({ noCors: false });
 
 server.use(middlewares);
+
+// CORS customizado — substitui o do JSON Server pra respeitar CORS_ORIGINS
+const cors = require('cors');
+server.use(cors({
+  origin: function (origin, callback) {
+    // Sem origin (curl, healthcheck) → permite
+    if (!origin) return callback(null, true);
+    // Origin na whitelist → permite
+    if (CORS_ORIGINS.includes(origin)) return callback(null, true);
+    // Padrão wildcard *.vercel.app → permite (cobre previews)
+    if (/^https:\/\/[^.]+\.vercel\.app$/.test(origin)) return callback(null, true);
+    // Resto → bloqueia
+    return callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+  },
+  credentials: true,
+}));
 
 // Aumenta limite do body parser para suportar upload de imagens/PDFs em base64
 // (10MB raw → ~13MB base64; avatar + currículo no mesmo PATCH → bumpamos pra 30MB)

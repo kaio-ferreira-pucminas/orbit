@@ -1,0 +1,15 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "errorPage": "404.html",
+  "rewrites": [
+    { "source": "/", "destination": "/pages/index.html" }
+  ],
+  "redirects": [
+    { "source": "/feed",            "destination": "/pages/feed.html" },
+    { "source": "/auth",            "destination": "/pages/auth.html" },
+    { "source": "/profile",         "destination": "/pages/profile.html" },
+    { "source": "/forgot-password", "destination": "/pages/forgot-password.html" },
+    { "source": "/reset-password",  "destination": "/pages/reset-password.html" }
+  ]
+}

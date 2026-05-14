@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit — Página não encontrada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/landing.css" />
+  <link rel="stylesheet" href="/styles/auth.css" />
+  <link rel="stylesheet" href="/styles/404.css" />
+</head>
+<body>
+
+  <nav class="auth-nav">
+    <a href="/pages/index.html" class="auth-nav__logo">Orbit</a>
+    <a href="/pages/index.html" class="auth-nav__back">
+      <svg width="16" height="16" fill="none" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Voltar ao início
+    </a>
+  </nav>
+
+  <main class="auth-layout">
+
+    <section class="auth-panel auth-panel--form" aria-label="Página não encontrada">
+      <div class="auth-card">
+
+        <div class="auth-form" id="form-404">
+
+          <div class="error-404">
+            <div class="error-404__digit">4</div>
+
+            <div class="error-404__planet" aria-hidden="true">
+              <div class="error-404__planet-ring"></div>
+              <div class="error-404__planet-body"></div>
+            </div>
+
+            <div class="error-404__digit">4</div>
+          </div>
+
+          <div class="auth-form__header" style="text-align:center; margin-top: 8px;">
+            <h1 class="auth-heading">Você saiu de órbita.</h1>
+            <p class="auth-subheading">
+              A página que você procurou não existe ou foi movida.
+              <br/>Mas calma, ainda dá pra encontrar o caminho de volta.
+            </p>
+          </div>
+
+          <div class="error-404__actions">
+            <a href="/pages/index.html" class="btn-auth" id="error-cta-primary">
+              Voltar ao início
+            </a>
+            <a href="/pages/feed.html" class="btn-auth btn-auth--ghost" id="error-cta-feed"
+              style="display:none;">
+              Ir para o Feed
+            </a>
+          </div>
+
+          <p class="error-404__support">
+            Acha que isso é um bug? <a href="mailto:suporte@orbit.com" class="auth-form__footer-link">Avisa pra gente</a>.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="auth-panel auth-panel--brand" aria-hidden="true">
+      <div class="auth-brand">
+        <div class="brand-blob brand-blob--1"></div>
+        <div class="brand-blob brand-blob--2"></div>
+        <div class="auth-brand__content">
+          <span class="auth-brand__logo">Orbit</span>
+          <h2 class="auth-brand__heading">
+            Mesmo no infinito, sempre tem um caminho de volta.
+          </h2>
+          <p class="auth-brand__sub">
+            Enquanto você navega, a gente garante que cada link, projeto e oportunidade fique no lugar certo.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/scripts/config.js"></script>
+  <script src="/scripts/404.js"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   /* -----------------------------------------------
      TABS: Entrar / Criar Conta
@@ -145,7 +145,7 @@
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
         showToast('Login realizado com sucesso!', 'success');
-        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
+        setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
@@ -194,7 +194,7 @@
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
         showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
-        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
+        setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
@@ -243,7 +243,7 @@
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
         showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
-        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
+        setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');

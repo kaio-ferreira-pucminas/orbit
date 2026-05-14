@@ -23,9 +23,9 @@
   <header class="feed-header">
     <div class="feed-header__inner">
       <div class="feed-header__left">
-        <a href="index.html" class="feed-header__logo">Orbit</a>
+        <a href="/pages/feed.html" class="feed-header__logo">Orbit</a>
         <nav class="feed-header__nav" aria-label="Navegação principal">
-          <a href="feed.html"   class="feed-nav__link">Feed</a>
+          <a href="/pages/feed.html"   class="feed-nav__link">Feed</a>
           <a href="#"           class="feed-nav__link">Oportunidades</a>
           <a href="#"           class="feed-nav__link">Projetos</a>
           <a href="#"           class="feed-nav__link">Mensagens</a>
@@ -65,7 +65,7 @@
 
             <div class="user-menu__divider"></div>
 
-            <a href="profile.html" class="user-menu__item" role="menuitem">
+            <a href="/pages/profile.html" class="user-menu__item" role="menuitem">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -126,7 +126,7 @@
           <p class="profile-headline" id="profile-headline">—</p>
 
           <div class="profile-actions">
-            <a href="feed.html" class="profile-cta profile-cta--primary">
+            <a href="/pages/feed.html" class="profile-cta profile-cta--primary">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="9"/>
@@ -344,8 +344,9 @@
             <input type="text" id="edit-github" class="edit-form__input" placeholder="seuusuario" />
           </div>
           <div class="edit-form__group">
-            <label class="edit-form__label" for="edit-linkedin">LinkedIn</label>
-            <input type="text" id="edit-linkedin" class="edit-form__input" placeholder="seuusuario" />
+            <label class="edit-form__label" for="edit-linkedin">URL do LinkedIn</label>
+            <input type="url" id="edit-linkedin" class="edit-form__input"
+              placeholder="https://www.linkedin.com/in/seu-perfil" />
           </div>
         </div>
 
@@ -502,6 +503,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
   <script src="../scripts/profile.js"></script>
 </body>

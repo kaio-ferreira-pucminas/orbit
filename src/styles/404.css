@@ -1,0 +1,119 @@
+/* ============================================================
+   404.CSS — Orbit página de erro
+   Layout reusa auth.css (split panel) com decoração própria
+============================================================ */
+
+/* Container do "4 [planeta] 4" */
+.error-404 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 auto 24px;
+  user-select: none;
+}
+
+.error-404__digit {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 120px;
+  line-height: 1;
+  letter-spacing: -6px;
+  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, #6063ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Planeta animado (no lugar do "0") */
+.error-404__planet {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: planet-float 3s ease-in-out infinite;
+}
+
+@keyframes planet-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* Anel ao redor */
+.error-404__planet-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(70, 72, 212, 0.4);
+  transform: rotate(-20deg);
+  animation: ring-spin 12s linear infinite;
+}
+
+@keyframes ring-spin {
+  from { transform: rotate(-20deg); }
+  to   { transform: rotate(340deg); }
+}
+
+/* Corpo do planeta */
+.error-404__planet-body {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, #8084ff 0%, var(--primary) 60%, #2d2fc4 100%);
+  box-shadow:
+    inset -6px -6px 16px rgba(0, 0, 0, 0.25),
+    0 8px 24px rgba(70, 72, 212, 0.35);
+  position: relative;
+}
+
+/* Cratera/sombra */
+.error-404__planet-body::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 38px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.error-404__planet-body::after {
+  content: '';
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Botões de ação */
+.error-404__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.error-404__support {
+  text-align: center;
+  margin-top: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted, #76758a);
+}
+
+/* ============================================================
+   RESPONSIVO
+============================================================ */
+@media (max-width: 540px) {
+  .error-404__digit  { font-size: 88px; letter-spacing: -4px; }
+  .error-404__planet { width: 70px; height: 70px; }
+  .error-404__planet-body { width: 48px; height: 48px; }
+}

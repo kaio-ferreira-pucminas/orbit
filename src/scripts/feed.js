@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   /* =========================================================
      AUTH GUARD — bloqueia acesso sem token
@@ -13,7 +13,7 @@
   const userJson = localStorage.getItem('orbit_user');
 
   if (!token || !userJson) {
-    window.location.href = 'auth.html?tab=login';
+    window.location.href = '/pages/auth.html?tab=login';
     return;
   }
 
@@ -112,7 +112,7 @@
     if (res.status === 401) {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');
-      window.location.href = 'auth.html?tab=login';
+      window.location.href = '/pages/auth.html?tab=login';
       throw new Error('Token expirado');
     }
 
@@ -199,7 +199,7 @@
     closeMenu();
     localStorage.removeItem('orbit_token');
     localStorage.removeItem('orbit_user');
-    window.location.href = 'auth.html?tab=login';
+    window.location.href = '/pages/auth.html?tab=login';
   });
 
   /* =========================================================

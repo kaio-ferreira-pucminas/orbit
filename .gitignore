@@ -28,3 +28,7 @@ yarn-error.log*
 # Sistema operacional
 .DS_Store
 Thumbs.db
+
+# Deploy local — Vercel CLI cria .vercel/ ao linkar o projeto (project id + org id)
+.vercel/
+DEPLOY.md

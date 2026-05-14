@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   /* =========================================================
      AUTH GUARD
@@ -13,7 +13,7 @@
   const userJson = localStorage.getItem('orbit_user');
 
   if (!token || !userJson) {
-    window.location.href = 'auth.html?tab=login';
+    window.location.href = '/pages/auth.html?tab=login';
     return;
   }
 
@@ -52,7 +52,7 @@
     if (res.status === 401) {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');
-      window.location.href = 'auth.html?tab=login';
+      window.location.href = '/pages/auth.html?tab=login';
       throw new Error('Token expirado');
     }
 
@@ -125,7 +125,7 @@
     closeMenu();
     localStorage.removeItem('orbit_token');
     localStorage.removeItem('orbit_user');
-    window.location.href = 'auth.html?tab=login';
+    window.location.href = '/pages/auth.html?tab=login';
   });
 
   /* =========================================================
@@ -187,7 +187,10 @@
     }
 
     if (user.linkedin) {
-      linkedinLink.href = `https://linkedin.com/in/${user.linkedin}`;
+      // Usa exatamente o link salvo pelo usuário; só normaliza prepend do https:// se faltar
+      linkedinLink.href = /^https?:\/\//i.test(user.linkedin)
+        ? user.linkedin
+        : `https://${user.linkedin}`;
       linkedinLink.style.display = '';
     } else {
       linkedinLink.style.display = 'none';
@@ -710,7 +713,7 @@
       setTimeout(() => {
         localStorage.removeItem('orbit_token');
         localStorage.removeItem('orbit_user');
-        window.location.href = 'auth.html?tab=login';
+        window.location.href = '/pages/auth.html?tab=login';
       }, 1800);
     } catch {
       window.showToast('Erro de conexão.', 'error');

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   const params = new URLSearchParams(window.location.search);
   const token  = params.get('token');
@@ -80,7 +80,7 @@
 
       window.showToast('Senha redefinida com sucesso!', 'success');
       setTimeout(() => {
-        window.location.href = 'auth.html?tab=login';
+        window.location.href = '/pages/auth.html?tab=login';
       }, 1500);
 
     } catch {

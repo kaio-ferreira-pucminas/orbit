@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   const form         = document.getElementById('form-forgot-body');
   const emailInput   = document.getElementById('forgot-email');
