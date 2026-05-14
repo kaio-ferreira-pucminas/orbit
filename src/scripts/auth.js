@@ -106,28 +106,10 @@
   }
 
   /* -----------------------------------------------
-     FEEDBACK DE ERRO INLINE
+     HELPERS DE FEEDBACK
   ----------------------------------------------- */
-  function showError(formEl, message) {
-    let el = formEl.querySelector('.auth-api-error');
-    if (!el) {
-      el = document.createElement('p');
-      el.className = 'auth-api-error';
-      // Insere antes do botão submit dentro do seu pai direto
-      const btn = formEl.querySelector('[type="submit"]');
-      btn.parentElement.insertBefore(el, btn);
-    }
-    el.textContent = message;
-    el.style.display = 'block';
-  }
-
-  function clearError(formEl) {
-    const el = formEl.querySelector('.auth-api-error');
-    if (el) el.style.display = 'none';
-  }
-
   function setLoading(btn, loading) {
-    btn.disabled   = loading;
+    btn.disabled = loading;
     btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
     btn.textContent = loading ? 'Aguarde...' : btn.dataset.originalText;
   }
@@ -138,7 +120,6 @@
   if (formLogin) {
     formLogin.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearError(formLogin);
 
       const email    = formLogin.querySelector('#login-email').value.trim();
       const password = formLogin.querySelector('#login-password').value;
@@ -156,19 +137,18 @@
         const data = await res.json();
 
         if (!res.ok) {
-          showError(formLogin, data.error || 'Erro ao fazer login.');
+          showToast(data.error || 'Erro ao fazer login.', 'error');
           return;
         }
 
-        // Salva token e dados do usuário
         localStorage.setItem('orbit_token', data.token);
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
-        // Redireciona para home (dashboard futuro)
-        window.location.href = '../pages/index.html';
+        showToast('Login realizado com sucesso!', 'success');
+        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
 
       } catch {
-        showError(formLogin, 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+        showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
       } finally {
         setLoading(btn, false);
       }
@@ -181,7 +161,6 @@
   if (formDev) {
     formDev.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearError(formDev);
 
       const name     = formDev.querySelector('#dev-name').value.trim();
       const email    = formDev.querySelector('#dev-email').value.trim();
@@ -191,7 +170,7 @@
       const btn      = formDev.querySelector('[type="submit"]');
 
       if (password !== confirm) {
-        showError(formDev, 'As senhas não coincidem.');
+        showToast('As senhas não coincidem.', 'error');
         return;
       }
 
@@ -207,17 +186,18 @@
         const data = await res.json();
 
         if (!res.ok) {
-          showError(formDev, data.error || 'Erro ao criar conta.');
+          showToast(data.error || 'Erro ao criar conta.', 'error');
           return;
         }
 
         localStorage.setItem('orbit_token', data.token);
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
-        window.location.href = '../pages/index.html';
+        showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
+        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
 
       } catch {
-        showError(formDev, 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+        showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
       } finally {
         setLoading(btn, false);
       }
@@ -230,7 +210,6 @@
   if (formCompany) {
     formCompany.addEventListener('submit', async (e) => {
       e.preventDefault();
-      clearError(formCompany);
 
       const name     = formCompany.querySelector('#co-name').value.trim();
       const cpfCnpj  = formCompany.querySelector('#co-cnpj').value.trim();
@@ -240,7 +219,7 @@
       const btn      = formCompany.querySelector('[type="submit"]');
 
       if (password !== confirm) {
-        showError(formCompany, 'As senhas não coincidem.');
+        showToast('As senhas não coincidem.', 'error');
         return;
       }
 
@@ -256,17 +235,18 @@
         const data = await res.json();
 
         if (!res.ok) {
-          showError(formCompany, data.error || 'Erro ao criar conta.');
+          showToast(data.error || 'Erro ao criar conta.', 'error');
           return;
         }
 
         localStorage.setItem('orbit_token', data.token);
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
-        window.location.href = '../pages/index.html';
+        showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
+        setTimeout(() => { window.location.href = '../pages/index.html'; }, 1200);
 
       } catch {
-        showError(formCompany, 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+        showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
       } finally {
         setLoading(btn, false);
       }
