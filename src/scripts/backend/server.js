@@ -1,19 +1,31 @@
-// server.js — Orbit Backend (JSON Server + JWT)
+// server.js — Orbit Backend (JSON Server + JWT + Resend)
 // Roda em: http://localhost:3001
 //
 // Rotas públicas:
-//   POST /api/auth/register      → cadastro de novo usuário
-//   POST /api/auth/login         → login, retorna JWT
+//   POST /api/auth/register             → cadastro (envia email de boas-vindas)
+//   POST /api/auth/login                → login, retorna JWT
+//   POST /api/auth/forgot-password      → gera token e envia email com link
+//   POST /api/auth/reset-password       → valida token e atualiza senha
 //
 // Rotas protegidas (exige Bearer token):
-//   GET    /api/users                  → lista usuários
-//   GET    /api/users/:id              → busca usuário por id
-//   GET    /api/posts                  → lista posts (com autor + contadores)
-//   POST   /api/posts                  → cria post
-//   DELETE /api/posts/:id              → deleta próprio post
-//   POST   /api/posts/:id/like         → toggle curtir
-//   GET    /api/posts/:id/comments     → lista comentários do post
-//   POST   /api/posts/:id/comments     → cria comentário
+//   GET    /api/users                   → lista usuários
+//   GET    /api/users/:id               → busca usuário por id
+//   GET    /api/users/:id/profile       → perfil agregado
+//   PATCH  /api/users/:id               → atualiza próprio perfil
+//   GET    /api/posts                   → lista posts (com autor + contadores)
+//   POST   /api/posts                   → cria post
+//   DELETE /api/posts/:id               → deleta próprio post
+//   POST   /api/posts/:id/like          → toggle curtir
+//   GET    /api/posts/:id/comments      → lista comentários do post
+//   POST   /api/posts/:id/comments      → cria comentário
+//   POST   /api/auth/deactivate/request → gera código e envia por email
+//   POST   /api/auth/deactivate/confirm → valida código e desativa conta
+//
+// Rotas de dev (apenas para auditoria de emails):
+//   GET    /api/dev/emails              → lista todos os emails enviados
+//   GET    /api/dev/emails/:id          → renderiza HTML do email no navegador
+
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const jsonServer = require('json-server');
 const jwt        = require('jsonwebtoken');
@@ -22,11 +34,24 @@ const crypto     = require('crypto');
 const path       = require('path');
 const fs         = require('fs');
 
+const { sendEmail }              = require('./emails/emailService');
+const {
+  welcomeEmail,
+  resetPasswordEmail,
+  deactivationCodeEmail,
+  accountDeletedEmail,
+} = require('./emails/templates');
+
 // ── Configurações ────────────────────────────────────────────────────────────
 const PORT       = 3001;
 const JWT_SECRET = 'orbit-jwt-secret-2026';
 const JWT_EXPIRES = '1d';
 const DB_PATH    = path.join(__dirname, 'db.json');
+const APP_URL    = process.env.APP_URL || 'http://localhost:3000';
+
+const RESET_TOKEN_TTL_MIN  = 60;     // 1 hora
+const DEACTIVATE_CODE_TTL  = 15;     // 15 min
+const ACCOUNT_DELETE_DAYS  = 30;     // dias após disabledAt
 
 // ── Helpers do banco ─────────────────────────────────────────────────────────
 function getDb()       { return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8')); }
@@ -51,9 +76,10 @@ const middlewares = jsonServer.defaults({ noCors: false });
 server.use(middlewares);
 
 // Aumenta limite do body parser para suportar upload de imagens/PDFs em base64
+// (10MB raw → ~13MB base64; avatar + currículo no mesmo PATCH → bumpamos pra 30MB)
 const express = require('express');
-server.use(express.json({ limit: '10mb' }));
-server.use(express.urlencoded({ extended: true, limit: '10mb' }));
+server.use(express.json({ limit: '30mb' }));
+server.use(express.urlencoded({ extended: true, limit: '30mb' }));
 
 // ── Middleware de JWT ────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -117,6 +143,21 @@ server.post('/api/auth/register', async (req, res) => {
   };
 
   db.users.push(newUser);
+
+  // Envia email de boas-vindas (não bloqueia o fluxo se falhar)
+  try {
+    const tpl = welcomeEmail({ name: newUser.name, appUrl: APP_URL });
+    await sendEmail(db, {
+      to:      newUser.email,
+      subject: tpl.subject,
+      html:    tpl.html,
+      type:    'welcome',
+      userId:  newUser.id,
+    });
+  } catch (err) {
+    console.warn('Falha ao enviar welcome email:', err.message);
+  }
+
   saveDb(db);
 
   const token = jwt.sign(
@@ -144,13 +185,19 @@ server.post('/api/auth/login', async (req, res) => {
     return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
   }
 
-  if (user.disabledAt) {
-    return res.status(403).json({ error: 'Conta desativada. Entre em contato com o suporte.' });
-  }
-
   const senhaCorreta = await bcrypt.compare(password, user.passwordHash);
   if (!senhaCorreta) {
     return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
+  }
+
+  // Conta desativada: reativa se ainda está dentro dos 30 dias
+  if (user.disabledAt) {
+    const idx = db.users.findIndex(u => u.id === user.id);
+    db.users[idx].disabledAt = null;
+    db.users[idx].updatedAt  = new Date().toISOString();
+    saveDb(db);
+    user.disabledAt = null;
+    console.log(`✅ Conta reativada por login: ${user.email}`);
   }
 
   const token = jwt.sign(
@@ -161,6 +208,224 @@ server.post('/api/auth/login', async (req, res) => {
 
   return res.status(200).json({ token, user: sanitizeUser(user) });
 });
+
+// ── POST /api/auth/forgot-password ──────────────────────────────────────────
+server.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Informe seu e-mail.' });
+
+  const db   = getDb();
+  const user = db.users.find(u => u.email === email);
+
+  // IMPORTANTE: por segurança, sempre retornamos a mesma resposta.
+  // Não revelamos se o e-mail existe ou não.
+  if (!user) {
+    return res.status(200).json({ message: 'Se este e-mail estiver cadastrado, você receberá um link.' });
+  }
+
+  // Invalida tokens anteriores deste usuário
+  db.password_reset_tokens = (db.password_reset_tokens || []).filter(t => t.userId !== user.id);
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const now   = Date.now();
+  db.password_reset_tokens.push({
+    id:        generateId(),
+    userId:    user.id,
+    token,
+    createdAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + RESET_TOKEN_TTL_MIN * 60 * 1000).toISOString(),
+    usedAt:    null,
+  });
+
+  // Envia email
+  const resetUrl = `${APP_URL}/pages/reset-password.html?token=${token}`;
+  try {
+    const tpl = resetPasswordEmail({
+      name:             user.name,
+      resetUrl,
+      expiresInMinutes: RESET_TOKEN_TTL_MIN,
+    });
+    await sendEmail(db, {
+      to:      user.email,
+      subject: tpl.subject,
+      html:    tpl.html,
+      type:    'reset',
+      userId:  user.id,
+    });
+  } catch (err) {
+    console.warn('Falha ao enviar email de reset:', err.message);
+  }
+
+  saveDb(db);
+  return res.status(200).json({ message: 'Se este e-mail estiver cadastrado, você receberá um link.' });
+});
+
+// ── POST /api/auth/reset-password ───────────────────────────────────────────
+server.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res.status(400).json({ error: 'Token e senha são obrigatórios.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'A senha precisa ter pelo menos 8 caracteres.' });
+  }
+
+  const db    = getDb();
+  const entry = (db.password_reset_tokens || []).find(t => t.token === token);
+
+  if (!entry || entry.usedAt || new Date(entry.expiresAt) < new Date()) {
+    return res.status(400).json({ error: 'Link inválido ou expirado. Solicite um novo.' });
+  }
+
+  const userIdx = db.users.findIndex(u => u.id === entry.userId);
+  if (userIdx === -1) {
+    return res.status(400).json({ error: 'Usuário não encontrado.' });
+  }
+
+  // Atualiza senha
+  db.users[userIdx].passwordHash = await bcrypt.hash(password, 10);
+  db.users[userIdx].updatedAt    = new Date().toISOString();
+
+  // Marca token como usado
+  entry.usedAt = new Date().toISOString();
+
+  saveDb(db);
+  return res.status(200).json({ message: 'Senha redefinida com sucesso.' });
+});
+
+// ── POST /api/auth/deactivate/request ───────────────────────────────────────
+server.post('/api/auth/deactivate/request', requireAuth, async (req, res) => {
+  const db    = getDb();
+  const user  = db.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+  // Invalida códigos anteriores
+  db.deactivation_codes = (db.deactivation_codes || []).filter(c => c.userId !== user.id);
+
+  // Gera código de 6 dígitos
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const now  = Date.now();
+  db.deactivation_codes.push({
+    id:        generateId(),
+    userId:    user.id,
+    code,
+    createdAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + DEACTIVATE_CODE_TTL * 60 * 1000).toISOString(),
+    usedAt:    null,
+  });
+
+  // Envia email
+  try {
+    const tpl = deactivationCodeEmail({
+      name:             user.name,
+      code,
+      expiresInMinutes: DEACTIVATE_CODE_TTL,
+    });
+    await sendEmail(db, {
+      to:      user.email,
+      subject: tpl.subject,
+      html:    tpl.html,
+      type:    'deactivation',
+      userId:  user.id,
+    });
+  } catch (err) {
+    console.warn('Falha ao enviar email de desativação:', err.message);
+  }
+
+  saveDb(db);
+  return res.status(200).json({ message: 'Código enviado para o seu e-mail.' });
+});
+
+// ── POST /api/auth/deactivate/confirm ───────────────────────────────────────
+server.post('/api/auth/deactivate/confirm', requireAuth, (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Informe o código recebido por e-mail.' });
+
+  const db    = getDb();
+  const entry = (db.deactivation_codes || []).find(
+    c => c.userId === req.user.id && c.code === code
+  );
+
+  if (!entry || entry.usedAt || new Date(entry.expiresAt) < new Date()) {
+    return res.status(400).json({ error: 'Código inválido ou expirado.' });
+  }
+
+  const userIdx = db.users.findIndex(u => u.id === req.user.id);
+  if (userIdx === -1) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+  // Soft delete
+  db.users[userIdx].disabledAt = new Date().toISOString();
+  db.users[userIdx].updatedAt  = new Date().toISOString();
+  entry.usedAt = new Date().toISOString();
+
+  saveDb(db);
+  return res.status(200).json({ message: 'Conta desativada. Você tem 30 dias para reativá-la fazendo login novamente.' });
+});
+
+// ── DEV: visualização dos emails enviados ───────────────────────────────────
+// Sem autenticação por simplicidade (rota apenas pra debug local)
+
+server.get('/api/dev/emails', (req, res) => {
+  const db = getDb();
+  const list = (db.sent_emails || [])
+    .slice()
+    .reverse()
+    .map(e => ({
+      id: e.id, type: e.type, to: e.to, subject: e.subject,
+      userId: e.userId, createdAt: e.createdAt,
+      providerId: e.providerId, providerError: e.providerError,
+    }));
+  return res.json(list);
+});
+
+server.get('/api/dev/emails/:id', (req, res) => {
+  const db    = getDb();
+  const email = (db.sent_emails || []).find(e => e.id === req.params.id);
+  if (!email) return res.status(404).send('Email não encontrado');
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  return res.send(email.html);
+});
+
+// ── Cleanup: exclui contas desativadas há mais de 30 dias ───────────────────
+async function cleanupExpiredAccounts() {
+  const db    = getDb();
+  const limit = Date.now() - ACCOUNT_DELETE_DAYS * 24 * 60 * 60 * 1000;
+  const toDelete = (db.users || []).filter(
+    u => u.disabledAt && new Date(u.disabledAt).getTime() < limit
+  );
+
+  if (toDelete.length === 0) return;
+
+  for (const user of toDelete) {
+    console.log(`🗑️  Excluindo conta expirada: ${user.email} (desativada em ${user.disabledAt})`);
+
+    // Email de confirmação de exclusão
+    try {
+      const tpl = accountDeletedEmail({ name: user.name });
+      await sendEmail(db, {
+        to:      user.email,
+        subject: tpl.subject,
+        html:    tpl.html,
+        type:    'deleted',
+        userId:  user.id,
+      });
+    } catch (err) {
+      console.warn('Falha ao enviar email de exclusão:', err.message);
+    }
+
+    // Remove user + dados relacionados
+    db.users    = db.users.filter(u => u.id !== user.id);
+    db.posts    = (db.posts    || []).filter(p => p.userId !== user.id);
+    db.comments = (db.comments || []).filter(c => c.userId !== user.id);
+    db.likes    = (db.likes    || []).filter(l => l.userId !== user.id);
+    db.projects = (db.projects || []).filter(p => p.userId !== user.id);
+    db.reviews  = (db.reviews  || []).filter(r => r.userId !== user.id);
+    db.password_reset_tokens = (db.password_reset_tokens || []).filter(t => t.userId !== user.id);
+    db.deactivation_codes    = (db.deactivation_codes    || []).filter(c => c.userId !== user.id);
+  }
+
+  saveDb(db);
+}
 
 // ── Rotas protegidas ─────────────────────────────────────────────────────────
 // Qualquer rota /api/users/* exige autenticação
@@ -425,11 +690,22 @@ server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);
 
 // ── Start ────────────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`\n🚀 Orbit API rodando em http://localhost:${PORT}`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/register`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`   GET  http://localhost:${PORT}/api/users      (protegido)`);
-  console.log(`   GET  http://localhost:${PORT}/api/posts      (protegido)`);
-  console.log(`   POST http://localhost:${PORT}/api/posts/:id/like  (protegido)\n`);
+  console.log(`   📮 Auth:    POST /api/auth/{register,login,forgot-password,reset-password}`);
+  console.log(`   👥 Users:   GET/PATCH /api/users/:id  (protegido)`);
+  console.log(`   📝 Posts:   GET/POST/DELETE /api/posts  (protegido)`);
+  console.log(`   ⚠️  Conta:   POST /api/auth/deactivate/{request,confirm}  (protegido)`);
+  console.log(`   📧 Dev:     GET /api/dev/emails  (audit dos emails enviados)`);
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn(`\n⚠️  RESEND_API_KEY não configurado no .env — emails serão apenas simulados.`);
+  } else {
+    console.log(`\n✉️  Resend configurado (de: ${process.env.RESEND_FROM_EMAIL})`);
+  }
+
+  // Roda cleanup uma vez ao iniciar e depois a cada 1h
+  await cleanupExpiredAccounts();
+  setInterval(cleanupExpiredAccounts, 60 * 60 * 1000);
+  console.log('');
 });
