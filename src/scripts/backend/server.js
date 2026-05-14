@@ -49,7 +49,11 @@ const router      = jsonServer.router(DB_PATH);
 const middlewares = jsonServer.defaults({ noCors: false });
 
 server.use(middlewares);
-server.use(jsonServer.bodyParser);
+
+// Aumenta limite do body parser para suportar upload de imagens/PDFs em base64
+const express = require('express');
+server.use(express.json({ limit: '10mb' }));
+server.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── Middleware de JWT ────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -161,6 +165,82 @@ server.post('/api/auth/login', async (req, res) => {
 // ── Rotas protegidas ─────────────────────────────────────────────────────────
 // Qualquer rota /api/users/* exige autenticação
 server.use('/api/users', requireAuth);
+
+// GET /api/users/:id/profile — perfil agregado (user + projects + reviews + stats)
+server.get('/api/users/:id/profile', requireAuth, (req, res) => {
+  const db   = getDb();
+  const user = db.users.find(u => u.id === req.params.id);
+
+  if (!user) {
+    return res.status(404).json({ error: 'Usuário não encontrado.' });
+  }
+
+  const projects = (db.projects || []).filter(p => p.userId === req.params.id);
+  const reviews  = (db.reviews  || []).filter(r => r.userId === req.params.id);
+
+  const ratingSum   = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+  const ratingAvg   = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
+
+  return res.status(200).json({
+    user:  sanitizeUser(user),
+    projects,
+    reviews,
+    stats: {
+      rating:       ratingAvg,
+      reviewsCount: reviews.length,
+      projectsCount: projects.length,
+    },
+  });
+});
+
+// PATCH /api/users/:id — atualiza próprio perfil
+server.patch('/api/users/:id', requireAuth, (req, res) => {
+  // Só permite editar o próprio usuário
+  if (req.params.id !== req.user.id) {
+    return res.status(403).json({ error: 'Você só pode editar o próprio perfil.' });
+  }
+
+  const db    = getDb();
+  const idx   = db.users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) {
+    return res.status(404).json({ error: 'Usuário não encontrado.' });
+  }
+
+  // Whitelist — só esses campos podem ser atualizados via PATCH
+  const ALLOWED = [
+    'name', 'headline', 'bio', 'skills', 'github', 'linkedin',
+    'available', 'avatarUrl', 'resumeUrl', 'resumeFileName', 'title',
+  ];
+
+  const updates = {};
+  for (const key of ALLOWED) {
+    if (key in req.body) updates[key] = req.body[key];
+  }
+
+  // Validações básicas
+  if (updates.name !== undefined && (!updates.name || !updates.name.trim())) {
+    return res.status(400).json({ error: 'O nome não pode ser vazio.' });
+  }
+
+  if (updates.skills !== undefined && !Array.isArray(updates.skills)) {
+    return res.status(400).json({ error: 'Habilidades devem ser uma lista.' });
+  }
+
+  if (updates.bio !== undefined && updates.bio && updates.bio.length > 2000) {
+    return res.status(400).json({ error: 'A bio excede 2000 caracteres.' });
+  }
+
+  // Atualiza
+  db.users[idx] = {
+    ...db.users[idx],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+
+  saveDb(db);
+
+  return res.status(200).json(sanitizeUser(db.users[idx]));
+});
 
 // ── POSTS ────────────────────────────────────────────────────────────────────
 

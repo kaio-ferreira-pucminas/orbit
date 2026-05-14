@@ -7,11 +7,26 @@
       "email": "joao@dev.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "joaosilva",
+      "linkedin": "joaosilva",
       "cpfCnpj": "123.456.789-00",
       "title": "Full Stack Enthusiast",
+      "headline": "Full Stack Developer | React & Node.js",
+      "bio": "Iniciei minha jornada no desenvolvimento buscando entender como as experiências digitais poderiam ser mais humanas e eficientes. Hoje, foco em construir sistemas escaláveis utilizando o ecossistema JavaScript.\n\nMinha abordagem combina rigor técnico com uma visão de produto, garantindo que cada linha de código entregue valor real para o usuário final. Sou entusiasta de open source e acredito no aprendizado contínuo através da colaboração.",
+      "skills": [
+        "React",
+        "Node.js",
+        "TypeScript",
+        "Next.js",
+        "Tailwind CSS",
+        "PostgreSQL",
+        "Docker",
+        "GraphQL"
+      ],
+      "available": true,
       "createdAt": "2026-05-14T10:00:00.000Z",
-      "updatedAt": "2026-05-14T10:00:00.000Z",
-      "disabledAt": null
+      "updatedAt": "2026-05-14T18:51:01.649Z",
+      "disabledAt": null,
+      "avatarUrl": "data:image/png;base64,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"
     },
     {
       "id": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
@@ -20,8 +35,13 @@
       "email": "contato@techflow.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": null,
+      "linkedin": null,
       "cpfCnpj": "00.000.000/0001-00",
       "title": "Empresa de Tecnologia",
+      "headline": null,
+      "bio": null,
+      "skills": [],
+      "available": false,
       "createdAt": "2026-05-14T10:00:00.000Z",
       "updatedAt": "2026-05-14T10:00:00.000Z",
       "disabledAt": null
@@ -33,8 +53,19 @@
       "email": "maria@dev.com",
       "passwordHash": "$2b$10$lEsdPERPMFJwLhcG8jKP1..Ladn3JS/l2QJvXAe6X9zoNRAmDDzaS",
       "github": "mariasouza",
+      "linkedin": "mariasouza",
       "cpfCnpj": null,
       "title": "Frontend Developer",
+      "headline": "Frontend Developer | UX Engineer",
+      "bio": "Designer reconvertida em desenvolvedora frontend. Acredito que a melhor experiência nasce na interseção entre código limpo e design intencional.",
+      "skills": [
+        "React",
+        "TypeScript",
+        "CSS",
+        "Figma",
+        "Design Systems"
+      ],
+      "available": true,
       "createdAt": "2026-05-14T06:59:18.452Z",
       "updatedAt": "2026-05-14T06:59:18.452Z",
       "disabledAt": null
@@ -46,8 +77,13 @@
       "email": "profissional.contatocarlos@gmail.com",
       "passwordHash": "$2b$10$8QevkXjU.S5kIO4AK.6k3O3h4No1EX5K3AID3lFIAwkfMCkBugGqe",
       "github": "antonio-carlosjr",
+      "linkedin": null,
       "cpfCnpj": null,
       "title": "Backend Developer",
+      "headline": null,
+      "bio": null,
+      "skills": [],
+      "available": true,
       "createdAt": "2026-05-14T15:35:53.658Z",
       "updatedAt": "2026-05-14T15:35:53.658Z",
       "disabledAt": null
@@ -59,8 +95,22 @@
       "email": "lucas@orbit.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "lucassantos",
+      "linkedin": "lucassantos",
       "cpfCnpj": null,
       "title": "Senior Frontend Engineer",
+      "headline": "Fullstack Developer | React & Node.js",
+      "bio": "Engenheiro de software apaixonado por construir produtos digitais com performance e propósito. Mais de 8 anos de experiência liderando squads de produto em fintechs e startups.\n\nForte em React, Node.js e arquitetura distribuída. Acredito que código bem escrito é o que separa um produto bom de um produto memorável.",
+      "skills": [
+        "React",
+        "Node.js",
+        "TypeScript",
+        "Next.js",
+        "Tailwind CSS",
+        "PostgreSQL",
+        "Docker",
+        "GraphQL"
+      ],
+      "available": true,
       "createdAt": "2026-05-10T10:00:00.000Z",
       "updatedAt": "2026-05-10T10:00:00.000Z",
       "disabledAt": null
@@ -72,8 +122,19 @@
       "email": "beatriz@orbit.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "beatrizrocha",
+      "linkedin": "beatrizrocha",
       "cpfCnpj": null,
       "title": "Tech Lead @ Orbit",
+      "headline": "Tech Lead | Architect | Backend Specialist",
+      "bio": "Tech Lead com foco em sistemas de alta disponibilidade. Apaixonada por mentorias e construção de times produtivos.",
+      "skills": [
+        "Node.js",
+        "Go",
+        "Kubernetes",
+        "AWS",
+        "PostgreSQL"
+      ],
+      "available": false,
       "createdAt": "2026-05-10T10:00:00.000Z",
       "updatedAt": "2026-05-10T10:00:00.000Z",
       "disabledAt": null
@@ -85,8 +146,19 @@
       "email": "thiago@orbit.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "thiagolima",
+      "linkedin": "thiagolima",
       "cpfCnpj": null,
       "title": "Backend Dev",
+      "headline": "Backend Developer | Java & Spring",
+      "bio": "Desenvolvedor backend especialista em ecossistema JVM. Atualmente focado em microserviços e mensageria.",
+      "skills": [
+        "Java",
+        "Spring Boot",
+        "Kafka",
+        "PostgreSQL",
+        "Docker"
+      ],
+      "available": true,
       "createdAt": "2026-05-10T10:00:00.000Z",
       "updatedAt": "2026-05-10T10:00:00.000Z",
       "disabledAt": null
@@ -98,8 +170,18 @@
       "email": "carla@orbit.com",
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "carlamendes",
+      "linkedin": "carlamendes",
       "cpfCnpj": null,
       "title": "UI/UX Designer",
+      "headline": "UI/UX Designer | Product Strategy",
+      "bio": "Designer com foco em produtos B2B. Trabalho na interseção entre design e engenharia.",
+      "skills": [
+        "Figma",
+        "Design Systems",
+        "User Research",
+        "Prototyping"
+      ],
+      "available": true,
       "createdAt": "2026-05-10T10:00:00.000Z",
       "updatedAt": "2026-05-10T10:00:00.000Z",
       "disabledAt": null
@@ -126,13 +208,6 @@
       "content": "Estamos contratando! 🎯\n\nVagas abertas para:\n- *Desenvolvedor(a) Backend Sênior* (Node.js + PostgreSQL)\n- *Desenvolvedor(a) Frontend Pleno* (React + TypeScript)\n\nEnvie seu portfólio e código para `vagas@techflow.com`. #vagas #fullstack",
       "createdAt": "2026-05-14T08:00:00.000Z",
       "updatedAt": "2026-05-14T08:00:00.000Z"
-    },
-    {
-      "id": "ee545820-11e4-4c72-9556-93d445f3a453",
-      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
-      "content": "Testando o **editor markdown** do Orbit!\n\nSuporta `inline code` e blocos:\n\n```\nfunction hello() {\n  console.log(\"oi mundo\");\n}\n```\n\nEm *itálico* também funciona. 🚀",
-      "createdAt": "2026-05-14T17:59:41.998Z",
-      "updatedAt": "2026-05-14T17:59:41.998Z"
     }
   ],
   "comments": [
@@ -142,13 +217,6 @@
       "userId": "seed-beatriz-001",
       "content": "Já estamos testando aqui! A migração foi tranquila e o build ficou ~30% mais rápido.",
       "createdAt": "2026-05-14T13:00:00.000Z"
-    },
-    {
-      "id": "adbb6880-5998-4526-a4a8-4ec6ce9403a1",
-      "postId": "post-seed-001",
-      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
-      "content": "Funcionando perfeitamente! 🎉",
-      "createdAt": "2026-05-14T18:00:32.362Z"
     }
   ],
   "likes": [
@@ -169,12 +237,119 @@
       "postId": "post-seed-002",
       "userId": "seed-lucas-001",
       "createdAt": "2026-05-14T09:30:00.000Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "project-seed-001",
+      "userId": "seed-lucas-001",
+      "title": "Orbit Pay",
+      "category": "FinTech",
+      "year": 2024,
+      "description": "Plataforma de pagamentos cross-border com liquidação em tempo real e dashboard de analytics integrado.",
+      "coverGradient": "linear-gradient(135deg, #131b2e 0%, #4648d4 100%)",
+      "technologies": [
+        "React",
+        "Node.js",
+        "Stripe API"
+      ],
+      "demoUrl": "https://example.com/orbit-pay",
+      "repoUrl": "https://github.com/lucassantos/orbit-pay"
     },
     {
-      "id": "ffac3ccc-9d28-4b05-af5e-dc2fcfe9f692",
-      "postId": "post-seed-001",
+      "id": "project-seed-002",
+      "userId": "seed-lucas-001",
+      "title": "SyncSpace",
+      "category": "Social",
+      "year": 2023,
+      "description": "Ferramenta de colaboração assíncrona para times remotos, focada em produtividade e bem-estar.",
+      "coverGradient": "linear-gradient(135deg, #ff6b6b 0%, #c0392b 100%)",
+      "technologies": [
+        "Next.js",
+        "PostgreSQL",
+        "Socket.io"
+      ],
+      "demoUrl": "https://example.com/syncspace",
+      "repoUrl": "https://github.com/lucassantos/syncspace"
+    },
+    {
+      "id": "project-seed-003",
       "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
-      "createdAt": "2026-05-14T17:59:07.528Z"
+      "title": "Orbit Dashboard",
+      "category": "SaaS",
+      "year": 2025,
+      "description": "Dashboard interativo para gerenciamento de carteiras de investimento com gráficos em tempo real.",
+      "coverGradient": "linear-gradient(135deg, #4648d4 0%, #6063ee 100%)",
+      "technologies": [
+        "React",
+        "TypeScript",
+        "D3.js"
+      ],
+      "demoUrl": "https://example.com/orbit-dashboard",
+      "repoUrl": "https://github.com/joaosilva/orbit-dashboard"
+    },
+    {
+      "id": "project-seed-004",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "title": "DevConnect",
+      "category": "Comunidade",
+      "year": 2024,
+      "description": "Aplicativo mobile para conectar desenvolvedores brasileiros com mentores em diversas tecnologias.",
+      "coverGradient": "linear-gradient(135deg, #006860 0%, #2ecc71 100%)",
+      "technologies": [
+        "React Native",
+        "Firebase",
+        "Express"
+      ],
+      "demoUrl": "https://example.com/devconnect",
+      "repoUrl": "https://github.com/joaosilva/devconnect"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "review-seed-001",
+      "userId": "seed-lucas-001",
+      "companyName": "TechFlow Solutions",
+      "reviewerRole": "CTO",
+      "content": "O Lucas demonstrou uma capacidade técnica excepcional ao refatorar nosso core system. Sua atenção aos detalhes e proatividade foram decisivas.",
+      "rating": 5,
+      "createdAt": "2024-12-15T10:00:00.000Z"
+    },
+    {
+      "id": "review-seed-002",
+      "userId": "seed-lucas-001",
+      "companyName": "Stellar Corp",
+      "reviewerRole": "Product Manager",
+      "content": "Contratar o Lucas via Orbit foi uma das nossas melhores escolhas. Ele não apenas programa, ele entende o negócio e sugere melhorias reais.",
+      "rating": 5,
+      "createdAt": "2024-10-22T10:00:00.000Z"
+    },
+    {
+      "id": "review-seed-003",
+      "userId": "seed-lucas-001",
+      "companyName": "Vortex Digital",
+      "reviewerRole": "Lead Developer",
+      "content": "Profissionalismo de ponta a ponta. Entrega código limpo, documentado e dentro dos prazos. Um talento raro para projetos de alta complexidade.",
+      "rating": 4,
+      "createdAt": "2024-08-10T10:00:00.000Z"
+    },
+    {
+      "id": "review-seed-004",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "companyName": "TechFlow Solutions",
+      "reviewerRole": "Engineering Manager",
+      "content": "João trouxe uma energia incrível para o time. Suas contribuições no design system economizaram semanas de trabalho.",
+      "rating": 5,
+      "createdAt": "2025-03-10T10:00:00.000Z"
+    },
+    {
+      "id": "review-seed-005",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "companyName": "Pixel Labs",
+      "reviewerRole": "CTO",
+      "content": "Excelente engenheiro. Entregou um MVP completo em 6 semanas, com qualidade de produção desde o primeiro dia.",
+      "rating": 5,
+      "createdAt": "2025-01-20T10:00:00.000Z"
     }
   ]
 }
