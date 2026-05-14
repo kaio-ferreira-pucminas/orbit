@@ -1,3 +1,7 @@
 # IDEs
 *.swp
 *.swo
+
+#Ignoring folders
+.cursor
+.claude
