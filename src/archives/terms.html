@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit — Termos de Uso e Política de Privacidade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary:      #4648D4;
+      --text-dark:    #13193A;
+      --text-body:    #46455A;
+      --text-muted:   #76758A;
+      --bg-light:     #F2F3FF;
+      --white:        #ffffff;
+      --border:       rgba(197, 196, 215, 0.50);
+      --max-w:        760px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text-body);
+      background: var(--white);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* NAV */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav__logo {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--primary);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .nav__back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav__back:hover { color: var(--primary); }
+
+    /* HERO */
+    .hero {
+      background: var(--bg-light);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 40px 48px;
+      text-align: center;
+    }
+    .hero__tag {
+      display: inline-block;
+      background: rgba(70,72,212,0.10);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .hero__title {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 800;
+      font-size: 32px;
+      color: var(--text-dark);
+      letter-spacing: -0.7px;
+      margin-bottom: 10px;
+    }
+    .hero__date {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* CONTENT */
+    .content {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 56px 40px 96px;
+    }
+
+    .intro {
+      background: var(--bg-light);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 48px;
+      font-size: 15px;
+      color: var(--text-body);
+    }
+
+    .terms-section {
+      margin-bottom: 40px;
+    }
+
+    .terms-section h2 {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terms-section p {
+      margin-bottom: 12px;
+      color: var(--text-body);
+    }
+
+    .terms-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .terms-section ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--text-body);
+    }
+
+    .terms-section ul li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-top: 8px;
+      opacity: 0.6;
+    }
+
+    /* FOOTER */
+    .doc-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .doc-footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .doc-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .nav    { padding: 0 20px; }
+      .hero   { padding: 40px 20px 36px; }
+      .hero__title { font-size: 24px; }
+      .content { padding: 40px 20px 72px; }
+      .doc-footer { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="../pages/index.html" class="nav__logo">Orbit</a>
+    <a href="../pages/index.html" class="nav__back">
+      <svg width="14" height="14" fill="none" viewBox="0 0 16 16">
+        <path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Voltar ao início
+    </a>
+  </nav>
+
+  <header class="hero">
+    <span class="hero__tag">Documento Legal</span>
+    <h1 class="hero__title">Termos de Uso e Política de Privacidade</h1>
+    <p class="hero__date">Última atualização: 14 de maio de 2026</p>
+  </header>
+
+  <main class="content">
+
+    <p class="intro">
+      Bem-vindo à plataforma Orbit. Ao acessar ou utilizar a plataforma, o usuário declara que leu,
+      compreendeu e concorda integralmente com os presentes Termos de Uso e Política de Privacidade.
+    </p>
+
+    <section class="terms-section">
+      <h2>1. Sobre a Plataforma</h2>
+      <p>
+        A Orbit é uma plataforma digital voltada para networking profissional, compartilhamento de
+        conteúdo, publicação de projetos, conexões entre usuários, empresas e desenvolvedores, além da
+        divulgação de oportunidades profissionais, portfólios e experiências técnicas.
+      </p>
+      <p>
+        A plataforma pode integrar serviços de terceiros, incluindo APIs e autenticação externa, como
+        GitHub, Google, LinkedIn e outros serviços compatíveis.
+      </p>
+    </section>
+
+    <section class="terms-section">
+      <h2>2. Aceitação dos Termos</h2>
+      <p>Ao criar uma conta, acessar ou utilizar a plataforma, o usuário concorda com:</p>
+      <ul>
+        <li>Estes Termos de Uso;</li>
+        <li>A Política de Privacidade;</li>
+        <li>O tratamento de dados pessoais conforme descrito neste documento;</li>
+        <li>O compartilhamento autorizado de informações vinculadas às integrações realizadas pelo próprio usuário.</li>
+      </ul>
+      <p>
+        Caso o usuário não concorde com quaisquer disposições destes termos, deverá interromper
+        imediatamente a utilização da plataforma.
+      </p>
+    </section>
+
+    <section class="terms-section">
+      <h2>3. Cadastro e Responsabilidade da Conta</h2>
+      <p>O usuário declara que:</p>
+      <ul>
+        <li>Fornecerá informações verdadeiras, atualizadas e completas;</li>
+        <li>É responsável pela segurança de sua conta e credenciais;</li>
+        <li>Não compartilhará seu acesso com terceiros;</li>
+        <li>Será integralmente responsável por qualquer atividade realizada em sua conta.</li>
+      </ul>
+      <p>A Orbit poderá suspender ou remover contas que:</p>
+      <ul>
+        <li>Utilizem informações falsas;</li>
+        <li>Violem leis aplicáveis;</li>
+        <li>Realizem atividades fraudulentas;</li>
+        <li>Publiquem conteúdos ofensivos, discriminatórios, ilegais ou maliciosos;</li>
+        <li>Tentem comprometer a segurança da plataforma.</li>
+      </ul>
+    </section>
+
+    <section class="terms-section">
+      <h2>4. Integração com GitHub e Serviços de Terceiros</h2>
+      <p>Ao conectar sua conta do GitHub à Orbit, o usuário autoriza expressamente:</p>
+      <ul>
+        <li>O acesso às informações públicas do perfil GitHub;</li>
+        <li>A leitura de repositórios públicos autorizados pela API do GitHub;</li>
+        <li>A exibição de projetos, linguagens, commits, contribuições e estatísticas vinculadas ao perfil;</li>
+        <li>O armazenamento das informações necessárias para funcionamento da plataforma;</li>
+        <li>A sincronização automática de dados profissionais e técnicos.</li>
+      </ul>
+      <p>Dependendo das permissões concedidas pelo usuário no momento da autenticação OAuth, a plataforma poderá acessar:</p>
+      <ul>
+        <li>Nome de usuário;</li>
+        <li>Foto de perfil;</li>
+        <li>E-mail público;</li>
+        <li>Repositórios;</li>
+        <li>Linguagens utilizadas;</li>
+        <li>Histórico público de contribuições;</li>
+        <li>Organizações vinculadas;</li>
+        <li>Links públicos disponibilizados no perfil.</li>
+      </ul>
+      <p>A Orbit não realizará alterações em repositórios, códigos ou configurações do GitHub sem autorização explícita do usuário.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>5. Conteúdo Publicado pelo Usuário</h2>
+      <p>O usuário mantém os direitos sobre os conteúdos publicados na plataforma, incluindo posts, comentários, projetos, portfólios, imagens, links, documentações e conteúdos técnicos.</p>
+      <p>Entretanto, ao publicar conteúdo na Orbit, o usuário concede à plataforma uma licença não exclusiva, gratuita e global para:</p>
+      <ul>
+        <li>Exibir;</li>
+        <li>Hospedar;</li>
+        <li>Processar;</li>
+        <li>Distribuir;</li>
+        <li>Compartilhar;</li>
+        <li>Adaptar tecnicamente os conteúdos para funcionamento da plataforma.</li>
+      </ul>
+      <p>O usuário declara possuir os direitos necessários sobre os materiais publicados.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>6. Condutas Proibidas</h2>
+      <p>É proibido utilizar a plataforma para:</p>
+      <ul>
+        <li>Publicação de conteúdo ilegal;</li>
+        <li>Disseminação de malware;</li>
+        <li>Engenharia reversa;</li>
+        <li>Tentativas de invasão;</li>
+        <li>Coleta indevida de dados;</li>
+        <li>Spam;</li>
+        <li>Assédio;</li>
+        <li>Discurso de ódio;</li>
+        <li>Violação de propriedade intelectual;</li>
+        <li>Utilização automatizada não autorizada (bots, scrapers ou scripts maliciosos).</li>
+      </ul>
+      <p>A Orbit poderá remover conteúdos e bloquear usuários sem aviso prévio em caso de violação.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>7. Privacidade e Tratamento de Dados</h2>
+      <p>A Orbit realiza o tratamento de dados pessoais em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD).</p>
+      <p>Os dados coletados podem incluir:</p>
+      <ul>
+        <li>Nome;</li>
+        <li>E-mail;</li>
+        <li>Foto de perfil;</li>
+        <li>Informações profissionais;</li>
+        <li>Dados de autenticação;</li>
+        <li>Dados públicos do GitHub;</li>
+        <li>Endereço IP;</li>
+        <li>Dados de navegação;</li>
+        <li>Informações de dispositivo;</li>
+        <li>Logs de acesso.</li>
+      </ul>
+      <p>Os dados poderão ser utilizados para funcionamento da plataforma, segurança, autenticação, personalização da experiência, recomendação de conteúdo, métricas e análises, melhorias internas, prevenção de fraudes e comunicação com o usuário.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>8. Compartilhamento de Dados</h2>
+      <p>A Orbit poderá compartilhar informações com:</p>
+      <ul>
+        <li>Serviços de hospedagem;</li>
+        <li>Ferramentas analíticas;</li>
+        <li>APIs integradas;</li>
+        <li>Serviços de autenticação;</li>
+        <li>Autoridades legais, quando exigido por lei.</li>
+      </ul>
+      <p>A plataforma não comercializa dados pessoais dos usuários.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>9. Cookies e Tecnologias de Rastreamento</h2>
+      <p>A plataforma poderá utilizar cookies, tokens, sessões, pixels e ferramentas analíticas para manter sessões autenticadas, melhorar desempenho, entender comportamento de navegação e personalizar a experiência do usuário.</p>
+      <p>O usuário poderá desativar cookies no navegador, embora algumas funcionalidades possam ser afetadas.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>10. Segurança</h2>
+      <p>A Orbit adota medidas técnicas e organizacionais para proteção dos dados dos usuários, incluindo criptografia, controle de acesso, monitoramento, logs de segurança e proteção contra acessos não autorizados.</p>
+      <p>Apesar disso, nenhum sistema é completamente imune a falhas ou ataques cibernéticos.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>11. Propriedade Intelectual</h2>
+      <p>Todos os elementos da plataforma, incluindo nome Orbit, marca, interface, layout, funcionalidades, identidade visual, código proprietário e estrutura da plataforma, são protegidos pela legislação aplicável de propriedade intelectual.</p>
+      <p>É proibida a reprodução sem autorização formal.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>12. Limitação de Responsabilidade</h2>
+      <p>A Orbit não se responsabiliza por conteúdos publicados por usuários, links externos, indisponibilidade temporária, perda de dados causada por terceiros, problemas oriundos de integrações externas ou danos decorrentes do uso inadequado da plataforma.</p>
+      <p>O uso da plataforma ocorre por conta e risco do usuário.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>13. Exclusão de Conta</h2>
+      <p>O usuário poderá solicitar a exclusão de sua conta a qualquer momento.</p>
+      <p>A Orbit poderá manter determinados dados pelo período necessário para cumprimento legal, auditoria, segurança e exercício regular de direitos.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>14. Alterações dos Termos</h2>
+      <p>A Orbit poderá atualizar estes Termos e Política de Privacidade periodicamente.</p>
+      <p>Em caso de alterações relevantes, os usuários poderão ser notificados pela plataforma ou por e-mail.</p>
+      <p>O uso contínuo da plataforma após alterações representa concordância com os novos termos.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>15. Legislação e Foro</h2>
+      <p>Este documento será regido pelas leis da República Federativa do Brasil.</p>
+      <p>Fica eleito o foro da comarca de Belo Horizonte para resolução de quaisquer conflitos relacionados a estes termos.</p>
+    </section>
+
+    <section class="terms-section">
+      <h2>16. Contato</h2>
+      <p>Para dúvidas, solicitações ou questões relacionadas à privacidade e proteção de dados, o usuário poderá entrar em contato através dos canais oficiais da plataforma.</p>
+    </section>
+
+    <p class="intro" style="margin-top: 48px; margin-bottom: 0;">
+      Ao clicar em <strong>"Criar Conta"</strong>, <strong>"Continuar"</strong> ou utilizar a plataforma, o usuário declara estar
+      ciente e de acordo com todos os termos apresentados neste documento.
+    </p>
+
+  </main>
+
+  <footer class="doc-footer">
+    © 2026 Orbit. Todos os direitos reservados. &nbsp;·&nbsp;
+    <a href="../pages/auth.html">Criar conta</a> &nbsp;·&nbsp;
+    <a href="../pages/index.html">Página inicial</a>
+  </footer>
+
+</body>
+</html>

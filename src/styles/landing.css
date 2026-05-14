@@ -644,8 +644,15 @@ ul { list-style: none; }
   .navbar__toggle  { display: flex; }
   .navbar__links,
   .navbar__actions { display: none; }
-  .navbar__inner   { flex-wrap: wrap; height: auto; padding: 14px 24px; gap: 0; }
+  .navbar__inner   { flex-wrap: wrap; height: auto; padding: 14px 24px; gap: 0; position: relative; }
   .navbar__logo    { flex: 1; }
+
+  /* X no canto superior direito quando o menu está aberto */
+  .navbar__toggle.open {
+    position: absolute;
+    top: 14px;
+    right: 24px;
+  }
 
   .navbar__links.open {
     display: flex;
@@ -665,10 +672,9 @@ ul { list-style: none; }
   }
   .navbar__actions.open .btn { width: 100%; }
 
-  /* Hero */
+  /* Hero — visual abaixo do texto no mobile */
   .hero { padding: 56px 0 64px; }
   .hero__inner { grid-template-columns: 1fr; gap: 48px; }
-  .hero__visual { order: -1; }
   .hero__heading { letter-spacing: -2px; }
 
   /* Trust */

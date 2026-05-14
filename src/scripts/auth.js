@@ -116,6 +116,90 @@
   });
 
   /* -----------------------------------------------
+     MODAL DE TERMOS E CONDIÇÕES
+  ----------------------------------------------- */
+  const modalOverlay = document.getElementById('terms-modal');
+  const modalClose   = document.getElementById('modal-close');
+  const modalAccept  = document.getElementById('modal-accept');
+  const modalReject  = document.getElementById('modal-reject');
+
+  let activeForm = null; // 'dev' | 'company'
+
+  function openModal(form) {
+    activeForm = form;
+    modalOverlay.classList.add('modal-overlay--open');
+    modalOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // foca o botão fechar para acessibilidade
+    setTimeout(() => modalClose && modalClose.focus(), 50);
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('modal-overlay--open');
+    modalOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    activeForm = null;
+  }
+
+  // Abrir modal ao clicar no link de termos
+  document.querySelectorAll('.terms-link').forEach((link) => {
+    link.addEventListener('click', () => openModal(link.dataset.targetForm));
+  });
+
+  // Fechar via botão X
+  if (modalClose) modalClose.addEventListener('click', closeModal);
+
+  // Fechar via clique no backdrop (fora do modal)
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+  }
+
+  // Fechar via tecla Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('modal-overlay--open')) {
+      closeModal();
+    }
+  });
+
+  // ACEITAR — marca checkbox e habilita submit
+  if (modalAccept) {
+    modalAccept.addEventListener('click', () => {
+      if (activeForm) {
+        const checkbox = document.getElementById('terms-' + activeForm);
+        const submit   = document.getElementById('submit-' + activeForm);
+        if (checkbox) checkbox.checked = true;
+        if (submit)   submit.disabled  = false;
+      }
+      closeModal();
+    });
+  }
+
+  // RECUSAR — desmarca checkbox e desabilita submit
+  if (modalReject) {
+    modalReject.addEventListener('click', () => {
+      if (activeForm) {
+        const checkbox = document.getElementById('terms-' + activeForm);
+        const submit   = document.getElementById('submit-' + activeForm);
+        if (checkbox) checkbox.checked = false;
+        if (submit)   submit.disabled  = true;
+      }
+      closeModal();
+    });
+  }
+
+  /* -----------------------------------------------
+     CHECKBOX → habilitar / desabilitar submit
+  ----------------------------------------------- */
+  document.querySelectorAll('.terms-checkbox').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      const submit = document.getElementById('submit-' + checkbox.dataset.form);
+      if (submit) submit.disabled = !checkbox.checked;
+    });
+  });
+
+  /* -----------------------------------------------
      INICIALIZAÇÃO POR URL PARAMS
      Lê ?tab=login|register e ?type=dev|company
      Ex: auth.html?tab=register&type=company
