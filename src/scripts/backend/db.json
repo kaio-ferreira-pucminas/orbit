@@ -8,6 +8,7 @@
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": "joaosilva",
       "cpfCnpj": "123.456.789-00",
+      "title": "Full Stack Enthusiast",
       "createdAt": "2026-05-14T10:00:00.000Z",
       "updatedAt": "2026-05-14T10:00:00.000Z",
       "disabledAt": null
@@ -20,6 +21,7 @@
       "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
       "github": null,
       "cpfCnpj": "00.000.000/0001-00",
+      "title": "Empresa de Tecnologia",
       "createdAt": "2026-05-14T10:00:00.000Z",
       "updatedAt": "2026-05-14T10:00:00.000Z",
       "disabledAt": null
@@ -32,9 +34,147 @@
       "passwordHash": "$2b$10$lEsdPERPMFJwLhcG8jKP1..Ladn3JS/l2QJvXAe6X9zoNRAmDDzaS",
       "github": "mariasouza",
       "cpfCnpj": null,
+      "title": "Frontend Developer",
       "createdAt": "2026-05-14T06:59:18.452Z",
       "updatedAt": "2026-05-14T06:59:18.452Z",
       "disabledAt": null
+    },
+    {
+      "id": "8f02508f-2c69-4f99-9e69-43efcb6be3a6",
+      "type": "dev",
+      "name": "Antonio Carlos",
+      "email": "profissional.contatocarlos@gmail.com",
+      "passwordHash": "$2b$10$8QevkXjU.S5kIO4AK.6k3O3h4No1EX5K3AID3lFIAwkfMCkBugGqe",
+      "github": "antonio-carlosjr",
+      "cpfCnpj": null,
+      "title": "Backend Developer",
+      "createdAt": "2026-05-14T15:35:53.658Z",
+      "updatedAt": "2026-05-14T15:35:53.658Z",
+      "disabledAt": null
+    },
+    {
+      "id": "seed-lucas-001",
+      "type": "dev",
+      "name": "Lucas Santos",
+      "email": "lucas@orbit.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": "lucassantos",
+      "cpfCnpj": null,
+      "title": "Senior Frontend Engineer",
+      "createdAt": "2026-05-10T10:00:00.000Z",
+      "updatedAt": "2026-05-10T10:00:00.000Z",
+      "disabledAt": null
+    },
+    {
+      "id": "seed-beatriz-001",
+      "type": "dev",
+      "name": "Beatriz Rocha",
+      "email": "beatriz@orbit.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": "beatrizrocha",
+      "cpfCnpj": null,
+      "title": "Tech Lead @ Orbit",
+      "createdAt": "2026-05-10T10:00:00.000Z",
+      "updatedAt": "2026-05-10T10:00:00.000Z",
+      "disabledAt": null
+    },
+    {
+      "id": "seed-thiago-001",
+      "type": "dev",
+      "name": "Thiago Lima",
+      "email": "thiago@orbit.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": "thiagolima",
+      "cpfCnpj": null,
+      "title": "Backend Dev",
+      "createdAt": "2026-05-10T10:00:00.000Z",
+      "updatedAt": "2026-05-10T10:00:00.000Z",
+      "disabledAt": null
+    },
+    {
+      "id": "seed-carla-001",
+      "type": "dev",
+      "name": "Carla Mendes",
+      "email": "carla@orbit.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": "carlamendes",
+      "cpfCnpj": null,
+      "title": "UI/UX Designer",
+      "createdAt": "2026-05-10T10:00:00.000Z",
+      "updatedAt": "2026-05-10T10:00:00.000Z",
+      "disabledAt": null
+    }
+  ],
+  "posts": [
+    {
+      "id": "post-seed-001",
+      "userId": "seed-lucas-001",
+      "content": "Acabei de finalizar a refatoração do nosso design system utilizando Tailwind v4 e os ganhos de performance foram absurdos. Alguém mais já está testando em produção? 🚀\n\n```\nconst orbitTheme = {\n  extend: {\n    colors: {\n      primary: '#4648d4',\n      surface: '#faf8ff'\n    }\n  }\n}\n```",
+      "createdAt": "2026-05-14T12:00:00.000Z",
+      "updatedAt": "2026-05-14T12:00:00.000Z"
+    },
+    {
+      "id": "post-seed-002",
+      "userId": "seed-beatriz-001",
+      "content": "Nossa nova sede está quase pronta! O espaço foi desenhado para maximizar a **criatividade e colaboração** entre squads. Em breve, novos eventos presenciais para a comunidade.",
+      "createdAt": "2026-05-14T09:00:00.000Z",
+      "updatedAt": "2026-05-14T09:00:00.000Z"
+    },
+    {
+      "id": "post-seed-003",
+      "userId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "content": "Estamos contratando! 🎯\n\nVagas abertas para:\n- *Desenvolvedor(a) Backend Sênior* (Node.js + PostgreSQL)\n- *Desenvolvedor(a) Frontend Pleno* (React + TypeScript)\n\nEnvie seu portfólio e código para `vagas@techflow.com`. #vagas #fullstack",
+      "createdAt": "2026-05-14T08:00:00.000Z",
+      "updatedAt": "2026-05-14T08:00:00.000Z"
+    },
+    {
+      "id": "ee545820-11e4-4c72-9556-93d445f3a453",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "content": "Testando o **editor markdown** do Orbit!\n\nSuporta `inline code` e blocos:\n\n```\nfunction hello() {\n  console.log(\"oi mundo\");\n}\n```\n\nEm *itálico* também funciona. 🚀",
+      "createdAt": "2026-05-14T17:59:41.998Z",
+      "updatedAt": "2026-05-14T17:59:41.998Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment-seed-001",
+      "postId": "post-seed-001",
+      "userId": "seed-beatriz-001",
+      "content": "Já estamos testando aqui! A migração foi tranquila e o build ficou ~30% mais rápido.",
+      "createdAt": "2026-05-14T13:00:00.000Z"
+    },
+    {
+      "id": "adbb6880-5998-4526-a4a8-4ec6ce9403a1",
+      "postId": "post-seed-001",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "content": "Funcionando perfeitamente! 🎉",
+      "createdAt": "2026-05-14T18:00:32.362Z"
+    }
+  ],
+  "likes": [
+    {
+      "id": "like-seed-001",
+      "postId": "post-seed-001",
+      "userId": "seed-beatriz-001",
+      "createdAt": "2026-05-14T12:30:00.000Z"
+    },
+    {
+      "id": "like-seed-002",
+      "postId": "post-seed-001",
+      "userId": "seed-thiago-001",
+      "createdAt": "2026-05-14T12:45:00.000Z"
+    },
+    {
+      "id": "like-seed-003",
+      "postId": "post-seed-002",
+      "userId": "seed-lucas-001",
+      "createdAt": "2026-05-14T09:30:00.000Z"
+    },
+    {
+      "id": "ffac3ccc-9d28-4b05-af5e-dc2fcfe9f692",
+      "postId": "post-seed-001",
+      "userId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "createdAt": "2026-05-14T17:59:07.528Z"
     }
   ]
 }

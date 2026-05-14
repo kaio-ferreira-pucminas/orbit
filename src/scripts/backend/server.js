@@ -2,13 +2,18 @@
 // Roda em: http://localhost:3001
 //
 // Rotas públicas:
-//   POST /api/auth/register  → cadastro de novo usuário
-//   POST /api/auth/login     → login, retorna JWT
+//   POST /api/auth/register      → cadastro de novo usuário
+//   POST /api/auth/login         → login, retorna JWT
 //
 // Rotas protegidas (exige Bearer token):
-//   GET  /api/users          → lista usuários
-//   GET  /api/users/:id      → busca usuário por id
-//   PATCH /api/users/:id     → atualiza usuário
+//   GET    /api/users                  → lista usuários
+//   GET    /api/users/:id              → busca usuário por id
+//   GET    /api/posts                  → lista posts (com autor + contadores)
+//   POST   /api/posts                  → cria post
+//   DELETE /api/posts/:id              → deleta próprio post
+//   POST   /api/posts/:id/like         → toggle curtir
+//   GET    /api/posts/:id/comments     → lista comentários do post
+//   POST   /api/posts/:id/comments     → cria comentário
 
 const jsonServer = require('json-server');
 const jwt        = require('jsonwebtoken');
@@ -157,6 +162,184 @@ server.post('/api/auth/login', async (req, res) => {
 // Qualquer rota /api/users/* exige autenticação
 server.use('/api/users', requireAuth);
 
+// ── POSTS ────────────────────────────────────────────────────────────────────
+
+// GET /api/posts — lista todos os posts com autor + contadores
+server.get('/api/posts', requireAuth, (req, res) => {
+  const db = getDb();
+
+  // Mais recentes primeiro
+  const sorted = [...db.posts].sort((a, b) =>
+    new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  const enriched = sorted.map(post => {
+    const author        = db.users.find(u => u.id === post.userId);
+    const likesCount    = db.likes.filter(l => l.postId === post.id).length;
+    const commentsCount = db.comments.filter(c => c.postId === post.id).length;
+    const likedByMe     = !!db.likes.find(
+      l => l.postId === post.id && l.userId === req.user.id
+    );
+
+    return {
+      ...post,
+      author: author ? sanitizeUser(author) : null,
+      likesCount,
+      commentsCount,
+      likedByMe,
+    };
+  });
+
+  return res.status(200).json(enriched);
+});
+
+// POST /api/posts — cria novo post
+server.post('/api/posts', requireAuth, (req, res) => {
+  const { content } = req.body;
+
+  if (!content || !content.trim()) {
+    return res.status(400).json({ error: 'O conteúdo do post não pode ser vazio.' });
+  }
+
+  if (content.length > 5000) {
+    return res.status(400).json({ error: 'O conteúdo do post excede 5000 caracteres.' });
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  const newPost = {
+    id:        generateId(),
+    userId:    req.user.id,
+    content:   content.trim(),
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  db.posts.push(newPost);
+  saveDb(db);
+
+  const author = db.users.find(u => u.id === req.user.id);
+
+  return res.status(201).json({
+    ...newPost,
+    author: author ? sanitizeUser(author) : null,
+    likesCount: 0,
+    commentsCount: 0,
+    likedByMe: false,
+  });
+});
+
+// DELETE /api/posts/:id — deleta próprio post
+server.delete('/api/posts/:id', requireAuth, (req, res) => {
+  const db    = getDb();
+  const post  = db.posts.find(p => p.id === req.params.id);
+
+  if (!post) {
+    return res.status(404).json({ error: 'Post não encontrado.' });
+  }
+
+  if (post.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Você não pode deletar posts de outros usuários.' });
+  }
+
+  db.posts    = db.posts.filter(p => p.id !== req.params.id);
+  db.comments = db.comments.filter(c => c.postId !== req.params.id);
+  db.likes    = db.likes.filter(l => l.postId !== req.params.id);
+  saveDb(db);
+
+  return res.status(204).send();
+});
+
+// ── LIKES ────────────────────────────────────────────────────────────────────
+
+// POST /api/posts/:id/like — toggle curtir/descurtir
+server.post('/api/posts/:id/like', requireAuth, (req, res) => {
+  const db   = getDb();
+  const post = db.posts.find(p => p.id === req.params.id);
+
+  if (!post) {
+    return res.status(404).json({ error: 'Post não encontrado.' });
+  }
+
+  const existing = db.likes.find(
+    l => l.postId === req.params.id && l.userId === req.user.id
+  );
+
+  let liked;
+  if (existing) {
+    db.likes = db.likes.filter(l => l.id !== existing.id);
+    liked = false;
+  } else {
+    db.likes.push({
+      id:        generateId(),
+      postId:    req.params.id,
+      userId:    req.user.id,
+      createdAt: new Date().toISOString(),
+    });
+    liked = true;
+  }
+
+  saveDb(db);
+
+  const likesCount = db.likes.filter(l => l.postId === req.params.id).length;
+  return res.status(200).json({ liked, likesCount });
+});
+
+// ── COMMENTS ─────────────────────────────────────────────────────────────────
+
+// GET /api/posts/:id/comments — lista comentários do post
+server.get('/api/posts/:id/comments', requireAuth, (req, res) => {
+  const db = getDb();
+
+  const comments = db.comments
+    .filter(c => c.postId === req.params.id)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    .map(c => {
+      const author = db.users.find(u => u.id === c.userId);
+      return { ...c, author: author ? sanitizeUser(author) : null };
+    });
+
+  return res.status(200).json(comments);
+});
+
+// POST /api/posts/:id/comments — cria comentário
+server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
+  const { content } = req.body;
+
+  if (!content || !content.trim()) {
+    return res.status(400).json({ error: 'O comentário não pode ser vazio.' });
+  }
+
+  if (content.length > 1000) {
+    return res.status(400).json({ error: 'O comentário excede 1000 caracteres.' });
+  }
+
+  const db = getDb();
+
+  if (!db.posts.find(p => p.id === req.params.id)) {
+    return res.status(404).json({ error: 'Post não encontrado.' });
+  }
+
+  const newComment = {
+    id:        generateId(),
+    postId:    req.params.id,
+    userId:    req.user.id,
+    content:   content.trim(),
+    createdAt: new Date().toISOString(),
+  };
+
+  db.comments.push(newComment);
+  saveDb(db);
+
+  const author = db.users.find(u => u.id === req.user.id);
+
+  return res.status(201).json({
+    ...newComment,
+    author: author ? sanitizeUser(author) : null,
+  });
+});
+
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);
@@ -166,5 +349,7 @@ server.listen(PORT, () => {
   console.log(`\n🚀 Orbit API rodando em http://localhost:${PORT}`);
   console.log(`   POST http://localhost:${PORT}/api/auth/register`);
   console.log(`   POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`   GET  http://localhost:${PORT}/api/users  (protegido)\n`);
+  console.log(`   GET  http://localhost:${PORT}/api/users      (protegido)`);
+  console.log(`   GET  http://localhost:${PORT}/api/posts      (protegido)`);
+  console.log(`   POST http://localhost:${PORT}/api/posts/:id/like  (protegido)\n`);
 });
