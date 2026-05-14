@@ -375,6 +375,62 @@ button { cursor: pointer; }
 .btn-auth--green { background: var(--green); }
 .btn-auth--green:hover { background: var(--green-hover); }
 
+/* Variante "fantasma" — usada na tela de sucesso de forgot-password */
+.btn-auth--ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 16px;
+}
+.btn-auth--ghost:hover {
+  background: var(--primary);
+  color: var(--white);
+}
+
+/* -----------------------------------------------
+   SUCESSO / ERRO INLINE (forgot/reset password)
+----------------------------------------------- */
+.auth-form__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.auth-form__success--hidden { display: none; }
+
+.auth-form__success-icon,
+.auth-form__error-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.auth-form__success-icon {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.auth-form__error-icon {
+  background: #fef2f2;
+  color: #c0392b;
+  margin: 0 auto 20px;
+}
+
+/* Heading menor pra usar dentro da tela de sucesso */
+.auth-heading--md {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
 /* -----------------------------------------------
    LINK DE ALTERNÂNCIA
 ----------------------------------------------- */
