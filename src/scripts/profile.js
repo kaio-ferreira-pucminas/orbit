@@ -393,8 +393,8 @@
   const bioCount      = $('#edit-bio-count');
 
   // Limites
-  const MAX_AVATAR_BYTES = 2 * 1024 * 1024;  // 2 MB
-  const MAX_RESUME_BYTES = 5 * 1024 * 1024;  // 5 MB
+  const MAX_AVATAR_BYTES = 10 * 1024 * 1024;  // 10 MB
+  const MAX_RESUME_BYTES = 10 * 1024 * 1024;  // 10 MB
 
   // Estado local — base64 dos arquivos pendentes (null = remover, undefined = não mexer)
   let pendingAvatar     = undefined;
@@ -489,7 +489,7 @@
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      window.showToast('Imagem muito grande. Máx 2MB.', 'error');
+      window.showToast('Imagem muito grande. Máx 10MB.', 'error');
       avatarInput.value = '';
       return;
     }
@@ -532,7 +532,7 @@
       return;
     }
     if (file.size > MAX_RESUME_BYTES) {
-      window.showToast('Currículo muito grande. Máx 5MB.', 'error');
+      window.showToast('Currículo muito grande. Máx 10MB.', 'error');
       resumeInput.value = '';
       return;
     }
@@ -617,6 +617,141 @@
       saveBtn.disabled = false;
       saveBtn.textContent = 'Salvar alterações';
     }
+  });
+
+  /* =========================================================
+     DEACTIVATE MODAL — pedir código → digitar código → confirmar
+  ========================================================= */
+  const deactivateOverlay  = $('#deactivate-modal-overlay');
+  const deactivateBtn      = $('#danger-deactivate-btn');
+  const deactivateClose    = $('#deactivate-modal-close');
+  const deactivateCancel   = $('#deactivate-cancel');
+  const deactivateAction   = $('#deactivate-action');
+  const deactivateStep1    = $('#deactivate-step-1');
+  const deactivateStep2    = $('#deactivate-step-2');
+  const deactivateCodeIn   = $('#deactivate-code');
+  const deactivateResend   = $('#deactivate-resend');
+  const deactivateTarget   = $('#deactivate-target-email');
+
+  let deactivateStep = 1;
+
+  function openDeactivateModal() {
+    closeEditModal();      // fecha o de edição se estiver aberto
+    deactivateStep = 1;
+    deactivateStep1.style.display = '';
+    deactivateStep2.style.display = 'none';
+    deactivateAction.textContent  = 'Enviar código por e-mail';
+    deactivateAction.classList.remove('edit-modal__btn--danger');
+    deactivateAction.classList.add('edit-modal__btn--primary');
+    deactivateCodeIn.value = '';
+
+    deactivateOverlay.classList.add('edit-modal-overlay--open');
+    deactivateOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDeactivateModal() {
+    deactivateOverlay.classList.remove('edit-modal-overlay--open');
+    deactivateOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  deactivateBtn.addEventListener('click', openDeactivateModal);
+  deactivateClose.addEventListener('click', closeDeactivateModal);
+  deactivateCancel.addEventListener('click', closeDeactivateModal);
+
+  deactivateOverlay.addEventListener('click', (e) => {
+    if (e.target === deactivateOverlay) closeDeactivateModal();
+  });
+
+  // Solicitar código
+  async function requestDeactivationCode() {
+    deactivateAction.disabled = true;
+    deactivateAction.textContent = 'Enviando...';
+
+    try {
+      const res = await api('/api/auth/deactivate/request', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        window.showToast(data.error || 'Erro ao enviar código.', 'error');
+        return false;
+      }
+      window.showToast('Código enviado! Verifique seu e-mail.', 'success');
+      return true;
+    } catch {
+      window.showToast('Erro de conexão.', 'error');
+      return false;
+    } finally {
+      deactivateAction.disabled = false;
+    }
+  }
+
+  // Confirmar código
+  async function confirmDeactivation(code) {
+    deactivateAction.disabled = true;
+    deactivateAction.textContent = 'Confirmando...';
+
+    try {
+      const res = await api('/api/auth/deactivate/confirm', {
+        method: 'POST',
+        body:   JSON.stringify({ code }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        window.showToast(data.error || 'Código inválido.', 'error');
+        deactivateAction.disabled = false;
+        deactivateAction.textContent = 'Confirmar desativação';
+        return;
+      }
+
+      window.showToast('Conta desativada. Até logo!', 'success');
+      // Limpa sessão e volta pro login
+      setTimeout(() => {
+        localStorage.removeItem('orbit_token');
+        localStorage.removeItem('orbit_user');
+        window.location.href = 'auth.html?tab=login';
+      }, 1800);
+    } catch {
+      window.showToast('Erro de conexão.', 'error');
+      deactivateAction.disabled = false;
+      deactivateAction.textContent = 'Confirmar desativação';
+    }
+  }
+
+  // Botão principal — alterna entre etapa 1 e 2
+  deactivateAction.addEventListener('click', async () => {
+    if (deactivateStep === 1) {
+      const ok = await requestDeactivationCode();
+      if (!ok) return;
+      // Avança pra etapa 2
+      deactivateStep = 2;
+      deactivateStep1.style.display = 'none';
+      deactivateStep2.style.display = '';
+      deactivateTarget.textContent = currentUser.email;
+      deactivateAction.textContent  = 'Confirmar desativação';
+      deactivateAction.classList.remove('edit-modal__btn--primary');
+      deactivateAction.classList.add('edit-modal__btn--danger');
+      setTimeout(() => deactivateCodeIn.focus(), 100);
+    } else {
+      const code = deactivateCodeIn.value.trim();
+      if (!/^\d{6}$/.test(code)) {
+        window.showToast('Digite os 6 dígitos do código.', 'error');
+        return;
+      }
+      await confirmDeactivation(code);
+    }
+  });
+
+  // Reenviar código
+  deactivateResend.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await requestDeactivationCode();
+  });
+
+  // Aceitar só dígitos no input do código
+  deactivateCodeIn.addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
   });
 
   /* =========================================================

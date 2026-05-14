@@ -1084,3 +1084,120 @@
   }
   .edit-form__row { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   DANGER ZONE (dentro do edit modal)
+============================================================ */
+.danger-zone {
+  margin-top: 8px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.danger-zone__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #c0392b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.danger-zone__header svg { color: #c0392b; flex-shrink: 0; }
+
+.danger-zone__desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  color: #7f1d1d;
+  margin: 0;
+}
+
+.danger-zone__btn {
+  align-self: flex-start;
+  background: white;
+  color: #c0392b;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.danger-zone__btn:hover {
+  background: #c0392b;
+  color: white;
+  border-color: #c0392b;
+}
+
+/* ============================================================
+   MODAL DE DESATIVAÇÃO
+============================================================ */
+.danger-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #c0392b;
+}
+
+.deactivate-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--feed-text-body, #464554);
+  text-align: center;
+  margin: 0 0 20px;
+}
+
+.deactivate-text strong { color: var(--feed-text-dark, #131b2e); }
+
+.deactivate-info {
+  background: var(--feed-bg, #faf8ff);
+  border: 1px solid var(--feed-border, #e2e7ff);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--feed-text-body, #464554);
+}
+
+.deactivate-info p { margin: 0 0 8px; font-weight: 600; color: var(--feed-text-dark, #131b2e); }
+.deactivate-info ul { margin: 0; padding-left: 20px; }
+.deactivate-info li { margin-bottom: 4px; }
+
+/* Input de código grande, centralizado, monospace */
+.deactivate-code-input {
+  font-family: 'Courier New', 'Liberation Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 8px;
+  padding: 14px;
+  height: auto;
+}
+
+/* Botão de ação perigosa */
+.edit-modal__btn--danger {
+  background: #c0392b;
+  color: white;
+}
+
+.edit-modal__btn--danger:hover     { background: #a63422; }
+.edit-modal__btn--danger:disabled  { opacity: 0.5; cursor: not-allowed; }

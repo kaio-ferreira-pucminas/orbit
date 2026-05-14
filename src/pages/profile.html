@@ -302,7 +302,7 @@
             </label>
             <button type="button" class="edit-form__file-btn edit-form__file-btn--ghost"
               id="edit-avatar-remove">Remover</button>
-            <p class="edit-form__hint">JPG, PNG ou WebP. Máx 2MB.</p>
+            <p class="edit-form__hint">JPG, PNG ou WebP. Máx 10MB.</p>
           </div>
         </div>
 
@@ -375,7 +375,7 @@
               </svg>
             </button>
           </div>
-          <p class="edit-form__hint">Apenas PDF. Máx 5MB.</p>
+          <p class="edit-form__hint">Apenas PDF. Máx 10MB.</p>
         </div>
 
         <!-- Disponível -->
@@ -386,6 +386,28 @@
             <span class="edit-form__check-label">Disponível para projetos</span>
           </label>
         </div>
+
+        <!-- =============================================
+             DANGER ZONE
+        ============================================== -->
+        <div class="danger-zone">
+          <div class="danger-zone__header">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9"  x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>Zona de Perigo</span>
+          </div>
+          <p class="danger-zone__desc">
+            Você tem 30 dias para reativar a conta após desativar. Depois disso,
+            todos os dados são excluídos permanentemente.
+          </p>
+          <button type="button" class="danger-zone__btn" id="danger-deactivate-btn">
+            Desativar minha conta
+          </button>
+        </div>
       </form>
 
       <footer class="edit-modal__footer">
@@ -394,6 +416,86 @@
         </button>
         <button type="button" class="edit-modal__btn edit-modal__btn--primary" id="edit-modal-save">
           Salvar alterações
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL — Desativar conta
+  ====================================================== -->
+  <div class="edit-modal-overlay" id="deactivate-modal-overlay" aria-hidden="true">
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="deactivate-modal-title">
+      <header class="edit-modal__header">
+        <h2 class="edit-modal__title" id="deactivate-modal-title">Desativar conta</h2>
+        <button type="button" class="edit-modal__close" id="deactivate-modal-close" aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6"  y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="edit-modal__body">
+
+        <!-- ETAPA 1: explicação + pedir envio do código -->
+        <div id="deactivate-step-1">
+          <div class="danger-illustration">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9"  x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+
+          <p class="deactivate-text">
+            Você está prestes a desativar a sua conta na Orbit.
+            <br/>Para confirmar, vamos enviar um <strong>código de 6 dígitos</strong> para o seu e-mail cadastrado.
+          </p>
+
+          <div class="deactivate-info">
+            <p><strong>O que acontece depois:</strong></p>
+            <ul>
+              <li>Sua conta fica oculta da plataforma</li>
+              <li>Você tem <strong>30 dias</strong> para reativar — basta fazer login novamente</li>
+              <li>Após esse prazo, todos os dados são <strong>excluídos permanentemente</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ETAPA 2: digitar código -->
+        <div id="deactivate-step-2" style="display: none;">
+          <p class="deactivate-text">
+            Enviamos um código para <strong id="deactivate-target-email">—</strong>.
+            <br/>Cole abaixo para confirmar a desativação.
+          </p>
+
+          <div class="edit-form__group">
+            <label class="edit-form__label" for="deactivate-code">Código de 6 dígitos</label>
+            <input
+              type="text"
+              id="deactivate-code"
+              class="edit-form__input deactivate-code-input"
+              maxlength="6"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              autocomplete="one-time-code"
+              placeholder="000000"
+            />
+            <p class="edit-form__hint">O código expira em 15 minutos. Não chegou? <a href="#" id="deactivate-resend">Reenviar</a></p>
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="edit-modal__footer">
+        <button type="button" class="edit-modal__btn edit-modal__btn--ghost" id="deactivate-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="edit-modal__btn edit-modal__btn--danger" id="deactivate-action">
+          Enviar código por e-mail
         </button>
       </footer>
     </div>
