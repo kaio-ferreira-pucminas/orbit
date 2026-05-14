@@ -579,6 +579,21 @@ button { cursor: pointer; }
 }
 
 /* -----------------------------------------------
+   ERRO INLINE DA API
+----------------------------------------------- */
+.auth-api-error {
+  display: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #c0392b;
+  background: #fdf2f2;
+  border: 1px solid #f5c6c6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+
+/* -----------------------------------------------
    CHECKBOX — TERMOS E CONDIÇÕES
 ----------------------------------------------- */
 .field--checkbox {
