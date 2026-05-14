@@ -84,6 +84,11 @@ server.post('/api/auth/register', async (req, res) => {
     return res.status(409).json({ error: 'E-mail já cadastrado.' });
   }
 
+  // CPF/CNPJ já cadastrado?
+  if (cpfCnpj && db.users.find(u => u.cpfCnpj === cpfCnpj)) {
+    return res.status(409).json({ error: 'CPF/CNPJ já cadastrado.' });
+  }
+
   // Hash da senha
   const passwordHash = await bcrypt.hash(password, 10);
 
