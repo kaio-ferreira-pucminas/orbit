@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "id": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "type": "dev",
+      "name": "João Silva",
+      "email": "joao@dev.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": "joaosilva",
+      "cpfCnpj": "123.456.789-00",
+      "createdAt": "2026-05-14T10:00:00.000Z",
+      "updatedAt": "2026-05-14T10:00:00.000Z",
+      "disabledAt": null
+    },
+    {
+      "id": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "type": "company",
+      "name": "TechFlow",
+      "email": "contato@techflow.com",
+      "passwordHash": "$2b$10$G68JNwPR7NHjTI8EuTs7B.738muXpzxg0VQGER3SG3vek.Dix7DI6",
+      "github": null,
+      "cpfCnpj": "00.000.000/0001-00",
+      "createdAt": "2026-05-14T10:00:00.000Z",
+      "updatedAt": "2026-05-14T10:00:00.000Z",
+      "disabledAt": null
+    },
+    {
+      "id": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "type": "dev",
+      "name": "Maria Souza",
+      "email": "maria@dev.com",
+      "passwordHash": "$2b$10$lEsdPERPMFJwLhcG8jKP1..Ladn3JS/l2QJvXAe6X9zoNRAmDDzaS",
+      "github": "mariasouza",
+      "cpfCnpj": null,
+      "createdAt": "2026-05-14T06:59:18.452Z",
+      "updatedAt": "2026-05-14T06:59:18.452Z",
+      "disabledAt": null
+    }
+  ]
+}
