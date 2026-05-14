@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed da Comunidade — Orbit</title>
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="../styles/landing.css" />
+  <link rel="stylesheet" href="../styles/feed.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       HEADER (TopNavBar)
+  ====================================================== -->
+  <header class="feed-header">
+    <div class="feed-header__inner">
+      <div class="feed-header__left">
+        <a href="index.html" class="feed-header__logo">Orbit</a>
+        <nav class="feed-header__nav" aria-label="Navegação principal">
+          <a href="feed.html"             class="feed-nav__link feed-nav__link--active">Feed</a>
+          <a href="#"                     class="feed-nav__link">Oportunidades</a>
+          <a href="#"                     class="feed-nav__link">Projetos</a>
+          <a href="#"                     class="feed-nav__link">Mensagens</a>
+        </nav>
+      </div>
+
+      <div class="feed-header__right">
+        <button class="feed-header__icon-btn" aria-label="Notificações" title="Notificações">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </button>
+
+        <button class="feed-header__icon-btn" aria-label="Mensagens" title="Mensagens">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+
+        <button class="feed-header__avatar" aria-label="Perfil" id="header-avatar-btn"
+          title="Sair">
+          <span id="header-avatar-initials">U</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       MAIN — 3 colunas
+  ====================================================== -->
+  <main class="feed-main">
+    <div class="feed-grid">
+
+      <!-- ============ ASIDE ESQUERDO ============ -->
+      <aside class="feed-aside feed-aside--left" aria-label="Perfil e atalhos">
+
+        <!-- Profile Card -->
+        <section class="profile-card">
+          <div class="profile-card__cover"></div>
+          <div class="profile-card__body">
+            <div class="profile-card__avatar" id="profile-card-avatar">
+              <span id="profile-card-initials">U</span>
+            </div>
+            <h2 class="profile-card__name" id="profile-card-name">Carregando...</h2>
+            <p class="profile-card__title" id="profile-card-title">—</p>
+
+            <div class="profile-card__stats">
+              <div class="stat-row">
+                <span class="stat-row__label">Vistas no perfil</span>
+                <span class="stat-row__value">1.240</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-row__label">Impressões do post</span>
+                <span class="stat-row__value">4.892</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Shortcuts -->
+        <section class="aside-card">
+          <h3 class="aside-card__title">Meus Atalhos</h3>
+          <nav class="aside-nav" aria-label="Atalhos">
+            <a href="#" class="aside-nav__link">
+              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>Comunidade React Brasil</span>
+            </a>
+            <a href="#" class="aside-nav__link">
+              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+              <span>Vagas Fullstack</span>
+            </a>
+            <a href="#" class="aside-nav__link">
+              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>Posts Salvos</span>
+            </a>
+          </nav>
+        </section>
+      </aside>
+
+      <!-- ============ FEED CENTRAL ============ -->
+      <section class="feed-center" aria-label="Publicações">
+
+        <!-- Composer -->
+        <section class="composer" id="composer">
+          <!-- Estado colapsado (botão simples) -->
+          <div class="composer__collapsed" id="composer-collapsed">
+            <div class="composer__avatar" id="composer-avatar">
+              <span id="composer-initials">U</span>
+            </div>
+            <button class="composer__trigger" id="composer-trigger" type="button">
+              Começar uma publicação...
+            </button>
+          </div>
+
+          <!-- Estado expandido (editor completo) -->
+          <div class="composer__expanded composer__expanded--hidden" id="composer-expanded">
+            <div class="composer__toolbar" role="toolbar" aria-label="Formatação">
+              <button type="button" class="composer__btn" data-format="bold"
+                title="Negrito (envolve em **)" aria-label="Negrito">
+                <strong>B</strong>
+              </button>
+              <button type="button" class="composer__btn" data-format="italic"
+                title="Itálico (envolve em *)" aria-label="Itálico">
+                <em>I</em>
+              </button>
+              <button type="button" class="composer__btn" data-format="code"
+                title="Código inline (envolve em `)" aria-label="Código inline">
+                &lt;/&gt;
+              </button>
+              <button type="button" class="composer__btn" data-format="codeblock"
+                title="Bloco de código (envolve em ```)" aria-label="Bloco de código">
+                { }
+              </button>
+              <button type="button" class="composer__btn" data-format="link"
+                title="Link [texto](url)" aria-label="Link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </button>
+            </div>
+
+            <textarea
+              id="composer-textarea"
+              class="composer__textarea"
+              placeholder="Compartilhe algo com a comunidade..."
+              rows="5"
+              maxlength="5000"></textarea>
+
+            <div class="composer__preview composer__preview--hidden" id="composer-preview"
+              aria-live="polite"></div>
+
+            <div class="composer__footer">
+              <button type="button" class="composer__preview-toggle" id="composer-preview-toggle">
+                Pré-visualizar
+              </button>
+              <div class="composer__actions">
+                <button type="button" class="composer__cancel" id="composer-cancel">Cancelar</button>
+                <button type="button" class="composer__submit" id="composer-submit">Publicar</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lista de posts -->
+        <div class="post-feed" id="post-feed" aria-live="polite">
+          <!-- Posts injetados via feed.js -->
+          <div class="post-feed__loading" id="post-feed-loading">Carregando publicações...</div>
+        </div>
+      </section>
+
+      <!-- ============ ASIDE DIREITO ============ -->
+      <aside class="feed-aside feed-aside--right" aria-label="Tópicos e sugestões">
+
+        <!-- Trending Topics -->
+        <section class="aside-card">
+          <h3 class="aside-card__title">Tópicos em Alta</h3>
+          <div class="trending-list">
+            <a href="#" class="trending-item">
+              <span class="trending-item__tag">#reactjs</span>
+              <span class="trending-item__meta">1.5k posts esta semana</span>
+            </a>
+            <a href="#" class="trending-item">
+              <span class="trending-item__tag">#web3</span>
+              <span class="trending-item__meta">890 posts esta semana</span>
+            </a>
+            <a href="#" class="trending-item">
+              <span class="trending-item__tag">#vagas</span>
+              <span class="trending-item__meta">2.4k novos anúncios</span>
+            </a>
+            <a href="#" class="trending-item">
+              <span class="trending-item__tag">#uiux</span>
+              <span class="trending-item__meta">420 posts esta semana</span>
+            </a>
+          </div>
+          <button type="button" class="aside-card__cta">Ver mais tópicos</button>
+        </section>
+
+        <!-- Sugestões -->
+        <section class="aside-card">
+          <h3 class="aside-card__title">Sugestões para você</h3>
+          <div class="suggestions" id="suggestions-list">
+            <!-- Populado via feed.js -->
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="aside-footer">
+          <ul class="aside-footer__links">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Accessibility</a></li>
+          </ul>
+          <p class="aside-footer__copy">© 2026 Orbit Cosmic Systems</p>
+        </footer>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/feed.js"></script>
+</body>
+</html>
