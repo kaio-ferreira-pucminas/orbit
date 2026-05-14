@@ -133,6 +133,145 @@ body {
   transform: scale(1.05);
 }
 
+/* Avatar como imagem (em qualquer um dos containers) */
+.feed-header__avatar img,
+.profile-card__avatar img,
+.composer__avatar img,
+.user-menu__avatar img,
+.post__avatar img,
+.suggestion__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================================
+   USER MENU (dropdown)
+============================================================ */
+.user-menu {
+  position: relative;
+}
+
+.user-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: var(--feed-card-bg);
+  border: 1px solid var(--feed-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(19, 27, 46, 0.12);
+  padding: 8px;
+  z-index: 200;
+
+  /* Estado fechado */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.user-menu--open .user-menu__dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Header do dropdown — nome + email */
+.user-menu__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.user-menu__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4648d4 0%, #6063ee 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-menu__user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-menu__name {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--feed-text-dark);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu__email {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--feed-text-body);
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu__divider {
+  height: 1px;
+  background: var(--feed-border);
+  margin: 6px 0;
+}
+
+/* Itens do menu */
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--feed-text-dark);
+  text-align: left;
+  transition: background .15s, color .15s;
+}
+
+.user-menu__item:hover {
+  background: var(--feed-bg);
+  color: var(--primary, #4648d4);
+}
+
+.user-menu__item svg { flex-shrink: 0; color: var(--feed-text-body); }
+.user-menu__item:hover svg { color: var(--primary, #4648d4); }
+
+.user-menu__item--danger { color: #c0392b; }
+.user-menu__item--danger svg { color: #c0392b; }
+.user-menu__item--danger:hover {
+  background: #fef2f2;
+  color: #c0392b;
+}
+.user-menu__item--danger:hover svg { color: #c0392b; }
+
 /* ============================================================
    MAIN — Grid 12 colunas
 ============================================================ */

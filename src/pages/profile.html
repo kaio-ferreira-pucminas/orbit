@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil — Orbit</title>
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="../styles/landing.css" />
+  <link rel="stylesheet" href="../styles/feed.css" />
+  <link rel="stylesheet" href="../styles/profile.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       HEADER (reusa do feed)
+  ====================================================== -->
+  <header class="feed-header">
+    <div class="feed-header__inner">
+      <div class="feed-header__left">
+        <a href="index.html" class="feed-header__logo">Orbit</a>
+        <nav class="feed-header__nav" aria-label="Navegação principal">
+          <a href="feed.html"   class="feed-nav__link">Feed</a>
+          <a href="#"           class="feed-nav__link">Oportunidades</a>
+          <a href="#"           class="feed-nav__link">Projetos</a>
+          <a href="#"           class="feed-nav__link">Mensagens</a>
+        </nav>
+      </div>
+
+      <div class="feed-header__right">
+        <button class="feed-header__icon-btn" aria-label="Notificações">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </button>
+
+        <button class="feed-header__icon-btn" aria-label="Mensagens">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+
+        <div class="user-menu" id="user-menu">
+          <button class="feed-header__avatar" aria-label="Abrir menu do usuário"
+            id="header-avatar-btn" aria-haspopup="menu" aria-expanded="false">
+            <span id="header-avatar-initials">U</span>
+          </button>
+
+          <div class="user-menu__dropdown" id="user-menu-dropdown" role="menu" aria-hidden="true">
+            <div class="user-menu__header">
+              <div class="user-menu__avatar"><span id="user-menu-initials">U</span></div>
+              <div class="user-menu__user-info">
+                <p class="user-menu__name" id="user-menu-name">—</p>
+                <p class="user-menu__email" id="user-menu-email">—</p>
+              </div>
+            </div>
+
+            <div class="user-menu__divider"></div>
+
+            <a href="profile.html" class="user-menu__item" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Ir para o perfil</span>
+            </a>
+
+            <button type="button" class="user-menu__item user-menu__item--danger"
+              id="user-menu-logout" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Sair</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+  <main class="profile-main">
+
+    <!-- ============ HERO ============ -->
+    <section class="profile-hero">
+      <div class="profile-hero__inner">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar-glow" aria-hidden="true"></div>
+          <div class="profile-avatar" id="profile-avatar">
+            <span id="profile-avatar-initials">U</span>
+          </div>
+        </div>
+
+        <div class="profile-hero__content">
+          <div class="profile-hero__meta">
+            <span class="profile-badge profile-badge--available" id="profile-availability">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+              <span id="profile-availability-text">DISPONÍVEL PARA PROJETOS</span>
+            </span>
+
+            <div class="profile-rating" id="profile-rating">
+              <div class="profile-rating__stars" id="profile-rating-stars">
+                <!-- estrelas via JS -->
+              </div>
+              <span class="profile-rating__value" id="profile-rating-value">—</span>
+              <span class="profile-rating__count" id="profile-rating-count">(0 avaliações)</span>
+            </div>
+          </div>
+
+          <h1 class="profile-name" id="profile-name">Carregando...</h1>
+          <p class="profile-headline" id="profile-headline">—</p>
+
+          <div class="profile-actions">
+            <a href="feed.html" class="profile-cta profile-cta--primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="9"/>
+                <rect x="14" y="3" width="7" height="5"/>
+                <rect x="14" y="12" width="7" height="9"/>
+                <rect x="3" y="16" width="7" height="5"/>
+              </svg>
+              <span>Ir para o Dashboard</span>
+            </a>
+
+            <button type="button" class="profile-cta profile-cta--edit" id="profile-edit-btn"
+              style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span>Editar perfil</span>
+            </button>
+
+            <a href="#" class="profile-cta profile-cta--resume" id="profile-resume-link"
+              style="display: none;" target="_blank" rel="noopener">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Currículo</span>
+            </a>
+            <a href="#" class="profile-cta profile-cta--github" id="profile-github" target="_blank" rel="noopener">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+              <span>GitHub</span>
+            </a>
+            <a href="#" class="profile-cta profile-cta--linkedin" id="profile-linkedin" target="_blank" rel="noopener">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="currentColor">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              <span>LinkedIn</span>
+            </a>
+            <button type="button" class="profile-cta profile-cta--secondary" id="profile-contact-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <span>Contato</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="profile-section profile-section--tinted">
+      <div class="profile-section__inner profile-about">
+        <h2 class="profile-section__title profile-about__title">Sobre mim</h2>
+        <div class="profile-about__body" id="profile-about-body">
+          <p>Carregando...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SKILLS ============ -->
+    <section class="profile-section">
+      <div class="profile-section__inner profile-skills">
+        <h2 class="profile-section__title profile-section__title--center">Habilidades</h2>
+        <div class="skills-cloud" id="profile-skills">
+          <!-- tags via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PORTFOLIO ============ -->
+    <section class="profile-section profile-section--tinted">
+      <div class="profile-section__inner profile-portfolio">
+        <div class="profile-portfolio__header">
+          <div>
+            <h2 class="profile-section__title profile-section__title--lg">Projetos em Destaque</h2>
+            <p class="profile-section__subtitle">
+              Uma seleção de trabalhos onde a tecnologia encontra a solução de problemas reais.
+            </p>
+          </div>
+          <a href="#" class="profile-portfolio__link">
+            Ver todos os projetos
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+        </div>
+        <div class="projects-grid" id="profile-projects">
+          <!-- cards via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REVIEWS ============ -->
+    <section class="profile-section">
+      <div class="profile-section__inner profile-reviews">
+        <h2 class="profile-section__title profile-section__title--center">Depoimentos de Empresas</h2>
+        <div class="reviews-grid" id="profile-reviews">
+          <!-- cards via JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="profile-footer">
+    <div class="profile-footer__inner">
+      <div class="profile-footer__col">
+        <p class="profile-footer__brand">Orbit</p>
+        <p class="profile-footer__copy">© 2026 Orbit. Elevando talentos tech.</p>
+      </div>
+
+      <div class="profile-footer__col">
+        <p class="profile-footer__title">Plataforma</p>
+        <a href="#" class="profile-footer__link">Sobre</a>
+        <a href="#" class="profile-footer__link">Carreiras</a>
+      </div>
+
+      <div class="profile-footer__col">
+        <p class="profile-footer__title">Legal</p>
+        <a href="../archives/terms.html" class="profile-footer__link">Termos</a>
+        <a href="#" class="profile-footer__link">Privacidade</a>
+      </div>
+
+      <div class="profile-footer__col">
+        <p class="profile-footer__title">Suporte</p>
+        <a href="#" class="profile-footer__link">Ajuda</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================
+       MODAL — Editar Perfil
+  ====================================================== -->
+  <div class="edit-modal-overlay" id="edit-modal-overlay" aria-hidden="true">
+    <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <header class="edit-modal__header">
+        <h2 class="edit-modal__title" id="edit-modal-title">Editar perfil</h2>
+        <button type="button" class="edit-modal__close" id="edit-modal-close" aria-label="Fechar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6"  y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <form class="edit-modal__body" id="edit-form" novalidate>
+
+        <!-- Avatar uploader -->
+        <div class="edit-form__avatar-row">
+          <div class="edit-form__avatar-preview" id="edit-avatar-preview">
+            <span id="edit-avatar-initials">U</span>
+          </div>
+          <div class="edit-form__avatar-actions">
+            <label class="edit-form__file-btn">
+              <input type="file" id="edit-avatar-input" accept="image/png,image/jpeg,image/webp" hidden />
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>Trocar foto</span>
+            </label>
+            <button type="button" class="edit-form__file-btn edit-form__file-btn--ghost"
+              id="edit-avatar-remove">Remover</button>
+            <p class="edit-form__hint">JPG, PNG ou WebP. Máx 2MB.</p>
+          </div>
+        </div>
+
+        <!-- Nome -->
+        <div class="edit-form__group">
+          <label class="edit-form__label" for="edit-name">Nome completo</label>
+          <input type="text" id="edit-name" class="edit-form__input" maxlength="100" required />
+        </div>
+
+        <!-- Headline -->
+        <div class="edit-form__group">
+          <label class="edit-form__label" for="edit-headline">Tagline</label>
+          <input type="text" id="edit-headline" class="edit-form__input" maxlength="120"
+            placeholder="ex: Full Stack Developer | React & Node.js" />
+        </div>
+
+        <!-- Bio -->
+        <div class="edit-form__group">
+          <label class="edit-form__label" for="edit-bio">
+            Sobre mim
+            <span class="edit-form__char-count" id="edit-bio-count">0 / 2000</span>
+          </label>
+          <textarea id="edit-bio" class="edit-form__textarea" rows="5" maxlength="2000"
+            placeholder="Conte um pouco da sua história, áreas de atuação e o que te move..."></textarea>
+        </div>
+
+        <!-- Skills -->
+        <div class="edit-form__group">
+          <label class="edit-form__label" for="edit-skills">Habilidades</label>
+          <input type="text" id="edit-skills" class="edit-form__input"
+            placeholder="React, Node.js, TypeScript, PostgreSQL..." />
+          <p class="edit-form__hint">Separe por vírgulas.</p>
+        </div>
+
+        <!-- GitHub + LinkedIn lado a lado -->
+        <div class="edit-form__row">
+          <div class="edit-form__group">
+            <label class="edit-form__label" for="edit-github">GitHub</label>
+            <input type="text" id="edit-github" class="edit-form__input" placeholder="seuusuario" />
+          </div>
+          <div class="edit-form__group">
+            <label class="edit-form__label" for="edit-linkedin">LinkedIn</label>
+            <input type="text" id="edit-linkedin" class="edit-form__input" placeholder="seuusuario" />
+          </div>
+        </div>
+
+        <!-- Currículo -->
+        <div class="edit-form__group">
+          <label class="edit-form__label">Currículo</label>
+          <label class="edit-form__file-btn edit-form__file-btn--full" id="edit-resume-trigger">
+            <input type="file" id="edit-resume-input" accept="application/pdf" hidden />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+            <span>Anexar currículo (PDF)</span>
+          </label>
+          <div class="edit-form__file-info" id="edit-resume-info" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span class="edit-form__file-name" id="edit-resume-name">curriculo.pdf</span>
+            <button type="button" class="edit-form__file-remove" id="edit-resume-remove" aria-label="Remover currículo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6"  y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <p class="edit-form__hint">Apenas PDF. Máx 5MB.</p>
+        </div>
+
+        <!-- Disponível -->
+        <div class="edit-form__group">
+          <label class="edit-form__check">
+            <input type="checkbox" id="edit-available" />
+            <span class="edit-form__check-box"></span>
+            <span class="edit-form__check-label">Disponível para projetos</span>
+          </label>
+        </div>
+      </form>
+
+      <footer class="edit-modal__footer">
+        <button type="button" class="edit-modal__btn edit-modal__btn--ghost" id="edit-modal-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="edit-modal__btn edit-modal__btn--primary" id="edit-modal-save">
+          Salvar alterações
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/profile.js"></script>
+</body>
+</html>

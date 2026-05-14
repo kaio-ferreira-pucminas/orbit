@@ -1,0 +1,628 @@
+// profile.js — Orbit Developer Profile
+// JS puro, sem framework
+
+(function () {
+  'use strict';
+
+  const API_URL = 'http://localhost:3001';
+
+  /* =========================================================
+     AUTH GUARD
+  ========================================================= */
+  const token    = localStorage.getItem('orbit_token');
+  const userJson = localStorage.getItem('orbit_user');
+
+  if (!token || !userJson) {
+    window.location.href = 'auth.html?tab=login';
+    return;
+  }
+
+  const currentUser = JSON.parse(userJson);
+
+  // ID do perfil a carregar — vem da query string (?id=xxx) ou cai no usuário logado
+  const params      = new URLSearchParams(window.location.search);
+  const targetId    = params.get('id') || currentUser.id;
+
+  /* =========================================================
+     HELPERS
+  ========================================================= */
+  function $(s, root = document)  { return root.querySelector(s); }
+  function $$(s, root = document) { return [...root.querySelectorAll(s)]; }
+
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, ch => map[ch]);
+  }
+
+  function initials(name) {
+    if (!name) return '?';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
+  }
+
+  async function api(path, options = {}) {
+    const res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('orbit_token');
+      localStorage.removeItem('orbit_user');
+      window.location.href = 'auth.html?tab=login';
+      throw new Error('Token expirado');
+    }
+
+    return res;
+  }
+
+  /* =========================================================
+     HEADER (avatar dropdown — mesma lógica do feed)
+  ========================================================= */
+  function renderHeader() {
+    setAvatar($('#header-avatar-btn'),  currentUser.avatarUrl, currentUser.name, '#header-avatar-initials');
+    setAvatar($('.user-menu__avatar'),  currentUser.avatarUrl, currentUser.name, '#user-menu-initials');
+    $('#user-menu-name').textContent  = currentUser.name;
+    $('#user-menu-email').textContent = currentUser.email;
+  }
+
+  // Helper: aplica imagem ou iniciais a um elemento avatar
+  function setAvatar(container, url, name, initialsSelector) {
+    if (!container) return;
+    const initialsEl = initialsSelector ? container.querySelector(initialsSelector) : null;
+
+    // Remove img anterior se existir
+    const oldImg = container.querySelector('img');
+    if (oldImg) oldImg.remove();
+
+    if (url) {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = name || '';
+      container.appendChild(img);
+      if (initialsEl) initialsEl.style.display = 'none';
+    } else {
+      if (initialsEl) {
+        initialsEl.style.display = '';
+        initialsEl.textContent = initials(name);
+      }
+    }
+  }
+
+  const userMenu  = $('#user-menu');
+  const avatarBtn = $('#header-avatar-btn');
+  const dropdown  = $('#user-menu-dropdown');
+
+  function openMenu() {
+    userMenu.classList.add('user-menu--open');
+    avatarBtn.setAttribute('aria-expanded', 'true');
+    dropdown.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeMenu() {
+    userMenu.classList.remove('user-menu--open');
+    avatarBtn.setAttribute('aria-expanded', 'false');
+    dropdown.setAttribute('aria-hidden', 'true');
+  }
+
+  avatarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    userMenu.classList.contains('user-menu--open') ? closeMenu() : openMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!userMenu.contains(e.target)) closeMenu();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  $('#user-menu-logout').addEventListener('click', () => {
+    closeMenu();
+    localStorage.removeItem('orbit_token');
+    localStorage.removeItem('orbit_user');
+    window.location.href = 'auth.html?tab=login';
+  });
+
+  /* =========================================================
+     RENDER — HERO
+  ========================================================= */
+  function renderHero(user, stats) {
+    // Avatar do hero (imagem ou iniciais)
+    setAvatar($('#profile-avatar'), user.avatarUrl, user.name, '#profile-avatar-initials');
+
+    // Botão "Editar perfil" — só no próprio perfil
+    const isOwn = user.id === currentUser.id;
+    $('#profile-edit-btn').style.display = isOwn ? '' : 'none';
+
+    // Link do currículo (se existir)
+    const resumeLink = $('#profile-resume-link');
+    if (user.resumeUrl) {
+      resumeLink.href = user.resumeUrl;
+      resumeLink.download = user.resumeFileName || 'curriculo.pdf';
+      resumeLink.style.display = '';
+    } else {
+      resumeLink.style.display = 'none';
+    }
+
+    // Disponibilidade
+    const availBadge  = $('#profile-availability');
+    const availText   = $('#profile-availability-text');
+    if (user.available) {
+      availBadge.classList.remove('profile-badge--unavailable');
+      availBadge.classList.add('profile-badge--available');
+      availText.textContent = 'DISPONÍVEL PARA PROJETOS';
+    } else {
+      availBadge.classList.remove('profile-badge--available');
+      availBadge.classList.add('profile-badge--unavailable');
+      availText.textContent = 'NÃO DISPONÍVEL';
+    }
+
+    // Rating
+    renderStars(stats.rating);
+    $('#profile-rating-value').textContent = stats.rating > 0 ? stats.rating.toFixed(1) : '—';
+    $('#profile-rating-count').textContent =
+      stats.reviewsCount > 0
+        ? `(${stats.reviewsCount} avaliaç${stats.reviewsCount === 1 ? 'ão' : 'ões'})`
+        : '(sem avaliações)';
+
+    // Nome + headline
+    $('#profile-name').textContent     = user.name;
+    $('#profile-headline').textContent = user.headline ||
+      (user.type === 'company' ? 'Empresa parceira da Orbit' : 'Desenvolvedor(a)');
+
+    // Links sociais
+    const githubLink   = $('#profile-github');
+    const linkedinLink = $('#profile-linkedin');
+
+    if (user.github) {
+      githubLink.href = `https://github.com/${user.github}`;
+      githubLink.style.display = '';
+    } else {
+      githubLink.style.display = 'none';
+    }
+
+    if (user.linkedin) {
+      linkedinLink.href = `https://linkedin.com/in/${user.linkedin}`;
+      linkedinLink.style.display = '';
+    } else {
+      linkedinLink.style.display = 'none';
+    }
+
+    // Contato — copia email
+    $('#profile-contact-btn').addEventListener('click', () => {
+      navigator.clipboard?.writeText(user.email);
+      window.showToast(`Email copiado: ${user.email}`, 'success');
+    });
+
+    // Atualiza title da aba
+    document.title = `${user.name} — Orbit`;
+  }
+
+  function renderStars(rating) {
+    const container = $('#profile-rating-stars');
+    const full      = Math.floor(rating);
+    const hasHalf   = (rating - full) >= 0.5;
+    const total     = 5;
+
+    let html = '';
+    for (let i = 1; i <= total; i++) {
+      const filled = i <= full || (i === full + 1 && hasHalf);
+      html += `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="${filled ? 'currentColor' : 'none'}"
+          stroke="currentColor" stroke-width="${filled ? 0 : 1.5}"
+          class="${filled ? '' : 'profile-star--empty'}">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      `;
+    }
+    container.innerHTML = html;
+  }
+
+  /* =========================================================
+     RENDER — ABOUT
+  ========================================================= */
+  function renderAbout(user) {
+    const body = $('#profile-about-body');
+    if (user.bio) {
+      // Quebra em parágrafos por \n\n
+      body.innerHTML = user.bio
+        .split(/\n\n+/)
+        .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+        .join('');
+    } else {
+      body.innerHTML = `<p style="color: var(--feed-text-muted);">
+        Este usuário ainda não adicionou uma bio.
+      </p>`;
+    }
+  }
+
+  /* =========================================================
+     RENDER — SKILLS
+  ========================================================= */
+  function renderSkills(user) {
+    const container = $('#profile-skills');
+    if (user.skills && user.skills.length > 0) {
+      container.innerHTML = user.skills
+        .map(skill => `<span class="skill-tag">${escapeHtml(skill)}</span>`)
+        .join('');
+    } else {
+      container.innerHTML = `<p class="skills-cloud__empty">
+        Suas habilidades aparecerão aqui assim que você adicionar.
+      </p>`;
+    }
+  }
+
+  /* =========================================================
+     RENDER — PORTFOLIO
+  ========================================================= */
+  function renderProjects(projects) {
+    const container = $('#profile-projects');
+
+    if (!projects || projects.length === 0) {
+      container.innerHTML = `<div class="projects-grid__empty">
+        Nenhum projeto em destaque ainda.
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = projects.map(p => {
+      const techs = (p.technologies || [])
+        .map(t => `<span class="project-card__tech">${escapeHtml(t)}</span>`)
+        .join('');
+
+      return `
+        <article class="project-card">
+          <div class="project-card__cover" style="background: ${p.coverGradient || 'linear-gradient(135deg, #131b2e 0%, #4648d4 100%)'};">
+            ${escapeHtml(p.title.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase())}
+          </div>
+          <div class="project-card__body">
+            <div class="project-card__meta">
+              <span class="project-card__category">${escapeHtml(p.category || 'PROJETO')}</span>
+              ${p.year ? `<span class="project-card__year">${p.year}</span>` : ''}
+            </div>
+            <h3 class="project-card__title">${escapeHtml(p.title)}</h3>
+            <p class="project-card__description">${escapeHtml(p.description || '')}</p>
+            ${techs ? `<div class="project-card__techs">${techs}</div>` : ''}
+            ${ (p.demoUrl || p.repoUrl)
+              ? `<div class="project-card__links">
+                  ${ p.demoUrl ? `<a href="${escapeHtml(p.demoUrl)}" target="_blank" rel="noopener" class="project-card__link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    Live Demo
+                  </a>` : '' }
+                  ${ p.repoUrl ? `<a href="${escapeHtml(p.repoUrl)}" target="_blank" rel="noopener" class="project-card__link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                    </svg>
+                    GitHub
+                  </a>` : '' }
+                </div>`
+              : ''
+            }
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  /* =========================================================
+     RENDER — REVIEWS
+  ========================================================= */
+  function renderReviews(reviews) {
+    const container = $('#profile-reviews');
+
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = `<div class="reviews-grid__empty">
+        Nenhum depoimento ainda. Os primeiros aparecerão aqui após contratos via Orbit.
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = reviews.map(r => `
+      <article class="review-card">
+        <span class="review-card__quote-icon" aria-hidden="true">"</span>
+        <p class="review-card__content">"${escapeHtml(r.content)}"</p>
+        <div class="review-card__author">
+          <div class="review-card__avatar">${escapeHtml((r.companyName || '?')[0].toUpperCase())}</div>
+          <div>
+            <p class="review-card__company">${escapeHtml(r.companyName || 'Empresa')}</p>
+            <p class="review-card__role">${escapeHtml(r.reviewerRole || '')}</p>
+          </div>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  /* =========================================================
+     LOAD PROFILE
+  ========================================================= */
+  async function loadProfile() {
+    try {
+      const res = await api(`/api/users/${targetId}/profile`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        window.showToast(data.error || 'Erro ao carregar perfil.', 'error');
+        return;
+      }
+      const data = await res.json();
+
+      // Sincroniza currentUser + localStorage com os dados frescos quando é o próprio perfil
+      if (data.user.id === currentUser.id) {
+        Object.assign(currentUser, data.user);
+        localStorage.setItem('orbit_user', JSON.stringify(currentUser));
+      }
+
+      renderHero(data.user, data.stats);
+      renderAbout(data.user);
+      renderSkills(data.user);
+      renderProjects(data.projects);
+      renderReviews(data.reviews);
+
+    } catch {
+      window.showToast('Não foi possível conectar ao servidor.', 'error');
+    }
+  }
+
+  /* =========================================================
+     EDIT MODAL — abrir, popular, salvar
+  ========================================================= */
+  const editOverlay   = $('#edit-modal-overlay');
+  const editBtn       = $('#profile-edit-btn');
+  const closeBtn      = $('#edit-modal-close');
+  const cancelBtn     = $('#edit-modal-cancel');
+  const saveBtn       = $('#edit-modal-save');
+  const avatarInput   = $('#edit-avatar-input');
+  const avatarRemove  = $('#edit-avatar-remove');
+  const avatarPreview = $('#edit-avatar-preview');
+  const resumeInput   = $('#edit-resume-input');
+  const resumeRemove  = $('#edit-resume-remove');
+  const resumeInfo    = $('#edit-resume-info');
+  const resumeNameEl  = $('#edit-resume-name');
+  const bioTextarea   = $('#edit-bio');
+  const bioCount      = $('#edit-bio-count');
+
+  // Limites
+  const MAX_AVATAR_BYTES = 2 * 1024 * 1024;  // 2 MB
+  const MAX_RESUME_BYTES = 5 * 1024 * 1024;  // 5 MB
+
+  // Estado local — base64 dos arquivos pendentes (null = remover, undefined = não mexer)
+  let pendingAvatar     = undefined;
+  let pendingResume     = undefined;
+  let pendingResumeName = undefined;
+
+  function openEditModal() {
+    const u = currentUser;
+
+    // Popula campos
+    $('#edit-name').value     = u.name     || '';
+    $('#edit-headline').value = u.headline || '';
+    $('#edit-bio').value      = u.bio      || '';
+    $('#edit-skills').value   = (u.skills || []).join(', ');
+    $('#edit-github').value   = u.github   || '';
+    $('#edit-linkedin').value = u.linkedin || '';
+    $('#edit-available').checked = !!u.available;
+
+    // Avatar preview
+    setAvatar(avatarPreview, u.avatarUrl, u.name, '#edit-avatar-initials');
+
+    // Currículo
+    if (u.resumeUrl) {
+      resumeNameEl.textContent = u.resumeFileName || 'curriculo.pdf';
+      resumeInfo.style.display = '';
+    } else {
+      resumeInfo.style.display = 'none';
+    }
+
+    // Reset estado pendente
+    pendingAvatar     = undefined;
+    pendingResume     = undefined;
+    pendingResumeName = undefined;
+
+    // Atualiza contador de bio
+    updateBioCount();
+
+    // Abre
+    editOverlay.classList.add('edit-modal-overlay--open');
+    editOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('#edit-name').focus(), 100);
+  }
+
+  function closeEditModal() {
+    editOverlay.classList.remove('edit-modal-overlay--open');
+    editOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // Aciona modal
+  editBtn.addEventListener('click', openEditModal);
+  closeBtn.addEventListener('click', closeEditModal);
+  cancelBtn.addEventListener('click', closeEditModal);
+
+  // Fecha ao clicar no backdrop
+  editOverlay.addEventListener('click', (e) => {
+    if (e.target === editOverlay) closeEditModal();
+  });
+
+  // Fecha com Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editOverlay.classList.contains('edit-modal-overlay--open')) {
+      closeEditModal();
+    }
+  });
+
+  // Contador de bio
+  function updateBioCount() {
+    bioCount.textContent = `${bioTextarea.value.length} / 2000`;
+  }
+  bioTextarea.addEventListener('input', updateBioCount);
+
+  // Helper: lê arquivo como data URL base64
+  function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Upload de avatar
+  avatarInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      window.showToast('Apenas JPG, PNG ou WebP.', 'error');
+      avatarInput.value = '';
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      window.showToast('Imagem muito grande. Máx 2MB.', 'error');
+      avatarInput.value = '';
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      pendingAvatar = dataUrl;
+      // Atualiza preview
+      avatarPreview.querySelector('img')?.remove();
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      avatarPreview.appendChild(img);
+      const initialsEl = $('#edit-avatar-initials');
+      if (initialsEl) initialsEl.style.display = 'none';
+    } catch {
+      window.showToast('Erro ao processar imagem.', 'error');
+    }
+  });
+
+  // Remover avatar
+  avatarRemove.addEventListener('click', () => {
+    pendingAvatar = null;
+    avatarInput.value = '';
+    avatarPreview.querySelector('img')?.remove();
+    const initialsEl = $('#edit-avatar-initials');
+    if (initialsEl) {
+      initialsEl.style.display = '';
+      initialsEl.textContent = initials(currentUser.name);
+    }
+  });
+
+  // Upload de currículo
+  resumeInput.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      window.showToast('Apenas arquivos PDF.', 'error');
+      resumeInput.value = '';
+      return;
+    }
+    if (file.size > MAX_RESUME_BYTES) {
+      window.showToast('Currículo muito grande. Máx 5MB.', 'error');
+      resumeInput.value = '';
+      return;
+    }
+
+    try {
+      pendingResume     = await fileToDataUrl(file);
+      pendingResumeName = file.name;
+      resumeNameEl.textContent = file.name;
+      resumeInfo.style.display = '';
+    } catch {
+      window.showToast('Erro ao processar currículo.', 'error');
+    }
+  });
+
+  // Remover currículo
+  resumeRemove.addEventListener('click', () => {
+    pendingResume     = null;
+    pendingResumeName = null;
+    resumeInput.value = '';
+    resumeInfo.style.display = 'none';
+  });
+
+  // SALVAR
+  saveBtn.addEventListener('click', async () => {
+    const name = $('#edit-name').value.trim();
+    if (!name) {
+      window.showToast('Nome é obrigatório.', 'error');
+      return;
+    }
+
+    // Monta o payload — só envia campos que mudaram seria ideal, mas
+    // aqui mandamos tudo pra simplificar. Backend tem whitelist.
+    const payload = {
+      name,
+      headline: $('#edit-headline').value.trim() || null,
+      bio:      $('#edit-bio').value.trim() || null,
+      skills:   $('#edit-skills').value
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean),
+      github:   $('#edit-github').value.trim() || null,
+      linkedin: $('#edit-linkedin').value.trim() || null,
+      available: $('#edit-available').checked,
+    };
+
+    // Arquivos: só inclui se houve mudança
+    if (pendingAvatar !== undefined) payload.avatarUrl = pendingAvatar;
+    if (pendingResume !== undefined) {
+      payload.resumeUrl      = pendingResume;
+      payload.resumeFileName = pendingResumeName;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Salvando...';
+
+    try {
+      const res = await api(`/api/users/${currentUser.id}`, {
+        method: 'PATCH',
+        body:   JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        window.showToast(data.error || 'Erro ao salvar.', 'error');
+        return;
+      }
+
+      // Atualiza localStorage e variável atual
+      Object.assign(currentUser, data);
+      localStorage.setItem('orbit_user', JSON.stringify(currentUser));
+
+      // Re-render header + hero
+      renderHeader();
+      // Recarrega o perfil para refletir todas as mudanças
+      await loadProfile();
+
+      window.showToast('Perfil atualizado com sucesso!', 'success');
+      closeEditModal();
+    } catch {
+      window.showToast('Erro de conexão. Tente novamente.', 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Salvar alterações';
+    }
+  });
+
+  /* =========================================================
+     INIT
+  ========================================================= */
+  renderHeader();
+  loadProfile();
+
+})();
