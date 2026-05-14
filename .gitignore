@@ -1,7 +1,30 @@
 # IDEs
 *.swp
 *.swo
+.vscode/
+.idea/
 
-#Ignoring folders
+# Ferramentas locais
 .cursor
 .claude
+
+# Dependências Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Banco de dados gerado em runtime
+# (db.json é versionado pois contém os seeds iniciais)
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
