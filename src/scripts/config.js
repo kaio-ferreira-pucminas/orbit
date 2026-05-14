@@ -12,6 +12,6 @@
 
   window.ORBIT_API_URL = isLocal
     ? 'http://localhost:3001'
-    : 'https://orbit-api.onrender.com';   // ← TROCAR pela URL pública do backend
+    : 'https://orbit-api-8k0j.onrender.com';   // ← TROCAR pela URL pública do backend
 
 })();
