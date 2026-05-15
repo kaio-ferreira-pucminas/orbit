@@ -89,8 +89,8 @@ server.use(cors({
     if (!origin) return callback(null, true);
     // Origin na whitelist → permite
     if (CORS_ORIGINS.includes(origin)) return callback(null, true);
-    // Padrão wildcard *.vercel.app → permite (cobre previews)
-    if (/^https:\/\/[^.]+\.vercel\.app$/.test(origin)) return callback(null, true);
+    // Padrão wildcard *.onrender.com → permite (cobre o static site na Render)
+    if (/^https:\/\/[^.]+\.onrender\.com$/.test(origin)) return callback(null, true);
     // Resto → bloqueia
     return callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
   },

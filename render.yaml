@@ -1,0 +1,58 @@
+# render.yaml — Blueprint da Orbit
+# Define os 2 serviços (backend + frontend) num único arquivo.
+# Na Render: New → Blueprint → aponta pro repositório → ela lê este arquivo.
+
+services:
+  # ────────────────────────────────────────────────
+  # BACKEND — API (JSON Server + JWT + Resend)
+  # ────────────────────────────────────────────────
+  - type: web
+    name: orbit-api
+    runtime: node
+    plan: free
+    rootDir: src/scripts/backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: RESEND_API_KEY
+        sync: false                 # preencher manualmente no dashboard (secreto)
+      - key: RESEND_FROM_EMAIL
+        sync: false                 # ex: noreply@kaioferreira.com
+      - key: RESEND_FROM_NAME
+        value: Orbit
+      - key: JWT_SECRET
+        generateValue: true         # a Render gera um valor aleatório seguro
+      - key: APP_URL
+        sync: false                 # preencher com a URL do frontend após o 1º deploy
+      - key: CORS_ORIGINS
+        sync: false                 # preencher com a URL do frontend após o 1º deploy
+
+  # ────────────────────────────────────────────────
+  # FRONTEND — Static Site (HTML/CSS/JS puro)
+  # ────────────────────────────────────────────────
+  - type: web
+    name: orbit-web
+    runtime: static
+    rootDir: src
+    buildCommand: ""
+    staticPublishPath: .
+    # Rotas: raiz cai na landing; URLs curtas redirecionam pras páginas
+    routes:
+      - type: rewrite
+        source: /
+        destination: /pages/index.html
+      - type: rewrite
+        source: /feed
+        destination: /pages/feed.html
+      - type: rewrite
+        source: /auth
+        destination: /pages/auth.html
+      - type: rewrite
+        source: /profile
+        destination: /pages/profile.html
+      - type: rewrite
+        source: /forgot-password
+        destination: /pages/forgot-password.html
+      - type: rewrite
+        source: /reset-password
+        destination: /pages/reset-password.html
