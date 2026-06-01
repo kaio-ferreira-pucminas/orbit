@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mensagens — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/mensagens.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR ESQUERDA (SideNavBar — componente de usuário)
+  ====================================================== -->
+  <aside class="dash-sidebar" aria-label="Menu lateral">
+    <div class="dash-sidebar__brand">
+      <div class="dash-sidebar__logo-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+          <path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="dash-sidebar__brand-text">
+        <span class="dash-sidebar__brand-name">Orbit</span>
+        <span class="dash-sidebar__brand-sub">DEVELOPER PLATFORM</span>
+      </div>
+    </div>
+
+    <nav class="dash-sidebar__nav" aria-label="Navegação principal">
+      <a href="/pages/dashboard.html" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/pages/meus-projetos.html" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Meus Projetos</span>
+      </a>
+      <a href="/pages/oportunidades.html" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span>Oportunidades</span>
+      </a>
+      <a href="/pages/mensagens.html" class="dash-nav__link dash-nav__link--active" aria-current="page">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Mensagens</span>
+      </a>
+    </nav>
+
+    <div class="dash-sidebar__bottom">
+      <div class="dash-sidebar__divider"></div>
+      <a href="#" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Suporte</span>
+      </a>
+      <button type="button" class="dash-nav__link dash-nav__link--btn" id="btn-logout">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CONTEÚDO — layout de mensagens (2 painéis)
+  ====================================================== -->
+  <main class="msg-main">
+
+    <!-- Painel: lista de conversas -->
+    <section class="msg-list-panel" aria-label="Conversas">
+      <header class="msg-list-panel__header">
+        <h1 class="msg-list-panel__title">Mensagens</h1>
+      </header>
+
+      <div class="msg-search">
+        <svg class="msg-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="conv-search" class="msg-search__input" placeholder="Buscar conversas..." aria-label="Buscar conversas" />
+      </div>
+
+      <div class="msg-list__subhead">
+        <span class="msg-list__subhead-label">Recentes</span>
+      </div>
+
+      <ul class="msg-conv-list" id="conv-list" aria-label="Lista de conversas">
+        <li class="msg-loading" id="conv-loading">Carregando conversas...</li>
+      </ul>
+    </section>
+
+    <!-- Painel: conversa ativa -->
+    <section class="msg-chat-panel" aria-label="Conversa" id="chat-panel">
+
+      <!-- Estado vazio -->
+      <div class="msg-chat-empty" id="chat-empty">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p class="msg-chat-empty__title">Selecione uma conversa</p>
+        <p class="msg-chat-empty__text">Escolha um contato à esquerda para ver o histórico de mensagens.</p>
+      </div>
+
+      <!-- Conversa carregada -->
+      <div class="msg-chat" id="chat-active" hidden>
+        <header class="msg-chat__header">
+          <div class="msg-chat__contact">
+            <div class="msg-chat__avatar" id="chat-avatar"><span id="chat-initials">?</span></div>
+            <div class="msg-chat__contact-info">
+              <span class="msg-chat__contact-name" id="chat-name">—</span>
+              <span class="msg-chat__contact-status" id="chat-status">online</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="msg-chat__history" id="chat-history" aria-live="polite">
+          <!-- Bolhas injetadas via JS -->
+        </div>
+
+        <form class="msg-chat__composer" id="chat-composer">
+          <input type="text" id="chat-input" class="msg-chat__input" placeholder="Escreva sua mensagem..." autocomplete="off" aria-label="Escreva sua mensagem" />
+          <button type="submit" class="msg-chat__send" aria-label="Enviar mensagem">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/mensagens.js"></script>
+</body>
+</html>

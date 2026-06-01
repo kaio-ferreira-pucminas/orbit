@@ -11,6 +11,8 @@
     { "source": "/profile",         "destination": "/pages/profile.html" },
     { "source": "/forgot-password", "destination": "/pages/forgot-password.html" },
     { "source": "/reset-password",  "destination": "/pages/reset-password.html" },
-    { "source": "/dashboard",       "destination": "/pages/dashboard.html" }
+    { "source": "/dashboard",       "destination": "/pages/dashboard.html" },
+    { "source": "/mensagens",       "destination": "/pages/mensagens.html" },
+    { "source": "/empresa",         "destination": "/pages/empresa-dashboard.html" }
   ]
 }
