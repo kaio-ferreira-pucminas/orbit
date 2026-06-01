@@ -1,0 +1,186 @@
+/* ============================================================
+   VAGAS.CSS — Orbit · Listagem de Vagas (#2 — Daniel)
+   Stack: CSS puro, sem framework
+============================================================ */
+
+:root {
+  --primary:         #4648d4;
+  --primary-light:   rgba(70, 72, 212, 0.1);
+  --primary-hover:   #3537b8;
+  --dash-bg:         #faf8ff;
+  --card-bg:         #ffffff;
+  --border-light:    rgba(199, 196, 215, 0.3);
+  --border-purple:   #e2e7ff;
+  --text-dark:       #131b2e;
+  --text-muted:      #565e74;
+  --light-purple:    #f2f3ff;
+  --lighter-purple:  #e2e7ff;
+  --lightest-purple: #dae2fd;
+  --green:           #00685d;
+  --green-bg:        rgba(0, 131, 118, 0.1);
+  --amber:           #9a6700;
+  --amber-bg:        rgba(212, 167, 70, 0.18);
+  --shadow-sm:       0 1px 2px rgba(19, 27, 46, 0.05);
+  --shadow-card:     0 1px 1px rgba(0, 0, 0, 0.05);
+  --shadow-btn:      0 10px 15px -3px rgba(70,72,212,0.2), 0 4px 6px -4px rgba(70,72,212,0.2);
+  --sidebar-w:       256px;
+  --radius:          12px;
+  --radius-sm:       8px;
+  --radius-xs:       4px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--dash-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+ul, ol { list-style: none; }
+[hidden] { display: none !important; }
+
+/* ============================================================
+   SIDEBAR (componente compartilhado de usuário)
+============================================================ */
+.dash-sidebar {
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh;
+  background: var(--dash-bg); display: flex; flex-direction: column; padding: 32px 16px;
+  z-index: 100; border-right: 1px solid var(--border-light);
+}
+.dash-sidebar__brand { display: flex; align-items: center; gap: 12px; padding: 0 16px 40px; }
+.dash-sidebar__logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dash-sidebar__brand-text { display: flex; flex-direction: column; }
+.dash-sidebar__brand-name { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -1px; color: var(--primary); line-height: 28px; }
+.dash-sidebar__brand-sub { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); line-height: 15px; }
+.dash-sidebar__nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.dash-nav__link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-xs); font-size: 14px; font-weight: 500; color: var(--text-dark); opacity: 0.6; transition: opacity .15s, background .15s, color .15s; width: 100%; text-align: left; }
+.dash-nav__link:hover { opacity: 1; background: var(--primary-light); color: var(--primary); }
+.dash-nav__link--active { background: var(--primary-light); color: var(--primary); opacity: 1; }
+.dash-nav__icon { flex-shrink: 0; }
+.dash-sidebar__bottom { display: flex; flex-direction: column; gap: 8px; }
+.dash-sidebar__divider { border-top: 1px solid rgba(199,196,215,0.2); margin-bottom: 24px; }
+
+/* ============================================================
+   MAIN + HERO
+============================================================ */
+.vagas-main { margin-left: var(--sidebar-w); padding: 32px 48px 80px; min-height: 100vh; display: flex; flex-direction: column; gap: 28px; }
+.vagas-hero__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 36px; letter-spacing: -0.9px; color: var(--text-dark); line-height: 44px; }
+.vagas-hero__subtitle { margin-top: 8px; font-size: 17px; color: var(--text-muted); line-height: 26px; max-width: 640px; }
+
+/* ============================================================
+   SEARCHBAR
+============================================================ */
+.vagas-searchbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.vagas-search { position: relative; flex: 1; min-width: 260px; }
+.vagas-search__icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.vagas-search__input {
+  width: 100%; padding: 14px 16px 14px 46px; border: 1px solid var(--border-purple); border-radius: var(--radius);
+  background: var(--card-bg); font-size: 14px; font-family: inherit; color: var(--text-dark);
+  transition: border-color .15s, box-shadow .15s;
+}
+.vagas-search__input::placeholder { color: var(--text-muted); }
+.vagas-search__input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.vagas-select {
+  padding: 14px 40px 14px 16px; border: 1px solid var(--border-purple); border-radius: var(--radius);
+  background: var(--card-bg); font-size: 14px; font-weight: 500; font-family: inherit; color: var(--text-dark);
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23565e74' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  transition: border-color .15s, box-shadow .15s;
+}
+.vagas-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.vagas-select--sort { padding: 8px 36px 8px 12px; font-weight: 700; color: var(--primary); border-color: transparent; background-color: transparent; }
+
+/* ============================================================
+   LAYOUT
+============================================================ */
+.vagas-layout { display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: start; }
+
+/* Aside de filtros */
+.vagas-filters { background: var(--card-bg); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 24px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 24px; }
+.vagas-filters__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 16px; color: var(--text-dark); }
+.vagas-filter-group { display: flex; flex-direction: column; gap: 8px; }
+.vagas-filter-group__label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 4px; }
+.vagas-check { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-dark); cursor: pointer; }
+.vagas-check input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+.vagas-filter-clear { font-size: 13px; font-weight: 700; color: var(--primary); padding: 10px; border: 1px solid var(--border-purple); border-radius: var(--radius); transition: background .15s; }
+.vagas-filter-clear:hover { background: var(--primary-light); }
+
+.vagas-saved { border-top: 1px solid var(--border-light); padding-top: 20px; }
+.vagas-saved__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: var(--text-dark); margin-bottom: 12px; }
+.vagas-saved__list { display: flex; flex-direction: column; gap: 10px; }
+.vagas-saved__item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--light-purple); border-radius: var(--radius-sm); cursor: pointer; transition: background .15s; }
+.vagas-saved__item:hover { background: var(--lighter-purple); }
+.vagas-saved__item-title { font-size: 13px; font-weight: 700; color: var(--text-dark); }
+.vagas-saved__item-meta { font-size: 12px; color: var(--text-muted); }
+.vagas-saved__empty { font-size: 13px; color: var(--text-muted); }
+
+/* ============================================================
+   CONTENT / LISTA
+============================================================ */
+.vagas-content__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.vagas-content__count { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+.vagas-content__sort { display: flex; align-items: center; gap: 4px; }
+.vagas-content__sort-label { font-size: 12px; color: var(--text-muted); }
+
+.vagas-list { display: flex; flex-direction: column; gap: 16px; }
+
+.vaga-card {
+  background: var(--card-bg); border: 1px solid var(--border-light); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); padding: 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+  transition: box-shadow .18s, transform .1s, border-color .18s;
+}
+.vaga-card:hover { box-shadow: 0 8px 20px -6px rgba(70,72,212,0.18); border-color: var(--lighter-purple); transform: translateY(-2px); }
+.vaga-card__main { flex: 1; min-width: 0; }
+.vaga-card__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.vaga-card__title { font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 18px; color: var(--text-dark); line-height: 26px; }
+.vaga-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 3px 8px; border-radius: var(--radius); }
+.vaga-badge--novo { background: var(--green-bg); color: var(--green); }
+.vaga-badge--urgente { background: var(--amber-bg); color: var(--amber); }
+.vaga-badge--destaque { background: var(--primary-light); color: var(--primary); }
+.vaga-card__company { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+.vaga-card__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.vaga-tag { background: var(--lightest-purple); color: var(--text-muted); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: var(--radius); }
+.vaga-card__meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.vaga-meta-item { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--text-muted); }
+.vaga-meta-item--salary { color: var(--green); font-weight: 700; }
+
+.vaga-card__actions { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; align-items: stretch; min-width: 150px; }
+.vaga-btn-primary { padding: 12px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 700; color: #fff; background: var(--primary); box-shadow: var(--shadow-btn); transition: background .15s, transform .1s; text-align: center; }
+.vaga-btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.vaga-save-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: var(--radius); font-size: 13px; font-weight: 700; color: var(--primary); border: 1px solid var(--border-purple); transition: background .15s; }
+.vaga-save-btn:hover { background: var(--primary-light); }
+.vaga-save-btn.is-saved { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* loading / empty */
+.vagas-loading { color: var(--text-muted); font-size: 14px; padding: 24px 0; }
+.vagas-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 56px 24px; text-align: center; background: var(--light-purple); border-radius: var(--radius); }
+.vagas-empty__icon { color: var(--primary); opacity: 0.4; }
+.vagas-empty__title { font-size: 16px; font-weight: 700; color: var(--text-dark); }
+.vagas-empty__text { font-size: 14px; color: var(--text-muted); max-width: 340px; }
+
+/* ============================================================
+   RESPONSIVO
+============================================================ */
+@media (max-width: 1000px) {
+  .vagas-layout { grid-template-columns: 1fr; }
+  .vagas-filters { position: static; }
+}
+@media (max-width: 900px) {
+  .dash-sidebar { width: 64px; padding: 24px 8px; }
+  .dash-sidebar__brand-text, .dash-nav__link span { display: none; }
+  .dash-sidebar__brand { padding: 0 0 32px; justify-content: center; }
+  .dash-nav__link { justify-content: center; padding: 12px; }
+  .vagas-main { margin-left: 64px; padding: 24px 24px 64px; }
+  .vagas-hero__title { font-size: 28px; line-height: 36px; }
+}
+@media (max-width: 620px) {
+  .vagas-searchbar { flex-direction: column; align-items: stretch; }
+  .vagas-search { min-width: 0; }
+  .vagas-select { width: 100%; }
+  .vaga-card { flex-direction: column; }
+  .vaga-card__actions { flex-direction: row; width: 100%; min-width: 0; }
+}

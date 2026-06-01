@@ -13,6 +13,14 @@
     { "source": "/reset-password",  "destination": "/pages/reset-password.html" },
     { "source": "/dashboard",       "destination": "/pages/dashboard.html" },
     { "source": "/mensagens",       "destination": "/pages/mensagens.html" },
-    { "source": "/empresa",         "destination": "/pages/empresa-dashboard.html" }
+    { "source": "/empresa",         "destination": "/pages/empresa-dashboard.html" },
+    { "source": "/vagas",           "destination": "/pages/vagas.html" },
+    { "source": "/talentos",        "destination": "/pages/empresa-talentos.html" },
+    { "source": "/vaga",            "destination": "/pages/vaga-detalhes.html" },
+    { "source": "/completar-perfil","destination": "/pages/completar-perfil.html" },
+    { "source": "/meus-projetos",   "destination": "/pages/meus-projetos.html" },
+    { "source": "/perfil-publico",  "destination": "/pages/perfil-publico.html" },
+    { "source": "/oportunidades",   "destination": "/pages/oportunidades.html" },
+    { "source": "/candidatos",      "destination": "/pages/empresa-candidatos.html" }
   ]
 }
