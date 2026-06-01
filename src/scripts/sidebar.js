@@ -10,9 +10,31 @@
 (function () {
   'use strict';
 
+  /* ===== USUÁRIO LOGADO ===== */
+  let currentUser = null;
+  try { currentUser = JSON.parse(localStorage.getItem('orbit_user') || 'null'); } catch (e) { currentUser = null; }
+
+  function escapeHtml(str) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(str == null ? '' : str).replace(/[&<>"']/g, ch => map[ch]);
+  }
+  function initials(name) {
+    if (!name) return 'U';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
+  }
+  function userRole(u) {
+    if (!u) return 'Desenvolvedor(a)';
+    return u.title || (u.type === 'company' ? 'Empresa' : 'Desenvolvedor(a)');
+  }
+  function brandAvatar(u) {
+    if (u && u.avatarUrl) return `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.name || '')}" />`;
+    return `<span>${escapeHtml(initials(u && u.name))}</span>`;
+  }
+
   /* ===== ÍCONES ===== */
   const ICONS = {
     dashboard: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+    feed:      '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
     projetos:  '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     oportunidades: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
     mensagens: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
@@ -27,6 +49,7 @@
   /* ===== NAV ===== */
   const NAV = [
     { key: 'dashboard',     href: '/pages/dashboard.html',     label: 'Dashboard',     icon: ICONS.dashboard },
+    { key: 'feed',          href: '/pages/feed.html',          label: 'Feed',          icon: ICONS.feed },
     { key: 'projetos',      href: '/pages/meus-projetos.html', label: 'Meus Projetos', icon: ICONS.projetos },
     { key: 'oportunidades', href: '/pages/oportunidades.html', label: 'Oportunidades', icon: ICONS.oportunidades },
     { key: 'mensagens',     href: '/pages/mensagens.html',     label: 'Mensagens',     icon: ICONS.mensagens },
@@ -35,6 +58,7 @@
   const FILE = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
   const ACTIVE = {
     'dashboard.html': 'dashboard',
+    'feed.html': 'feed',
     'meus-projetos.html': 'projetos',
     'oportunidades.html': 'oportunidades',
     'vagas.html': 'oportunidades',
@@ -51,15 +75,13 @@
 
     return `
       <aside class="dash-sidebar" aria-label="Menu lateral">
-        <div class="dash-sidebar__brand">
-          <div class="dash-sidebar__logo-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${ICONS.orbit}</svg>
-          </div>
+        <a href="/pages/profile.html" class="dash-sidebar__brand dash-sidebar__brand--user" title="Ver meu perfil">
+          <div class="dash-sidebar__logo-icon dash-sidebar__avatar">${brandAvatar(currentUser)}</div>
           <div class="dash-sidebar__brand-text">
-            <span class="dash-sidebar__brand-name">Meu Orbit</span>
-            <span class="dash-sidebar__brand-sub">PAINEL DE CONTROLE</span>
+            <span class="dash-sidebar__brand-name">${escapeHtml(currentUser && currentUser.name ? currentUser.name : 'Usuário')}</span>
+            <span class="dash-sidebar__brand-sub dash-sidebar__brand-role">${escapeHtml(userRole(currentUser))}</span>
           </div>
-        </div>
+        </a>
 
         <nav class="dash-sidebar__nav" aria-label="Navegação principal">${links}</nav>
 
@@ -85,8 +107,28 @@
     }
   }
 
+  /* ===== CSS (ajustes da área de perfil — injetado uma vez) ===== */
+  function ensureStyles() {
+    if (document.getElementById('orbit-sidebar-style')) return;
+    const css = `
+      .dash-sidebar__brand--user{text-decoration:none;cursor:pointer;}
+      .dash-sidebar__brand--user:hover .dash-sidebar__brand-name{color:var(--primary,#4648d4);}
+      .dash-sidebar__avatar{overflow:hidden;}
+      .dash-sidebar__avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+      .dash-sidebar__avatar span{color:#fff;font-weight:700;font-size:14px;}
+      .dash-sidebar__brand-text{min-width:0;}
+      .dash-sidebar__brand--user .dash-sidebar__brand-name{font-size:16px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .dash-sidebar__brand-role{text-transform:none;letter-spacing:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    `;
+    const style = document.createElement('style');
+    style.id = 'orbit-sidebar-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
   /* ===== MOUNT (síncrono: roda antes do script da página) ===== */
   function mount() {
+    ensureStyles();
     let host = document.getElementById('orbit-sidebar');
     if (!host) {
       host = document.createElement('div');
