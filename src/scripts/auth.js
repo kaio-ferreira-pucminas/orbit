@@ -193,8 +193,8 @@
         localStorage.setItem('orbit_token', data.token);
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
-        showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
-        setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
+        showToast('Conta criada com sucesso! Complete seu perfil profissional.', 'success');
+        setTimeout(() => { window.location.href = '/pages/completar-perfil.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
@@ -243,7 +243,7 @@
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
         showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
-        setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
+        setTimeout(() => { window.location.href = '/pages/empresa-dashboard.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');
