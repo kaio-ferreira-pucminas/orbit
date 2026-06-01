@@ -225,7 +225,8 @@
               <p class="suggestion__title">${escapeHtml(u.title || 'Desenvolvedor(a)')}</p>
             </div>
           </div>
-          <button class="suggestion__follow-btn" type="button" aria-label="Seguir ${escapeHtml(u.name)}">
+          <button class="suggestion__follow-btn" type="button" data-follow-id="${escapeHtml(u.id)}"
+            aria-label="Seguir ${escapeHtml(u.name)}" title="Seguir">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -240,6 +241,47 @@
       /* silencioso */
     }
   }
+
+  /* =========================================================
+     FOLLOW — liga os botões "Seguir" ao backend (toggle)
+  ========================================================= */
+  async function toggleFollow(targetUserId, btn) {
+    btn.disabled = true;
+    try {
+      const res = await api('/api/follows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (window.orbitToast) window.orbitToast(data.error || 'Não foi possível seguir.', 'error');
+        return;
+      }
+      // Atualiza estado visual do botão
+      btn.classList.toggle('is-following', !!data.following);
+      if (btn.classList.contains('suggestion__follow-btn')) {
+        btn.setAttribute('title', data.following ? 'Seguindo' : 'Seguir');
+      } else {
+        btn.textContent = data.following ? 'Seguindo' : 'Seguir';
+      }
+      if (window.orbitToast) {
+        window.orbitToast(data.following ? 'Você começou a seguir.' : 'Você deixou de seguir.', 'success');
+      }
+    } catch {
+      if (window.orbitToast) window.orbitToast('Não foi possível seguir agora.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Delegação global para qualquer botão de seguir (sugestões e posts)
+  document.addEventListener('click', (ev) => {
+    const sBtn = ev.target.closest('.suggestion__follow-btn[data-follow-id]');
+    if (sBtn) { toggleFollow(sBtn.getAttribute('data-follow-id'), sBtn); return; }
+    const pBtn = ev.target.closest('.post__follow-btn[data-follow-id]');
+    if (pBtn) { toggleFollow(pBtn.getAttribute('data-follow-id'), pBtn); return; }
+  });
 
   /* =========================================================
      COMPOSER — expandir / colapsar / toolbar / submit
@@ -398,7 +440,7 @@
                     <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
                   </svg>
                 </button>`
-              : `<button class="post__follow-btn" type="button">Seguir</button>`
+              : `<button class="post__follow-btn" type="button" data-follow-id="${escapeHtml(author.id)}">Seguir</button>`
             }
           </div>
 

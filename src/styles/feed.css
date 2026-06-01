@@ -745,6 +745,19 @@ body {
   font-weight: 800;
 }
 
+/* Estado "seguindo" — botão de post */
+.post__follow-btn.is-following {
+  background: var(--primary, #4648d4);
+  color: #fff;
+}
+.post__follow-btn.is-following::before { content: "\2713"; } /* checkmark */
+
+/* Estado "seguindo" — botão de sugestão (ícone) */
+.suggestion__follow-btn.is-following {
+  background: var(--primary, #4648d4);
+  color: #fff;
+}
+
 .post__delete-btn {
   background: none;
   border: none;

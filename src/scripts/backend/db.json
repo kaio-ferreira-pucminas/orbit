@@ -701,5 +701,43 @@
       "read": true,
       "createdAt": "2026-05-18T11:30:30.000Z"
     }
+  ],
+  "follows": [
+    {
+      "id": "follow-001",
+      "followerId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "followingId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "createdAt": "2026-05-10T09:00:00.000Z"
+    },
+    {
+      "id": "follow-002",
+      "followerId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "followingId": "seed-lucas-001",
+      "createdAt": "2026-05-11T10:30:00.000Z"
+    },
+    {
+      "id": "follow-003",
+      "followerId": "seed-beatriz-001",
+      "followingId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "createdAt": "2026-05-12T14:00:00.000Z"
+    },
+    {
+      "id": "follow-004",
+      "followerId": "8f02508f-2c69-4f99-9e69-43efcb6be3a6",
+      "followingId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "createdAt": "2026-05-13T16:20:00.000Z"
+    },
+    {
+      "id": "follow-005",
+      "followerId": "a1b2c3d4-0001-4e5f-a6b7-c8d9e0f10001",
+      "followingId": "seed-lucas-001",
+      "createdAt": "2026-05-09T08:00:00.000Z"
+    },
+    {
+      "id": "follow-006",
+      "followerId": "seed-lucas-001",
+      "followingId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "createdAt": "2026-05-14T11:00:00.000Z"
+    }
   ]
 }

@@ -924,7 +924,132 @@ server.get('/api/recommendations/me', requireAuth, (req, res) => {
   return res.status(200).json(list);
 });
 
+// ── FOLLOWS (sistema de seguir) ──────────────────────────────────────────────
+
+// Helper: existe relação de follow entre dois usuários (A segue B OU B segue A)?
+function hasConnection(db, idA, idB) {
+  return (db.follows || []).some(f =>
+    (f.followerId === idA && f.followingId === idB) ||
+    (f.followerId === idB && f.followingId === idA)
+  );
+}
+
+// POST /api/follows — toggle seguir / deixar de seguir { targetUserId }
+server.post('/api/follows', requireAuth, (req, res) => {
+  const { targetUserId } = req.body;
+  if (!targetUserId) return res.status(400).json({ error: 'targetUserId é obrigatório.' });
+  if (targetUserId === req.user.id) return res.status(400).json({ error: 'Você não pode seguir a si mesmo.' });
+
+  const db = getDb();
+  if (!db.users.find(u => u.id === targetUserId)) {
+    return res.status(404).json({ error: 'Usuário não encontrado.' });
+  }
+
+  db.follows = db.follows || [];
+  const existing = db.follows.find(f => f.followerId === req.user.id && f.followingId === targetUserId);
+
+  let following;
+  if (existing) {
+    db.follows = db.follows.filter(f => f.id !== existing.id);
+    following = false;
+  } else {
+    db.follows.push({
+      id:          generateId(),
+      followerId:  req.user.id,
+      followingId: targetUserId,
+      createdAt:   new Date().toISOString(),
+    });
+    following = true;
+  }
+
+  saveDb(db);
+  const followsMe = (db.follows || []).some(f => f.followerId === targetUserId && f.followingId === req.user.id);
+  return res.status(200).json({ following, followsMe });
+});
+
+// GET /api/users/:id/follow-status — relação entre o usuário atual e :id
+server.get('/api/users/:id/follow-status', requireAuth, (req, res) => {
+  const db = getDb();
+  const following = (db.follows || []).some(f => f.followerId === req.user.id && f.followingId === req.params.id);
+  const followsMe = (db.follows || []).some(f => f.followerId === req.params.id && f.followingId === req.user.id);
+  return res.status(200).json({ following, followsMe });
+});
+
+// GET /api/connections/me — usuários que eu sigo OU que me seguem (sanitizados)
+// Base para iniciar conversas. Aceita ?q= para busca por nome.
+server.get('/api/connections/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const me = req.user.id;
+
+  const ids = new Set();
+  (db.follows || []).forEach(f => {
+    if (f.followerId === me)  ids.add(f.followingId);
+    if (f.followingId === me) ids.add(f.followerId);
+  });
+
+  const q = (req.query.q || '').toLowerCase().trim();
+  const list = [...ids]
+    .map(id => db.users.find(u => u.id === id))
+    .filter(Boolean)
+    .filter(u => !u.disabledAt)
+    .filter(u => !q || (u.name || '').toLowerCase().includes(q))
+    .map(u => {
+      const iFollow   = (db.follows || []).some(f => f.followerId === me && f.followingId === u.id);
+      const followsMe = (db.follows || []).some(f => f.followerId === u.id && f.followingId === me);
+      return { ...sanitizeUser(u), relation: { following: iFollow, followsMe } };
+    })
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  return res.status(200).json(list);
+});
+
 // ── MESSAGES (#1 Sistema de Mensagens) ───────────────────────────────────────
+
+// POST /api/conversations — inicia (ou reaproveita) conversa com { targetUserId }
+// Regra: só é permitido conversar com quem você segue OU quem te segue.
+server.post('/api/conversations', requireAuth, (req, res) => {
+  const { targetUserId } = req.body;
+  if (!targetUserId) return res.status(400).json({ error: 'targetUserId é obrigatório.' });
+  if (targetUserId === req.user.id) return res.status(400).json({ error: 'Você não pode conversar consigo mesmo.' });
+
+  const db = getDb();
+  const target = db.users.find(u => u.id === targetUserId);
+  if (!target) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+  // Regra de follow
+  if (!hasConnection(db, req.user.id, targetUserId)) {
+    return res.status(403).json({ error: 'Você só pode iniciar conversa com usuários que segue ou que seguem você.' });
+  }
+
+  // Idempotente: reaproveita conversa existente entre os dois
+  db.conversations = db.conversations || [];
+  let conv = db.conversations.find(c =>
+    (c.participantIds || []).includes(req.user.id) &&
+    (c.participantIds || []).includes(targetUserId)
+  );
+
+  let created = false;
+  if (!conv) {
+    const now = new Date().toISOString();
+    conv = {
+      id:             generateId(),
+      participantIds: [req.user.id, targetUserId],
+      lastMessageAt:  now,
+      createdAt:      now,
+    };
+    db.conversations.push(conv);
+    created = true;
+    saveDb(db);
+  }
+
+  return res.status(created ? 201 : 200).json({
+    ...conv,
+    other: sanitizeUser(target),
+    lastMessage: null,
+    unreadCount: 0,
+    created,
+  });
+});
 
 // GET /api/conversations/me — conversas do usuário, com o "outro" participante
 server.get('/api/conversations/me', requireAuth, (req, res) => {
