@@ -109,7 +109,14 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .mp-btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);}
 
 /* ============================================================
-   RESPONSIVIDADE (#10) — breakpoints cuidadosos
+   RESPONSIVIDADE MOBILE (#10 — Lucas Bonsucesso)
+   ------------------------------------------------------------
+   Breakpoints padrao do projeto Orbit (aplicar nas demais telas):
+     > 1200px  : layout desktop completo (grid de 3 colunas)
+     <= 1200px : grid de 2 colunas (telas medias / tablets largos)
+     <= 900px  : sidebar colapsa para 64px (somente icones); header empilha
+     <= 640px  : grid de 1 coluna; formularios e acoes empilham (mobile)
+   Validado em 390px (mobile) e 768px (tablet).
 ============================================================ */
 @media (max-width:1200px){ .mp-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:900px){
