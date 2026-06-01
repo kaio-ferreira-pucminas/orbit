@@ -1017,6 +1017,19 @@ server.post('/api/follows', requireAuth, (req, res) => {
       createdAt:   new Date().toISOString(),
     });
     following = true;
+
+    // Notifica quem foi seguido (apenas ao começar a seguir)
+    const me = db.users.find(u => u.id === req.user.id);
+    db.notifications = db.notifications || [];
+    db.notifications.push({
+      id:        generateId(),
+      userId:    targetUserId,
+      type:      'new_follower',
+      refId:     req.user.id,
+      message:   `${me ? me.name : 'Alguém'} começou a seguir você.`,
+      read:      false,
+      createdAt: new Date().toISOString(),
+    });
   }
 
   saveDb(db);

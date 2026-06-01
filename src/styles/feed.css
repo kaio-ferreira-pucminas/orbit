@@ -139,11 +139,28 @@ body {
 .composer__avatar img,
 .user-menu__avatar img,
 .post__avatar img,
-.suggestion__avatar img {
+.suggestion__avatar img,
+.comment__avatar img,
+.comment-form__avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* Containers de usuário clicáveis (avatar+nome) → perfil */
+.post__author--link,
+.suggestion__user--link {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: opacity 0.15s;
+}
+.post__author--link:hover,
+.suggestion__user--link:hover { opacity: 0.7; }
+.post__author--link:focus-visible,
+.suggestion__user--link:focus-visible {
+  outline: 2px solid var(--primary, #4648d4);
+  outline-offset: 2px;
 }
 
 /* ============================================================
@@ -1179,3 +1196,33 @@ body {
   .post__action-btn { padding: 6px 8px; font-size: 11px; }
   .post__action-btn span { display: none; } /* só ícones em mobile */
 }
+
+/* ============================================================
+   SINO DE NOTIFICAÇÕES no header do feed (dropdown abre p/ baixo)
+============================================================ */
+.orbit-notif { position: relative; }
+.orbit-notif__btn { position: relative; }
+.orbit-notif__badge {
+  position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px;
+  border-radius: 8px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; padding: 0 4px; pointer-events: none;
+}
+.orbit-notif__dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 320px; max-height: 420px;
+  background: var(--feed-card-bg, #fff); border: 1px solid var(--feed-border, #e2e7ff);
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(19,27,46,0.18); z-index: 300;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.orbit-notif__header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--feed-border, #e2e7ff); }
+.orbit-notif__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 15px; color: var(--feed-text-dark, #131b2e); }
+.orbit-notif__mark { font-size: 12px; font-weight: 700; color: var(--primary, #4648d4); background: none; border: none; cursor: pointer; }
+.orbit-notif__mark:hover { opacity: .75; }
+.orbit-notif__list { overflow-y: auto; display: flex; flex-direction: column; }
+.orbit-notif__item { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--feed-border, #e2e7ff); }
+.orbit-notif__item--unread { background: rgba(70,72,212,0.04); }
+.orbit-notif__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary, #4648d4); flex-shrink: 0; margin-top: 6px; }
+.orbit-notif__dot--read { background: transparent; }
+.orbit-notif__body { flex: 1; min-width: 0; }
+.orbit-notif__msg { font-size: 13px; color: var(--feed-text-dark, #131b2e); line-height: 18px; margin: 0; }
+.orbit-notif__time { font-size: 11px; color: var(--feed-text-muted, #565e74); margin: 2px 0 0; }
+.orbit-notif__empty { padding: 24px 16px; text-align: center; font-size: 13px; color: var(--feed-text-muted, #565e74); }

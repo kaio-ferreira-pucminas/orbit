@@ -36,6 +36,15 @@
     return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
   }
 
+  // Conteúdo do avatar: imagem do usuário (avatarUrl) com fallback para as iniciais
+  function avatarInner(user) {
+    user = user || {};
+    if (user.avatarUrl) {
+      return `<img src="${escapeHtml(user.avatarUrl)}" alt="${escapeHtml(user.name || '')}" />`;
+    }
+    return `<span>${initials(user.name)}</span>`;
+  }
+
   // Ex: "há 2h", "há 3d"
   function timeAgo(iso) {
     const diff = Date.now() - new Date(iso).getTime();
@@ -218,8 +227,8 @@
       const container = $('#suggestions-list');
       container.innerHTML = suggestions.map(u => `
         <div class="suggestion">
-          <div class="suggestion__user">
-            <div class="suggestion__avatar">${initials(u.name)}</div>
+          <div class="suggestion__user suggestion__user--link" data-profile-id="${escapeHtml(u.id || '')}" role="link" tabindex="0" title="Ver perfil de ${escapeHtml(u.name || '')}">
+            <div class="suggestion__avatar">${avatarInner(u)}</div>
             <div class="suggestion__info">
               <p class="suggestion__name">${escapeHtml(u.name)}</p>
               <p class="suggestion__title">${escapeHtml(u.title || 'Desenvolvedor(a)')}</p>
@@ -281,6 +290,24 @@
     if (sBtn) { toggleFollow(sBtn.getAttribute('data-follow-id'), sBtn); return; }
     const pBtn = ev.target.closest('.post__follow-btn[data-follow-id]');
     if (pBtn) { toggleFollow(pBtn.getAttribute('data-follow-id'), pBtn); return; }
+
+    // Clique no container avatar+nome → perfil público do usuário
+    const profileEl = ev.target.closest('[data-profile-id]');
+    if (profileEl) {
+      const id = profileEl.getAttribute('data-profile-id');
+      if (id) window.location.href = `/pages/perfil-publico.html?id=${encodeURIComponent(id)}`;
+    }
+  });
+
+  // Acessibilidade: Enter/Espaço no container de perfil
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    const profileEl = ev.target.closest && ev.target.closest('[data-profile-id]');
+    if (profileEl) {
+      ev.preventDefault();
+      const id = profileEl.getAttribute('data-profile-id');
+      if (id) window.location.href = `/pages/perfil-publico.html?id=${encodeURIComponent(id)}`;
+    }
   });
 
   /* =========================================================
@@ -421,8 +448,8 @@
       <article class="post" data-post-id="${post.id}">
         <div class="post__body">
           <div class="post__header">
-            <div class="post__author">
-              <div class="post__avatar">${initials(author.name)}</div>
+            <div class="post__author post__author--link" data-profile-id="${escapeHtml(author.id || '')}" role="link" tabindex="0" title="Ver perfil de ${escapeHtml(author.name || '')}">
+              <div class="post__avatar">${avatarInner(author)}</div>
               <div class="post__author-info">
                 <p class="post__author-name">${escapeHtml(author.name)}</p>
                 <span class="post__author-title">
@@ -489,7 +516,7 @@
         <!-- Seção de comentários (oculta por padrão) -->
         <div class="post__comments post__comments--hidden" data-comments-section>
           <form class="comment-form" data-comment-form>
-            <div class="comment-form__avatar">${initials(currentUser.name)}</div>
+            <div class="comment-form__avatar">${avatarInner(currentUser)}</div>
             <input type="text" class="comment-form__input"
               placeholder="Escreva um comentário..." maxlength="1000" required />
             <button type="submit" class="comment-form__submit">Enviar</button>
@@ -618,7 +645,7 @@
     const author = c.author || { name: 'Usuário' };
     return `
       <div class="comment">
-        <div class="comment__avatar">${initials(author.name)}</div>
+        <div class="comment__avatar">${avatarInner(author)}</div>
         <div class="comment__body">
           <p class="comment__author">
             ${escapeHtml(author.name)}

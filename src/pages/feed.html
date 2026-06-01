@@ -24,28 +24,32 @@
       <div class="feed-header__left">
         <a href="/pages/feed.html" class="feed-header__logo">Orbit</a>
         <nav class="feed-header__nav" aria-label="Navegação principal">
-          <a href="/pages/feed.html"             class="feed-nav__link feed-nav__link--active">Feed</a>
-          <a href="#"                     class="feed-nav__link">Oportunidades</a>
-          <a href="#"                     class="feed-nav__link">Projetos</a>
-          <a href="#"                     class="feed-nav__link">Mensagens</a>
+          <a href="/pages/feed.html"           class="feed-nav__link feed-nav__link--active">Feed</a>
+          <a href="/pages/oportunidades.html"  class="feed-nav__link">Oportunidades</a>
+          <a href="/pages/meus-projetos.html"  class="feed-nav__link">Projetos</a>
+          <a href="/pages/mensagens.html"      class="feed-nav__link">Mensagens</a>
         </nav>
       </div>
 
       <div class="feed-header__right">
-        <button class="feed-header__icon-btn" aria-label="Notificações" title="Notificações">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
-        </button>
+        <!-- Sino de notificações (componente transversal) -->
+        <div class="orbit-notif" id="orbit-notif">
+          <button class="feed-header__icon-btn orbit-notif__btn" id="notif-btn" aria-label="Notificações" title="Notificações" aria-haspopup="true" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span class="orbit-notif__badge" id="notif-badge" hidden>0</span>
+          </button>
+        </div>
 
-        <button class="feed-header__icon-btn" aria-label="Mensagens" title="Mensagens">
+        <a href="/pages/mensagens.html" class="feed-header__icon-btn" aria-label="Mensagens" title="Mensagens">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
-        </button>
+        </a>
 
         <div class="user-menu" id="user-menu">
           <button class="feed-header__avatar" aria-label="Abrir menu do usuário"
@@ -280,6 +284,7 @@
   <!-- Scripts -->
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
+  <script src="../scripts/notifications.js"></script>
   <script src="../scripts/feed.js"></script>
 </body>
 </html>

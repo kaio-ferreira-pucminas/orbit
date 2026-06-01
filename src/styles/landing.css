@@ -702,11 +702,11 @@ ul { list-style: none; }
 }
 
 /* ============================================================
-   TOAST NOTIFICATIONS (global — canto inferior direito)
+   TOAST NOTIFICATIONS (global — canto superior direito)
 ============================================================ */
 #toast-container {
   position: fixed;
-  bottom: 24px;
+  top: 24px;
   right: 24px;
   z-index: 9999;
   display: flex;
@@ -766,6 +766,14 @@ ul { list-style: none; }
 }
 
 .toast--error .toast__icon { color: #dc2626; }
+
+/* Variante: info (notificações: novo seguidor, nova mensagem) */
+.toast--info {
+  background: #eef0ff;
+  border: 1px solid #b4baf5;
+  color: #2e3192;
+}
+.toast--info .toast__icon { color: #4648d4; }
 
 /* Ícone */
 .toast__icon {

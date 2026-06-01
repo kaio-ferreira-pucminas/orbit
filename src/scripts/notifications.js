@@ -84,6 +84,8 @@
     open = true;
     const mark = document.getElementById('notif-mark');
     if (mark) mark.addEventListener('click', markAllRead);
+    // Ao abrir o menu, as notificações são consideradas lidas.
+    if (items.some(n => !n.read)) markAllRead();
   }
 
   function closeDropdown() {
@@ -101,16 +103,38 @@
       const data = await res.json();
       items = items.map(n => ({ ...n, read: true }));
       renderBadge(data.unreadCount != null ? data.unreadCount : 0);
-      if (open) { closeDropdown(); openDropdown(); }
+      // re-renderiza o dropdown aberto para refletir o estado lido (sem o botão "marcar")
+      if (open && dropdown) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); }
     } catch { /* silencioso */ }
+  }
+
+  /* ===== TOAST de notificações novas ===== */
+  // Tipos que geram alerta visual (toast) automático
+  const TOAST_TYPES = { new_follower: true, new_message: true };
+  let seenIds = null; // ids já conhecidos; null = primeira carga (não notifica histórico)
+
+  function notifyNew(list) {
+    if (seenIds === null) {
+      // primeira execução: registra o estado atual sem disparar toasts antigos
+      seenIds = new Set(list.map(n => n.id));
+      return;
+    }
+    // dispara toast para notificações novas (não vistas) e ainda não lidas
+    const fresh = list.filter(n => !seenIds.has(n.id) && !n.read && TOAST_TYPES[n.type]);
+    fresh.forEach(n => { if (window.showToast) window.showToast(n.message, 'info'); });
+    list.forEach(n => seenIds.add(n.id));
   }
 
   async function load() {
     try {
       const res = await api('/api/notifications/me');
       const data = await res.json();
-      items = (data.notifications || []).slice(0, 20);
+      const list = (data.notifications || []).slice(0, 20);
+      notifyNew(list);
+      items = list;
       renderBadge(data.unreadCount || 0);
+      // se o dropdown estiver aberto, mantém atualizado
+      if (open && dropdown) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); const m = document.getElementById('notif-mark'); if (m) m.addEventListener('click', markAllRead); }
     } catch { /* silencioso (ex: token expirado) */ }
   }
 
@@ -124,9 +148,9 @@
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDropdown(); });
 
-  // rotina: atualiza a cada 60s (polling leve)
+  // rotina: atualiza a cada 30s (polling leve) — detecta novos seguidores/mensagens
   load();
-  setInterval(load, 60000);
+  setInterval(load, 30000);
 
   // expõe para outras telas dispararem refresh se quiserem
   window.orbitRefreshNotifications = load;
