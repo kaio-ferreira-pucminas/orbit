@@ -31,6 +31,14 @@
   }
   function toast(msg, type) { if (window.orbitToast) window.orbitToast(msg, type || 'info'); }
 
+  const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  function mesAno(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
   async function api(path, options) {
     const res = await fetch(`${API_URL}${path}`, Object.assign({}, options, {
       headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, (options && options.headers) || {}),
@@ -94,6 +102,10 @@
       $('#pp-avail-value').textContent = 'Indisponível';
       $('#pp-avail-sub').textContent = 'Não está buscando novas conexões no momento';
     }
+
+    // Orbit Pro — "Na órbita desde <mês ano>" a partir do createdAt
+    const desde = mesAno(user.createdAt);
+    if (desde) $('#pp-pro-sub').textContent = `Na órbita desde ${desde}`;
 
     // Sobre
     $('#pp-about').textContent = user.bio || 'Este usuário ainda não adicionou uma biografia.';
@@ -173,18 +185,25 @@
     toast(following ? 'Você começou a seguir.' : 'Você deixou de seguir.', 'success');
   }
 
+  /* ===== TOPBAR (avatar do usuário logado) ===== */
+  function setupTopbar() {
+    const meInitials = $('#me-initials');
+    const meAvatar = $('#me-avatar');
+    if (meInitials) meInitials.textContent = initials(currentUser.name);
+    if (meAvatar && currentUser.avatarUrl) {
+      meAvatar.innerHTML = `<img src="${escapeHtml(currentUser.avatarUrl)}" alt="${escapeHtml(currentUser.name)}" />`;
+    }
+  }
+
   /* ===== EVENTOS ===== */
   function setupEvents() {
-    $('#btn-follow').addEventListener('click', toggleFollow);
-    $('#btn-logout').addEventListener('click', () => {
-      localStorage.removeItem('orbit_token');
-      localStorage.removeItem('orbit_user');
-      window.location.href = '/pages/auth.html?tab=login';
-    });
+    const follow = $('#btn-follow');
+    if (follow) follow.addEventListener('click', toggleFollow);
   }
 
   /* ===== INIT ===== */
   async function init() {
+    setupTopbar();
     setupEvents();
     try {
       const res = await api(`/api/users/${targetId}/profile`);
