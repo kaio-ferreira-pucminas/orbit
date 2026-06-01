@@ -165,6 +165,19 @@
   ========================================================= */
 
   /* =========================================================
+     FOLLOWING — quem eu já sigo (reflete "Seguindo" já no load)
+  ========================================================= */
+  const followingIds = new Set();
+  async function loadFollowing() {
+    try {
+      const res = await api('/api/connections/me');
+      if (!res.ok) return;
+      const conns = await res.json();
+      conns.forEach(u => { if (u.relation && u.relation.following) followingIds.add(u.id); });
+    } catch { /* silencioso */ }
+  }
+
+  /* =========================================================
      SUGESTÕES (mock estático com base nos seeds)
   ========================================================= */
   async function loadSuggestions() {
@@ -187,8 +200,8 @@
               <p class="suggestion__title">${escapeHtml(u.title || 'Desenvolvedor(a)')}</p>
             </div>
           </div>
-          <button class="suggestion__follow-btn" type="button" data-follow-id="${escapeHtml(u.id)}"
-            aria-label="Seguir ${escapeHtml(u.name)}" title="Seguir">
+          <button class="suggestion__follow-btn${followingIds.has(u.id) ? ' is-following' : ''}" type="button" data-follow-id="${escapeHtml(u.id)}"
+            aria-label="Seguir ${escapeHtml(u.name)}" title="${followingIds.has(u.id) ? 'Seguindo' : 'Seguir'}">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -220,6 +233,8 @@
         if (window.orbitToast) window.orbitToast(data.error || 'Não foi possível seguir.', 'error');
         return;
       }
+      // Mantém o conjunto de "quem eu sigo" em sincronia
+      if (data.following) followingIds.add(targetUserId); else followingIds.delete(targetUserId);
       // Atualiza estado visual do botão
       btn.classList.toggle('is-following', !!data.following);
       if (btn.classList.contains('suggestion__follow-btn')) {
@@ -420,7 +435,7 @@
                     <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
                   </svg>
                 </button>`
-              : `<button class="post__follow-btn" type="button" data-follow-id="${escapeHtml(author.id)}">Seguir</button>`
+              : `<button class="post__follow-btn${followingIds.has(author.id) ? ' is-following' : ''}" type="button" data-follow-id="${escapeHtml(author.id)}">${followingIds.has(author.id) ? 'Seguindo' : 'Seguir'}</button>`
             }
           </div>
 
@@ -636,8 +651,11 @@
   /* =========================================================
      INIT
   ========================================================= */
-  renderProfileCard();
-  loadSuggestions();
-  loadPosts();
+  (async function init() {
+    renderProfileCard();
+    await loadFollowing();   // carrega quem já sigo antes de renderizar os botões
+    loadSuggestions();
+    loadPosts();
+  })();
 
 })();

@@ -141,7 +141,7 @@
 
   /* ===== TOAST de notificações novas ===== */
   // Tipos que geram alerta visual (toast) automático
-  const TOAST_TYPES = { new_follower: true, new_message: true };
+  const TOAST_TYPES = { new_follower: true, new_message: true, new_like: true, new_comment: true };
   let seenIds = null; // ids já conhecidos; null = primeira carga (não notifica histórico)
 
   function notifyNew(list) {
@@ -195,9 +195,9 @@
   root.addEventListener('click', followItemLink);
   root.addEventListener('keydown', followItemLink);
 
-  // rotina: atualiza a cada 10s (polling leve) — detecta novos seguidores/mensagens
+  // rotina: atualiza a cada 1s — detecta novas notificações quase em tempo real
   load();
-  setInterval(load, 10000);
+  setInterval(load, 1000);
 
   // expõe para outras telas dispararem refresh se quiserem
   window.orbitRefreshNotifications = load;

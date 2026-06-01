@@ -663,6 +663,22 @@ server.post('/api/posts/:id/like', requireAuth, (req, res) => {
       createdAt: new Date().toISOString(),
     });
     liked = true;
+
+    // Notifica o autor do post (nunca em auto-curtida)
+    if (post.userId && post.userId !== req.user.id) {
+      const me = db.users.find(u => u.id === req.user.id);
+      db.notifications = db.notifications || [];
+      db.notifications.push({
+        id:        generateId(),
+        userId:    post.userId,
+        type:      'new_like',
+        actorId:   req.user.id,
+        postId:    post.id,
+        message:   `${me ? me.name : 'Alguém'} curtiu seu post.`,
+        read:      false,
+        createdAt: new Date().toISOString(),
+      });
+    }
   }
 
   saveDb(db);
@@ -702,7 +718,8 @@ server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
 
   const db = getDb();
 
-  if (!db.posts.find(p => p.id === req.params.id)) {
+  const post = db.posts.find(p => p.id === req.params.id);
+  if (!post) {
     return res.status(404).json({ error: 'Post não encontrado.' });
   }
 
@@ -715,6 +732,23 @@ server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
   };
 
   db.comments.push(newComment);
+
+  // Notifica o autor do post (nunca em auto-comentário)
+  if (post.userId && post.userId !== req.user.id) {
+    const author2 = db.users.find(u => u.id === req.user.id);
+    db.notifications = db.notifications || [];
+    db.notifications.push({
+      id:        generateId(),
+      userId:    post.userId,
+      type:      'new_comment',
+      actorId:   req.user.id,
+      postId:    post.id,
+      message:   `${author2 ? author2.name : 'Alguém'} comentou no seu post.`,
+      read:      false,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
   saveDb(db);
 
   const author = db.users.find(u => u.id === req.user.id);
@@ -1243,6 +1277,18 @@ function enrichNotification(db, n, meId) {
       message:        name ? `${name} te enviou uma nova mensagem.` : n.message,
       link:           conv ? `/pages/mensagens.html?c=${conv.id}` : '/pages/mensagens.html',
       conversationId: conv ? conv.id : null,
+    };
+  }
+
+  if (n.type === 'new_like' || n.type === 'new_comment') {
+    const actor = db.users.find(u => u.id === n.actorId);
+    const name  = actor ? actor.name : null;
+    const frase = n.type === 'new_like' ? 'curtiu seu post.' : 'comentou no seu post.';
+    return {
+      ...n,
+      actor:   mini(actor),
+      message: name ? `${name} ${frase}` : n.message,
+      link:    '/pages/feed.html',
     };
   }
 

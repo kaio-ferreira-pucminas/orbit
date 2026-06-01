@@ -351,8 +351,8 @@
       openConversation(conversations[0].id);
     }
 
-    // Tempo real: atualiza a cada 4s (lista de conversas + conversa aberta)
-    setInterval(pollRealtime, 4000);
+    // Tempo real: atualiza a cada 0,5s (lista de conversas + conversa aberta)
+    setInterval(pollRealtime, 500);
   }
 
   init();
