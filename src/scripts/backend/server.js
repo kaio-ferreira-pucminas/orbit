@@ -712,6 +712,45 @@ server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
 // mensagens, notificações). CRUD simples cai no router automático do JSON Server.
 // ══════════════════════════════════════════════════════════════════════════════
 
+// ── TALENTS (#8 Busca de Talentos — lado empresa) ────────────────────────────
+
+// GET /api/talents — lista desenvolvedores sanitizados, com filtros opcionais
+// Query: ?q=texto&skill=React&level=Pleno&available=true
+server.get('/api/talents', requireAuth, (req, res) => {
+  const db = getDb();
+  const { q, skill, level, available } = req.query;
+
+  let devs = (db.users || []).filter(u => u.type === 'dev' && !u.disabledAt);
+
+  if (skill) {
+    const s = String(skill).toLowerCase();
+    devs = devs.filter(u => (u.skills || []).some(k => String(k).toLowerCase() === s));
+  }
+  if (level) {
+    const lv = String(level).toLowerCase();
+    devs = devs.filter(u => String(u.level || u.seniority || '').toLowerCase() === lv);
+  }
+  if (available === 'true') {
+    devs = devs.filter(u => u.available === true);
+  }
+  if (q) {
+    const term = String(q).toLowerCase();
+    devs = devs.filter(u =>
+      [u.name, u.title, u.headline, (u.skills || []).join(' ')].join(' ').toLowerCase().includes(term)
+    );
+  }
+
+  // Enriquecе com rating médio (das reviews) e contagem
+  const enriched = devs.map(u => {
+    const reviews = (db.reviews || []).filter(r => r.profileUserId === u.id);
+    const ratingSum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    const rating = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
+    return { ...sanitizeUser(u), rating, reviewsCount: reviews.length };
+  });
+
+  return res.status(200).json(enriched);
+});
+
 // ── JOBS (#2 Listagem, #3 Detalhes) ──────────────────────────────────────────
 
 // GET /api/jobs — lista vagas com filtros opcionais (tech, modality, level, q)

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Busca de Talentos — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/empresa-talentos.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR EMPRESA
+  ====================================================== -->
+  <aside class="emp-sidebar" aria-label="Menu lateral da empresa">
+    <div class="emp-sidebar__brand">
+      <div class="emp-sidebar__logo-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+          <path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="emp-sidebar__brand-text">
+        <span class="emp-sidebar__brand-name" id="sidebar-company-name">Orbit Corp</span>
+        <span class="emp-sidebar__brand-sub">RECRUTAMENTO ATIVO</span>
+      </div>
+    </div>
+
+    <nav class="emp-sidebar__nav" aria-label="Navegação da empresa">
+      <a href="/pages/empresa-dashboard.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/pages/empresa-talentos.html" class="emp-nav__link emp-nav__link--active" aria-current="page">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span>Busca de Talentos</span>
+      </a>
+      <a href="/pages/empresa-dashboard.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span>Gerenciar Vagas</span>
+      </a>
+      <a href="/pages/mensagens.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Mensagens</span>
+      </a>
+    </nav>
+
+    <div class="emp-sidebar__bottom">
+      <div class="emp-sidebar__upgrade">
+        <span class="emp-sidebar__upgrade-label">Upgrade Plano Pro</span>
+      </div>
+      <div class="emp-sidebar__divider"></div>
+      <button type="button" class="emp-nav__link emp-nav__link--btn" id="btn-logout">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CONTEÚDO
+  ====================================================== -->
+  <div class="emp-shell">
+
+    <!-- Top bar -->
+    <header class="emp-topbar">
+      <div class="emp-topbar__search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="talent-search" placeholder="Buscar por tecnologias, cargos ou nomes..." aria-label="Buscar talentos" />
+      </div>
+      <div class="emp-topbar__actions">
+        <button class="emp-btn-primary" id="btn-novo-job">+ Novo Job</button>
+        <div class="emp-topbar__avatar" id="emp-avatar"><span id="emp-initials">OC</span></div>
+      </div>
+    </header>
+
+    <!-- Layout filtros + resultados -->
+    <main class="emp-content">
+      <div class="emp-talent-layout">
+
+        <!-- Filtros -->
+        <aside class="emp-filters-panel" aria-label="Filtros avançados">
+          <h2 class="emp-filters-panel__title">Filtros Avançados</h2>
+
+          <div class="emp-filter-group">
+            <span class="emp-filter-group__label">Habilidades</span>
+            <div class="emp-skill-chips" id="skill-chips"><!-- chips via JS --></div>
+          </div>
+
+          <div class="emp-filter-group">
+            <span class="emp-filter-group__label">Nível de Experiência</span>
+            <label class="emp-filter-check"><input type="checkbox" name="level" value="Júnior" /> Iniciante / Júnior</label>
+            <label class="emp-filter-check"><input type="checkbox" name="level" value="Pleno" /> Pleno</label>
+            <label class="emp-filter-check"><input type="checkbox" name="level" value="Sênior" /> Sênior / Specialist</label>
+          </div>
+
+          <div class="emp-filter-group">
+            <span class="emp-filter-group__label">Disponibilidade</span>
+            <label class="emp-filter-check"><input type="radio" name="availability" value="" checked /> Todos</label>
+            <label class="emp-filter-check"><input type="radio" name="availability" value="true" /> Disponível (Open to Work)</label>
+          </div>
+
+          <button type="button" class="emp-filter-clear" id="btn-clear-filters">Limpar Filtros</button>
+        </aside>
+
+        <!-- Resultados -->
+        <section class="emp-talent-main" aria-label="Candidatos encontrados">
+          <div class="emp-talent-main__head">
+            <h1 class="emp-talent-main__title">
+              Candidatos Encontrados <span class="emp-talent-main__count" id="talent-count">(0)</span>
+            </h1>
+            <div class="emp-content__sort">
+              <span class="emp-funnel__label">Ordenar por:</span>
+              <select id="talent-sort" class="emp-sort-select" aria-label="Ordenar">
+                <option value="relevance">Mais Relevantes</option>
+                <option value="rating">Melhor Avaliados</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="emp-talent-grid" id="talent-grid">
+            <div class="emp-loading">Carregando talentos...</div>
+          </div>
+          <div id="talent-pagination"></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/empresa-talentos.js"></script>
+</body>
+</html>
