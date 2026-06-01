@@ -138,11 +138,7 @@
 
     setAvatar($('.profile-card__avatar'),  currentUser.avatarUrl, currentUser.name, '#profile-card-initials');
     setAvatar($('.composer__avatar'),      currentUser.avatarUrl, currentUser.name, '#composer-initials');
-    setAvatar($('#header-avatar-btn'),     currentUser.avatarUrl, currentUser.name, '#header-avatar-initials');
-    setAvatar($('.user-menu__avatar'),     currentUser.avatarUrl, currentUser.name, '#user-menu-initials');
-
-    $('#user-menu-name').textContent  = currentUser.name;
-    $('#user-menu-email').textContent = currentUser.email;
+    // Header (avatar + menu do usuário) agora é responsabilidade do componente header.js
   }
 
   // Helper: aplica imagem ou iniciais a um elemento avatar
@@ -164,52 +160,9 @@
   }
 
   /* =========================================================
-     USER MENU — dropdown do avatar
+     USER MENU — agora renderizado e controlado pelo header.js
+     (avatar do header, dropdown, "Ir para o perfil" e logout)
   ========================================================= */
-  const userMenu     = $('#user-menu');
-  const avatarBtn    = $('#header-avatar-btn');
-  const dropdown     = $('#user-menu-dropdown');
-  const profileLink  = $('#user-menu-profile');
-  const logoutBtn    = $('#user-menu-logout');
-
-  function openMenu() {
-    userMenu.classList.add('user-menu--open');
-    avatarBtn.setAttribute('aria-expanded', 'true');
-    dropdown.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeMenu() {
-    userMenu.classList.remove('user-menu--open');
-    avatarBtn.setAttribute('aria-expanded', 'false');
-    dropdown.setAttribute('aria-hidden', 'true');
-  }
-
-  // Toggle ao clicar no avatar
-  avatarBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userMenu.classList.contains('user-menu--open') ? closeMenu() : openMenu();
-  });
-
-  // Fecha ao clicar fora
-  document.addEventListener('click', (e) => {
-    if (!userMenu.contains(e.target)) closeMenu();
-  });
-
-  // Fecha com Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMenu();
-  });
-
-  // "Ir para o perfil" — fecha o dropdown antes de navegar
-  profileLink.addEventListener('click', () => closeMenu());
-
-  // "Sair" — limpa token e volta para login
-  logoutBtn.addEventListener('click', () => {
-    closeMenu();
-    localStorage.removeItem('orbit_token');
-    localStorage.removeItem('orbit_user');
-    window.location.href = '/pages/auth.html?tab=login';
-  });
 
   /* =========================================================
      SUGESTÕES (mock estático com base nos seeds)

@@ -232,16 +232,6 @@
     }
   }
 
-  /* ===== TOPBAR (avatar do usuário logado) ===== */
-  function setupTopbar() {
-    const meInitials = $('#me-initials');
-    const meAvatar = $('#me-avatar');
-    if (meInitials) meInitials.textContent = initials(currentUser.name);
-    if (meAvatar && currentUser.avatarUrl) {
-      meAvatar.innerHTML = `<img src="${escapeHtml(currentUser.avatarUrl)}" alt="${escapeHtml(currentUser.name)}" />`;
-    }
-  }
-
   /* ===== EVENTOS ===== */
   function setupEvents() {
     const follow = $('#btn-follow');
@@ -252,7 +242,6 @@
 
   /* ===== INIT ===== */
   async function init() {
-    setupTopbar();
     setupEvents();
     try {
       const res = await api(`/api/users/${targetId}/profile`);

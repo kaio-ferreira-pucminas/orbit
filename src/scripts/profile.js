@@ -60,13 +60,10 @@
   }
 
   /* =========================================================
-     HEADER (avatar dropdown — mesma lógica do feed)
+     HEADER — renderizado e controlado pelo componente header.js
   ========================================================= */
   function renderHeader() {
-    setAvatar($('#header-avatar-btn'),  currentUser.avatarUrl, currentUser.name, '#header-avatar-initials');
-    setAvatar($('.user-menu__avatar'),  currentUser.avatarUrl, currentUser.name, '#user-menu-initials');
-    $('#user-menu-name').textContent  = currentUser.name;
-    $('#user-menu-email').textContent = currentUser.email;
+    // O header (avatar + menu do usuário + sino + chat) agora vem do header.js
   }
 
   // Helper: aplica imagem ou iniciais a um elemento avatar
@@ -92,41 +89,7 @@
     }
   }
 
-  const userMenu  = $('#user-menu');
-  const avatarBtn = $('#header-avatar-btn');
-  const dropdown  = $('#user-menu-dropdown');
-
-  function openMenu() {
-    userMenu.classList.add('user-menu--open');
-    avatarBtn.setAttribute('aria-expanded', 'true');
-    dropdown.setAttribute('aria-hidden', 'false');
-  }
-
-  function closeMenu() {
-    userMenu.classList.remove('user-menu--open');
-    avatarBtn.setAttribute('aria-expanded', 'false');
-    dropdown.setAttribute('aria-hidden', 'true');
-  }
-
-  avatarBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    userMenu.classList.contains('user-menu--open') ? closeMenu() : openMenu();
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!userMenu.contains(e.target)) closeMenu();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMenu();
-  });
-
-  $('#user-menu-logout').addEventListener('click', () => {
-    closeMenu();
-    localStorage.removeItem('orbit_token');
-    localStorage.removeItem('orbit_user');
-    window.location.href = '/pages/auth.html?tab=login';
-  });
+  // Menu do usuário (avatar dropdown + logout) é controlado pelo componente header.js
 
   /* =========================================================
      RENDER — HERO
