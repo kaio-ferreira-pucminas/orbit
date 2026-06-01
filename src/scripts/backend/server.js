@@ -707,6 +707,339 @@ server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
   });
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// SPRINT 02 — endpoints agregados (vagas, candidaturas, recomendações,
+// mensagens, notificações). CRUD simples cai no router automático do JSON Server.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── JOBS (#2 Listagem, #3 Detalhes) ──────────────────────────────────────────
+
+// GET /api/jobs — lista vagas com filtros opcionais (tech, modality, level, q)
+server.get('/api/jobs', requireAuth, (req, res) => {
+  const db = getDb();
+  const { tech, modality, level, q, status } = req.query;
+
+  let jobs = [...(db.jobs || [])];
+
+  if (status)   jobs = jobs.filter(j => j.status === status);
+  if (modality) jobs = jobs.filter(j => j.modality === modality);
+  if (level)    jobs = jobs.filter(j => j.level === level);
+  if (tech)     jobs = jobs.filter(j => (j.skills || []).some(s => s.toLowerCase() === String(tech).toLowerCase()));
+  if (q) {
+    const term = String(q).toLowerCase();
+    jobs = jobs.filter(j =>
+      [j.title, j.companyName, (j.skills || []).join(' ')].join(' ').toLowerCase().includes(term)
+    );
+  }
+
+  // savedByMe para o usuário atual
+  const savedSet = new Set((db.saved_jobs || []).filter(s => s.userId === req.user.id).map(s => s.jobId));
+  const enriched = jobs
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(j => ({ ...j, savedByMe: savedSet.has(j.id) }));
+
+  return res.status(200).json(enriched);
+});
+
+// GET /api/jobs/:id — detalhe da vaga + empresa + flags do usuário + similares
+server.get('/api/jobs/:id', requireAuth, (req, res) => {
+  const db  = getDb();
+  const job = (db.jobs || []).find(j => j.id === req.params.id);
+  if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
+
+  const company = (db.companies || []).find(c => c.id === job.companyId) || null;
+  const savedByMe   = !!(db.saved_jobs || []).find(s => s.jobId === job.id && s.userId === req.user.id);
+  const appliedByMe = !!(db.applications || []).find(a => a.jobId === job.id && a.userId === req.user.id);
+
+  // vagas similares: compartilham pelo menos 1 skill, exceto a própria
+  const similar = (db.jobs || [])
+    .filter(j => j.id !== job.id && (j.skills || []).some(s => (job.skills || []).includes(s)))
+    .slice(0, 3)
+    .map(j => ({ id: j.id, title: j.title, companyName: j.companyName, modality: j.modality, level: j.level, salaryRange: j.salaryRange }));
+
+  return res.status(200).json({ ...job, company, savedByMe, appliedByMe, similar });
+});
+
+// ── APPLICATIONS (#3 candidatura, #12 candidatos por vaga) ───────────────────
+
+// POST /api/applications — candidatar-se a uma vaga
+server.post('/api/applications', requireAuth, (req, res) => {
+  const { jobId, coverMessage } = req.body;
+  if (!jobId) return res.status(400).json({ error: 'jobId é obrigatório.' });
+
+  const db = getDb();
+  if (!(db.jobs || []).find(j => j.id === jobId)) {
+    return res.status(404).json({ error: 'Vaga não encontrada.' });
+  }
+
+  db.applications = db.applications || [];
+  if (db.applications.find(a => a.jobId === jobId && a.userId === req.user.id)) {
+    return res.status(409).json({ error: 'Você já se candidatou a esta vaga.' });
+  }
+
+  const newApp = {
+    id:           generateId(),
+    jobId,
+    userId:       req.user.id,
+    status:       'enviada',
+    appliedAt:    new Date().toISOString(),
+    coverMessage: (coverMessage || '').trim(),
+  };
+  db.applications.push(newApp);
+
+  // Notifica a empresa dona da vaga (se houver userId vinculado)
+  const job     = db.jobs.find(j => j.id === jobId);
+  const company = (db.companies || []).find(c => c.id === job.companyId);
+  const me      = db.users.find(u => u.id === req.user.id);
+  if (company && company.userId) {
+    db.notifications = db.notifications || [];
+    db.notifications.push({
+      id:        generateId(),
+      userId:    company.userId,
+      type:      'new_application',
+      refId:     newApp.id,
+      message:   `${me ? me.name : 'Um candidato'} se candidatou à sua vaga de ${job.title}.`,
+      read:      false,
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  saveDb(db);
+  return res.status(201).json(newApp);
+});
+
+// GET /api/applications/me — minhas candidaturas (com dados da vaga)
+server.get('/api/applications/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const list = (db.applications || [])
+    .filter(a => a.userId === req.user.id)
+    .map(a => {
+      const job = (db.jobs || []).find(j => j.id === a.jobId) || null;
+      return { ...a, job };
+    })
+    .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+  return res.status(200).json(list);
+});
+
+// GET /api/jobs/:id/applications — candidatos de uma vaga (lado empresa, #12)
+server.get('/api/jobs/:id/applications', requireAuth, (req, res) => {
+  const db  = getDb();
+  const job = (db.jobs || []).find(j => j.id === req.params.id);
+  if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
+
+  const applicants = (db.applications || [])
+    .filter(a => a.jobId === req.params.id)
+    .map(a => {
+      const user = db.users.find(u => u.id === a.userId);
+      return { ...a, candidate: user ? sanitizeUser(user) : null };
+    });
+
+  // Funil por status
+  const funnel = {
+    total:      applicants.length,
+    em_analise: applicants.filter(a => a.status === 'em_analise').length,
+    entrevista: applicants.filter(a => a.status === 'entrevista').length,
+    recusado:   applicants.filter(a => a.status === 'recusado').length,
+  };
+
+  return res.status(200).json({ job, funnel, applicants });
+});
+
+// ── SAVED JOBS (#2/#3 salvar vaga, #12 histórico) ────────────────────────────
+
+// POST /api/saved-jobs — toggle salvar/remover vaga
+server.post('/api/saved-jobs', requireAuth, (req, res) => {
+  const { jobId } = req.body;
+  if (!jobId) return res.status(400).json({ error: 'jobId é obrigatório.' });
+
+  const db = getDb();
+  db.saved_jobs = db.saved_jobs || [];
+  const existing = db.saved_jobs.find(s => s.jobId === jobId && s.userId === req.user.id);
+
+  let saved;
+  if (existing) {
+    db.saved_jobs = db.saved_jobs.filter(s => s.id !== existing.id);
+    saved = false;
+  } else {
+    db.saved_jobs.push({
+      id:      generateId(),
+      userId:  req.user.id,
+      jobId,
+      savedAt: new Date().toISOString(),
+    });
+    saved = true;
+  }
+
+  saveDb(db);
+  return res.status(200).json({ saved });
+});
+
+// GET /api/saved-jobs/me — minhas vagas salvas (com dados da vaga)
+server.get('/api/saved-jobs/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const list = (db.saved_jobs || [])
+    .filter(s => s.userId === req.user.id)
+    .map(s => {
+      const job = (db.jobs || []).find(j => j.id === s.jobId) || null;
+      return { ...s, job };
+    });
+  return res.status(200).json(list);
+});
+
+// ── RECOMMENDATIONS (#6 Oportunidades Recomendadas) ──────────────────────────
+
+// GET /api/recommendations/me — vagas recomendadas para mim, ordenadas por match
+server.get('/api/recommendations/me', requireAuth, (req, res) => {
+  const db = getDb();
+
+  // Recomendações pré-calculadas no seed
+  const stored = (db.recommendations || []).filter(r => r.userId === req.user.id);
+
+  // Enriquecе com a vaga; se não houver seed, calcula match on-the-fly pelas skills
+  let list;
+  if (stored.length) {
+    list = stored.map(r => ({ ...r, job: (db.jobs || []).find(j => j.id === r.jobId) || null }));
+  } else {
+    const me = db.users.find(u => u.id === req.user.id);
+    const mySkills = (me && Array.isArray(me.skills) ? me.skills : []).map(s => s.toLowerCase());
+    list = (db.jobs || []).map(job => {
+      const skills = job.skills || [];
+      const matched = skills.filter(s => mySkills.includes(s.toLowerCase()));
+      const ratio = skills.length ? matched.length / skills.length : 0;
+      return {
+        id: `rec-dyn-${job.id}`,
+        userId: req.user.id,
+        jobId: job.id,
+        matchScore: Math.round(40 + ratio * 60),
+        matchedSkills: matched,
+        reason: matched.length
+          ? `Compatível com suas habilidades em ${matched.slice(0, 3).join(', ')}.`
+          : 'Selecionada para ampliar seu repertório técnico.',
+        job,
+      };
+    });
+  }
+
+  list.sort((a, b) => b.matchScore - a.matchScore);
+  return res.status(200).json(list);
+});
+
+// ── MESSAGES (#1 Sistema de Mensagens) ───────────────────────────────────────
+
+// GET /api/conversations/me — conversas do usuário, com o "outro" participante
+server.get('/api/conversations/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const list = (db.conversations || [])
+    .filter(c => (c.participantIds || []).includes(req.user.id))
+    .map(c => {
+      const otherId  = (c.participantIds || []).find(id => id !== req.user.id);
+      const other    = db.users.find(u => u.id === otherId);
+      const msgs     = (db.messages || []).filter(m => m.conversationId === c.id);
+      const last     = msgs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
+      const unread   = msgs.filter(m => m.receiverId === req.user.id && !m.read).length;
+      return {
+        ...c,
+        other: other ? sanitizeUser(other) : null,
+        lastMessage: last,
+        unreadCount: unread,
+      };
+    })
+    .sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+  return res.status(200).json(list);
+});
+
+// GET /api/conversations/:id/messages — histórico de uma conversa
+server.get('/api/conversations/:id/messages', requireAuth, (req, res) => {
+  const db   = getDb();
+  const conv = (db.conversations || []).find(c => c.id === req.params.id);
+  if (!conv) return res.status(404).json({ error: 'Conversa não encontrada.' });
+  if (!(conv.participantIds || []).includes(req.user.id)) {
+    return res.status(403).json({ error: 'Você não participa desta conversa.' });
+  }
+
+  const msgs = (db.messages || [])
+    .filter(m => m.conversationId === req.params.id)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  return res.status(200).json(msgs);
+});
+
+// POST /api/conversations/:id/messages — envia mensagem na conversa
+server.post('/api/conversations/:id/messages', requireAuth, (req, res) => {
+  const { content } = req.body;
+  if (!content || !content.trim()) {
+    return res.status(400).json({ error: 'A mensagem não pode ser vazia.' });
+  }
+
+  const db   = getDb();
+  const conv = (db.conversations || []).find(c => c.id === req.params.id);
+  if (!conv) return res.status(404).json({ error: 'Conversa não encontrada.' });
+  if (!(conv.participantIds || []).includes(req.user.id)) {
+    return res.status(403).json({ error: 'Você não participa desta conversa.' });
+  }
+
+  const receiverId = (conv.participantIds || []).find(id => id !== req.user.id);
+  const now = new Date().toISOString();
+  const newMsg = {
+    id:             generateId(),
+    conversationId: conv.id,
+    senderId:       req.user.id,
+    receiverId,
+    content:        content.trim(),
+    createdAt:      now,
+    read:           false,
+  };
+
+  db.messages = db.messages || [];
+  db.messages.push(newMsg);
+
+  // Atualiza lastMessageAt da conversa
+  const ci = db.conversations.findIndex(c => c.id === conv.id);
+  db.conversations[ci].lastMessageAt = now;
+
+  // Notifica o destinatário
+  const me = db.users.find(u => u.id === req.user.id);
+  db.notifications = db.notifications || [];
+  db.notifications.push({
+    id:        generateId(),
+    userId:    receiverId,
+    type:      'new_message',
+    refId:     conv.id,
+    message:   `Você recebeu uma nova mensagem de ${me ? me.name : 'um usuário'}.`,
+    read:      false,
+    createdAt: now,
+  });
+
+  saveDb(db);
+  return res.status(201).json(newMsg);
+});
+
+// ── NOTIFICATIONS (#11) ──────────────────────────────────────────────────────
+
+// GET /api/notifications/me — notificações do usuário
+server.get('/api/notifications/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const list = (db.notifications || [])
+    .filter(n => n.userId === req.user.id)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const unreadCount = list.filter(n => !n.read).length;
+  return res.status(200).json({ unreadCount, notifications: list });
+});
+
+// POST /api/notifications/read — marca todas (ou uma) como lidas
+server.post('/api/notifications/read', requireAuth, (req, res) => {
+  const { id } = req.body;
+  const db = getDb();
+  db.notifications = (db.notifications || []).map(n => {
+    if (n.userId !== req.user.id) return n;
+    if (id && n.id !== id) return n;
+    return { ...n, read: true };
+  });
+  saveDb(db);
+  const unreadCount = db.notifications.filter(n => n.userId === req.user.id && !n.read).length;
+  return res.status(200).json({ unreadCount });
+});
+
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);

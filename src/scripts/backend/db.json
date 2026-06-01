@@ -482,5 +482,224 @@
       "providerId": "c7fadce9-bb55-4a7f-8617-7e9f36e184e8",
       "providerError": null
     }
+  ],
+  "companies": [
+    {
+      "id": "comp-stellar-001",
+      "userId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "name": "Stellar Tech",
+      "logoInitials": "ST",
+      "industry": "Produtos SaaS",
+      "location": "São Paulo, SP",
+      "about": "Empresa de produtos digitais focada em escala e experiência do desenvolvedor.",
+      "website": "https://stellartech.example.com"
+    },
+    {
+      "id": "comp-dataflow-001",
+      "userId": null,
+      "name": "DataFlow Solutions",
+      "logoInitials": "DF",
+      "industry": "Engenharia de Dados",
+      "location": "Belo Horizonte, MG",
+      "about": "Soluções de dados e integração de sistemas legados com tecnologias modernas.",
+      "website": "https://dataflow.example.com"
+    },
+    {
+      "id": "comp-lumina-001",
+      "userId": null,
+      "name": "Lumina Design",
+      "logoInitials": "LD",
+      "industry": "Design & Produto",
+      "location": "Remoto",
+      "about": "Estúdio de produto digital com foco em design systems e acessibilidade.",
+      "website": "https://lumina.example.com"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "job-001",
+      "companyId": "comp-stellar-001",
+      "companyName": "Stellar Tech",
+      "title": "Desenvolvedor Front-end React",
+      "description": "Atuação na construção de interfaces de alta performance para produtos SaaS, com foco em React e design systems.",
+      "skills": ["React", "JavaScript", "CSS", "TypeScript"],
+      "modality": "Remoto",
+      "level": "Júnior",
+      "contractType": "CLT",
+      "location": "Remoto",
+      "salaryRange": "R$ 3.500 - R$ 5.000",
+      "status": "active",
+      "createdAt": "2026-05-15T09:00:00.000Z"
+    },
+    {
+      "id": "job-002",
+      "companyId": "comp-dataflow-001",
+      "companyName": "DataFlow Solutions",
+      "title": "Engenheiro(a) Full Stack",
+      "description": "Desenvolvimento ponta a ponta de APIs e interfaces, integrando serviços de dados em escala.",
+      "skills": ["Node.js", "React", "PostgreSQL"],
+      "modality": "Híbrido",
+      "level": "Pleno",
+      "contractType": "PJ",
+      "location": "Belo Horizonte, MG",
+      "salaryRange": "R$ 9.000 - R$ 13.000",
+      "status": "active",
+      "createdAt": "2026-05-16T11:30:00.000Z"
+    },
+    {
+      "id": "job-003",
+      "companyId": "comp-lumina-001",
+      "companyName": "Lumina Design",
+      "title": "UI/UX Developer",
+      "description": "Ponte entre design e engenharia, implementando componentes acessíveis e fiéis ao Figma.",
+      "skills": ["React", "CSS", "Figma"],
+      "modality": "Remoto",
+      "level": "Pleno",
+      "contractType": "CLT",
+      "location": "Remoto",
+      "salaryRange": "R$ 8.000 - R$ 11.000",
+      "status": "active",
+      "createdAt": "2026-05-16T14:00:00.000Z"
+    },
+    {
+      "id": "job-004",
+      "companyId": "comp-stellar-001",
+      "companyName": "Stellar Tech",
+      "title": "Engenheiro(a) de Software Backend",
+      "description": "Arquitetura de microsserviços e performance de APIs críticas para produtos de alto tráfego.",
+      "skills": ["Node.js", "TypeScript", "PostgreSQL", "Docker"],
+      "modality": "Presencial",
+      "level": "Sênior",
+      "contractType": "CLT",
+      "location": "São Paulo, SP",
+      "salaryRange": "R$ 12.000 - R$ 16.000",
+      "status": "active",
+      "createdAt": "2026-05-17T08:45:00.000Z"
+    }
+  ],
+  "applications": [
+    {
+      "id": "app-001",
+      "jobId": "job-001",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "status": "em_analise",
+      "appliedAt": "2026-05-18T11:30:00.000Z",
+      "coverMessage": "Tenho experiência com React e CSS e muito interesse na vaga."
+    },
+    {
+      "id": "app-002",
+      "jobId": "job-001",
+      "userId": "seed-lucas-001",
+      "status": "entrevista",
+      "appliedAt": "2026-05-18T12:10:00.000Z",
+      "coverMessage": "Trabalho com React e TypeScript há 3 anos."
+    },
+    {
+      "id": "app-003",
+      "jobId": "job-004",
+      "userId": "seed-beatriz-001",
+      "status": "enviada",
+      "appliedAt": "2026-05-18T13:00:00.000Z",
+      "coverMessage": "Forte experiência em Node.js e infraestrutura."
+    },
+    {
+      "id": "app-004",
+      "jobId": "job-001",
+      "userId": "8f02508f-2c69-4f99-9e69-43efcb6be3a6",
+      "status": "recusado",
+      "appliedAt": "2026-05-17T16:00:00.000Z",
+      "coverMessage": "Tenho interesse em começar na área de front-end."
+    }
+  ],
+  "saved_jobs": [
+    {
+      "id": "saved-001",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "jobId": "job-003",
+      "savedAt": "2026-05-18T09:50:00.000Z"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "rec-001",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "jobId": "job-001",
+      "matchScore": 92,
+      "matchedSkills": ["React", "CSS"],
+      "reason": "Compatível com suas principais habilidades de front-end."
+    },
+    {
+      "id": "rec-002",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "jobId": "job-003",
+      "matchScore": 88,
+      "matchedSkills": ["React", "CSS", "Figma"],
+      "reason": "Forte aderência ao seu stack de interface e design."
+    },
+    {
+      "id": "rec-003",
+      "userId": "seed-beatriz-001",
+      "jobId": "job-004",
+      "matchScore": 95,
+      "matchedSkills": ["Node.js", "PostgreSQL", "Docker"],
+      "reason": "Match quase perfeito com sua experiência de backend."
+    }
+  ],
+  "conversations": [
+    {
+      "id": "conv-001",
+      "participantIds": ["b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6", "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002"],
+      "lastMessageAt": "2026-05-18T10:05:00.000Z",
+      "createdAt": "2026-05-18T10:00:00.000Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-001",
+      "conversationId": "conv-001",
+      "senderId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "receiverId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "content": "Olá! Vimos seu portfólio e ficamos impressionados com sua stack.",
+      "createdAt": "2026-05-18T10:00:00.000Z",
+      "read": true
+    },
+    {
+      "id": "msg-002",
+      "conversationId": "conv-001",
+      "senderId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "receiverId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "content": "Olá! Muito obrigada pelo contato. Tenho interesse na oportunidade.",
+      "createdAt": "2026-05-18T10:05:00.000Z",
+      "read": false
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif-001",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "type": "new_message",
+      "refId": "conv-001",
+      "message": "Você recebeu uma nova mensagem de TechFlow.",
+      "read": false,
+      "createdAt": "2026-05-18T10:00:30.000Z"
+    },
+    {
+      "id": "notif-002",
+      "userId": "b34e65c0-bdaf-4a80-9af2-2aa27dc6a3e6",
+      "type": "application_status",
+      "refId": "app-001",
+      "message": "Sua candidatura para Desenvolvedor Front-end React está em análise.",
+      "read": false,
+      "createdAt": "2026-05-18T11:31:00.000Z"
+    },
+    {
+      "id": "notif-003",
+      "userId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "type": "new_application",
+      "refId": "app-001",
+      "message": "Maria Souza se candidatou à sua vaga de Front-end React.",
+      "read": true,
+      "createdAt": "2026-05-18T11:30:30.000Z"
+    }
   ]
 }
