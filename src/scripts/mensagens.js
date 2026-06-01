@@ -193,6 +193,86 @@
     }
   }
 
+  /* ===== MODAL: NOVA CONVERSA (conexões) ===== */
+  let connections = [];
+
+  function relationLabel(rel) {
+    if (!rel) return '';
+    if (rel.following && rel.followsMe) return 'Vocês se seguem';
+    if (rel.following) return 'Você segue';
+    if (rel.followsMe) return 'Segue você';
+    return '';
+  }
+
+  function renderConnList() {
+    const list = $('#conn-list');
+    const term = ($('#conn-search').value || '').toLowerCase().trim();
+    const filtered = connections.filter(u => !term || (u.name || '').toLowerCase().includes(term));
+
+    if (!filtered.length) {
+      list.innerHTML = `<li class="msg-loading">${connections.length ? 'Nenhuma conexão encontrada.' : 'Você ainda não tem conexões. Siga pessoas no feed para conversar.'}</li>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(u => {
+      const avatar = u.avatarUrl
+        ? `<img src="${escapeHtml(u.avatarUrl)}" alt="${escapeHtml(u.name)}" />`
+        : `<span>${initials(u.name)}</span>`;
+      return `
+        <li>
+          <button type="button" class="msg-conn-item" data-user-id="${escapeHtml(u.id)}">
+            <span class="msg-conn-item__avatar">${avatar}</span>
+            <span class="msg-conn-item__body">
+              <span class="msg-conn-item__name">${escapeHtml(u.name)}</span>
+              <span class="msg-conn-item__rel">${escapeHtml(relationLabel(u.relation))}</span>
+            </span>
+          </button>
+        </li>`;
+    }).join('');
+  }
+
+  async function openModal() {
+    $('#new-conv-modal').hidden = false;
+    $('#conn-search').value = '';
+    $('#conn-list').innerHTML = `<li class="msg-loading">Carregando conexões...</li>`;
+    setTimeout(() => $('#conn-search').focus(), 50);
+    try {
+      const res = await api('/api/connections/me');
+      connections = await res.json();
+      renderConnList();
+    } catch (err) {
+      if (err.message !== 'Token expirado') {
+        $('#conn-list').innerHTML = `<li class="msg-loading">Não foi possível carregar as conexões.</li>`;
+      }
+    }
+  }
+
+  function closeModal() {
+    $('#new-conv-modal').hidden = true;
+  }
+
+  async function startConversation(targetUserId) {
+    try {
+      const res = await api('/api/conversations', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error || 'Não foi possível iniciar a conversa.', 'error');
+        return;
+      }
+      closeModal();
+      // Recarrega a lista e abre a conversa (nova ou existente)
+      await loadConversations();
+      openConversation(data.id);
+    } catch (err) {
+      if (err.message !== 'Token expirado') {
+        toast('Não foi possível iniciar a conversa.', 'error');
+      }
+    }
+  }
+
   /* ===== EVENTOS ===== */
   function setupEvents() {
     $('#conv-search').addEventListener('input', renderConvList);
@@ -202,6 +282,20 @@
       const item = ev.target.closest('[data-conv-id]');
       if (!item) return;
       openConversation(item.getAttribute('data-conv-id'));
+    });
+
+    // Modal nova conversa
+    $('#btn-new-conversation').addEventListener('click', openModal);
+    $('#new-conv-close').addEventListener('click', closeModal);
+    $('#new-conv-overlay').addEventListener('click', closeModal);
+    $('#conn-search').addEventListener('input', renderConnList);
+    $('#conn-list').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-user-id]');
+      if (!btn) return;
+      startConversation(btn.getAttribute('data-user-id'));
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && !$('#new-conv-modal').hidden) closeModal();
     });
 
     $('#btn-logout').addEventListener('click', () => {

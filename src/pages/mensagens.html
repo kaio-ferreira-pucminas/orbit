@@ -84,6 +84,13 @@
     <section class="msg-list-panel" aria-label="Conversas">
       <header class="msg-list-panel__header">
         <h1 class="msg-list-panel__title">Mensagens</h1>
+        <button type="button" class="msg-new-btn" id="btn-new-conversation" aria-label="Nova mensagem" title="Nova mensagem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+          </svg>
+        </button>
       </header>
 
       <div class="msg-search">
@@ -142,6 +149,38 @@
     </section>
 
   </main>
+
+  <!-- =====================================================
+       MODAL — Nova mensagem (iniciar conversa com conexões)
+  ====================================================== -->
+  <div class="msg-modal" id="new-conv-modal" hidden role="dialog" aria-modal="true" aria-labelledby="new-conv-title">
+    <div class="msg-modal__overlay" id="new-conv-overlay"></div>
+    <div class="msg-modal__dialog">
+      <header class="msg-modal__header">
+        <h2 class="msg-modal__title" id="new-conv-title">Nova mensagem</h2>
+        <button type="button" class="msg-modal__close" id="new-conv-close" aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <p class="msg-modal__hint">Você pode conversar com pessoas que segue ou que seguem você.</p>
+
+      <div class="msg-search msg-search--modal">
+        <svg class="msg-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="conn-search" class="msg-search__input" placeholder="Buscar conexões..." aria-label="Buscar conexões" />
+      </div>
+
+      <ul class="msg-conn-list" id="conn-list" aria-label="Conexões disponíveis">
+        <li class="msg-loading" id="conn-loading">Carregando conexões...</li>
+      </ul>
+    </div>
+  </div>
 
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
