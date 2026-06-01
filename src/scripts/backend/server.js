@@ -463,18 +463,35 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
   }
 
   const projects = (db.projects || []).filter(p => p.userId === req.params.id);
-  const reviews  = (db.reviews  || []).filter(r => r.userId === req.params.id);
+  // reviews do perfil — suporta tanto profileUserId quanto userId (compat. com seeds)
+  const rawReviews = (db.reviews || []).filter(r => (r.profileUserId || r.userId) === req.params.id);
+
+  // enriquecе cada review com campos normalizados (suporta múltiplos formatos de seed)
+  const reviews = rawReviews.map(r => {
+    const author = db.users.find(u => u.id === (r.authorCompanyId || r.authorId));
+    return {
+      ...r,
+      comment:    r.comment || r.content || '',
+      authorName: r.authorName || r.companyName || (author ? author.name : 'Empresa parceira'),
+      authorRole: r.authorRole || r.reviewerRole || r.companyName || (author ? (author.type === 'company' ? 'Empresa parceira' : (author.title || 'Colaborador')) : 'Parceiro'),
+    };
+  });
 
   const ratingSum   = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
   const ratingAvg   = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
 
+  // contagem de conexões (follows), se a coleção existir
+  const connectionsCount = (db.follows || []).filter(
+    f => f.followerId === req.params.id || f.followingId === req.params.id
+  ).length;
+
   return res.status(200).json({
-    user:  sanitizeUser(user),
+    user:  { ...sanitizeUser(user), connectionsCount },
     projects,
     reviews,
     stats: {
-      rating:       ratingAvg,
-      reviewsCount: reviews.length,
+      rating:        ratingAvg,
+      reviewsCount:  reviews.length,
       projectsCount: projects.length,
     },
   });
