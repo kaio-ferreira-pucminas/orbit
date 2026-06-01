@@ -55,6 +55,7 @@
   /* ===== ESTADO ===== */
   let conversations = [];
   let activeConvId  = null;
+  let lastMsgCount  = 0; // qtd de mensagens renderizadas na conversa aberta (p/ polling)
 
   /* ===== RENDER: LISTA DE CONVERSAS ===== */
   function buildConvItem(conv) {
@@ -113,6 +114,8 @@
 
   async function openConversation(convId) {
     activeConvId = convId;
+    window.orbitActiveConversationId = convId; // sino usa p/ não duplicar toast
+    lastMsgCount = 0;
     const conv = conversations.find(c => c.id === convId);
     if (!conv) return;
 
@@ -142,12 +145,39 @@
       const res = await api(`/api/conversations/${convId}/messages`);
       const msgs = await res.json();
       history.innerHTML = msgs.map(buildBubble).join('');
+      lastMsgCount = msgs.length;
       history.scrollTop = history.scrollHeight;
     } catch (err) {
       if (err.message !== 'Token expirado') {
         history.innerHTML = `<div class="msg-loading">Não foi possível carregar as mensagens.</div>`;
       }
     }
+  }
+
+  /* ===== TEMPO REAL: atualiza mensagens da conversa aberta ===== */
+  async function refreshActiveMessages() {
+    if (!activeConvId) return;
+    try {
+      const res = await api(`/api/conversations/${activeConvId}/messages`);
+      if (!res.ok) return;
+      const msgs = await res.json();
+      if (msgs.length === lastMsgCount) return; // nada novo → não mexe no DOM/scroll
+      const history = $('#chat-history');
+      if (!history) return;
+      // só rola pro fim automaticamente se o usuário já estava no fim da conversa
+      const nearBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 80;
+      history.innerHTML = msgs.map(buildBubble).join('');
+      lastMsgCount = msgs.length;
+      if (nearBottom) history.scrollTop = history.scrollHeight;
+    } catch (err) {
+      /* silencioso (ex.: token expirado já trata redirect) */
+    }
+  }
+
+  /* ===== TEMPO REAL: ciclo de polling (lista + conversa aberta) ===== */
+  async function pollRealtime() {
+    await loadConversations();
+    await refreshActiveMessages();
   }
 
   /* ===== ENVIO ===== */
@@ -171,8 +201,9 @@
         body: JSON.stringify({ content }),
       });
       if (!res.ok) throw new Error('falha');
-      // Atualiza preview na lista
+      // Atualiza preview na lista e reconcilia o histórico com o servidor
       await loadConversations();
+      await refreshActiveMessages();
     } catch (err) {
       if (err.message !== 'Token expirado') {
         toast('Não foi possível enviar a mensagem.', 'error');
@@ -309,10 +340,19 @@
   async function init() {
     setupEvents();
     await loadConversations();
-    // Abre a primeira conversa automaticamente (desktop)
-    if (conversations.length && window.innerWidth > 680) {
+
+    // Deep-link: ?c=<idConversa> abre a conversa indicada (vindo do perfil/notificação)
+    const params   = new URLSearchParams(window.location.search);
+    const deepLink = params.get('c');
+    if (deepLink && conversations.some(c => c.id === deepLink)) {
+      openConversation(deepLink);
+    } else if (conversations.length && window.innerWidth > 680) {
+      // Abre a primeira conversa automaticamente (desktop)
       openConversation(conversations[0].id);
     }
+
+    // Tempo real: atualiza a cada 4s (lista de conversas + conversa aberta)
+    setInterval(pollRealtime, 4000);
   }
 
   init();

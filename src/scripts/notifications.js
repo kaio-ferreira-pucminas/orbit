@@ -28,6 +28,34 @@
     const d = Math.floor(h / 24);
     return `${d}d`;
   }
+  function initials(name) {
+    if (!name) return '•';
+    return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
+  }
+  function avatarHtml(actor) {
+    if (actor && actor.avatarUrl) {
+      return `<span class="orbit-notif__avatar"><img src="${escapeHtml(actor.avatarUrl)}" alt="${escapeHtml(actor.name || '')}" /></span>`;
+    }
+    return `<span class="orbit-notif__avatar">${escapeHtml(actor ? initials(actor.name) : '•')}</span>`;
+  }
+
+  /* ── Injeta os estilos extras do dropdown (avatar + item clicável) uma vez ──
+     Mantém o componente robusto em qualquer tela, sem depender do CSS da página. */
+  function ensureStyles() {
+    if (document.getElementById('orbit-notif-extra-style')) return;
+    const css = `
+      .orbit-notif__item{align-items:center;}
+      .orbit-notif__avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--lighter-purple,#e2e7ff);color:var(--primary,#4648d4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;overflow:hidden;}
+      .orbit-notif__avatar img{width:100%;height:100%;object-fit:cover;}
+      .orbit-notif__item--link{cursor:pointer;}
+      .orbit-notif__item--link:hover{background:rgba(70,72,212,.06);}
+    `;
+    const style = document.createElement('style');
+    style.id = 'orbit-notif-extra-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+  ensureStyles();
   async function api(path, options) {
     const res = await fetch(`${API_URL}${path}`, Object.assign({}, options, {
       headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, (options && options.headers) || {}),
@@ -56,14 +84,17 @@
   function buildDropdown() {
     const unread = items.filter(n => !n.read).length;
     const list = items.length
-      ? items.map(n => `
-          <div class="orbit-notif__item ${n.read ? '' : 'orbit-notif__item--unread'}">
-            <span class="orbit-notif__dot ${n.read ? 'orbit-notif__dot--read' : ''}"></span>
+      ? items.map(n => {
+          const linkAttrs = n.link ? ` data-link="${escapeHtml(n.link)}" role="button" tabindex="0"` : '';
+          return `
+          <div class="orbit-notif__item ${n.read ? '' : 'orbit-notif__item--unread'} ${n.link ? 'orbit-notif__item--link' : ''}"${linkAttrs}>
+            ${avatarHtml(n.actor)}
             <div class="orbit-notif__body">
               <p class="orbit-notif__msg">${escapeHtml(n.message)}</p>
               <p class="orbit-notif__time">${escapeHtml(timeAgo(n.createdAt))}</p>
             </div>
-          </div>`).join('')
+          </div>`;
+        }).join('')
       : `<div class="orbit-notif__empty">Você não tem notificações.</div>`;
 
     return `
@@ -121,7 +152,11 @@
     }
     // dispara toast para notificações novas (não vistas) e ainda não lidas
     const fresh = list.filter(n => !seenIds.has(n.id) && !n.read && TOAST_TYPES[n.type]);
-    fresh.forEach(n => { if (window.showToast) window.showToast(n.message, 'info'); });
+    fresh.forEach(n => {
+      // evita toast redundante: a conversa da mensagem já está aberta na tela
+      if (n.type === 'new_message' && n.conversationId && n.conversationId === window.orbitActiveConversationId) return;
+      if (window.showToast) window.showToast(n.message, 'info');
+    });
     list.forEach(n => seenIds.add(n.id));
   }
 
@@ -148,9 +183,21 @@
   });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDropdown(); });
 
-  // rotina: atualiza a cada 30s (polling leve) — detecta novos seguidores/mensagens
+  // Clique/Enter em um item com destino navega (perfil do seguidor ou conversa)
+  function followItemLink(ev) {
+    const item = ev.target.closest('[data-link]');
+    if (!item || !root.contains(item)) return;
+    if (ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
+    if (ev.type === 'keydown') ev.preventDefault();
+    const link = item.getAttribute('data-link');
+    if (link) window.location.href = link;
+  }
+  root.addEventListener('click', followItemLink);
+  root.addEventListener('keydown', followItemLink);
+
+  // rotina: atualiza a cada 10s (polling leve) — detecta novos seguidores/mensagens
   load();
-  setInterval(load, 30000);
+  setInterval(load, 10000);
 
   // expõe para outras telas dispararem refresh se quiserem
   window.orbitRefreshNotifications = load;

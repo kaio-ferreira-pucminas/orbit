@@ -1,15 +1,46 @@
 // toast.js — Orbit
-// Sistema de notificações global (canto inferior direito)
-// Uso: showToast('Mensagem', 'success' | 'error')
+// Sistema de notificações global (canto superior direito) — autossuficiente:
+// injeta seu próprio CSS, então funciona em qualquer tela que inclua este script.
+// Uso: showToast('Mensagem', 'success' | 'error' | 'info')
 
 (function () {
   'use strict';
 
   const DURATION    = 4000; // ms antes de fechar automaticamente
   const CONTAINER_ID = 'toast-container';
+  const STYLE_ID     = 'orbit-toast-style';
+
+  /* ── Injeta o CSS do toast (uma única vez) ──
+     Torna o componente autossuficiente: o toast aparece no canto superior
+     direito em QUALQUER tela que inclua este script, sem depender de qual
+     folha de estilo a página carrega. */
+  function ensureStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+    const css = `
+      #${CONTAINER_ID}{position:fixed;top:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+      #${CONTAINER_ID} .toast{display:flex;align-items:center;gap:12px;min-width:280px;max-width:380px;padding:14px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:500;line-height:1.4;pointer-events:all;cursor:default;opacity:0;transform:translateX(110%);transition:opacity .3s ease,transform .3s ease;}
+      #${CONTAINER_ID} .toast--visible{opacity:1;transform:translateX(0);}
+      #${CONTAINER_ID} .toast--hiding{opacity:0;transform:translateX(110%);}
+      #${CONTAINER_ID} .toast--success{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;}
+      #${CONTAINER_ID} .toast--success .toast__icon{color:#059669;}
+      #${CONTAINER_ID} .toast--error{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;}
+      #${CONTAINER_ID} .toast--error .toast__icon{color:#dc2626;}
+      #${CONTAINER_ID} .toast--info{background:#eef0ff;border:1px solid #b4baf5;color:#2e3192;}
+      #${CONTAINER_ID} .toast--info .toast__icon{color:#4648d4;}
+      #${CONTAINER_ID} .toast__icon{flex-shrink:0;display:flex;align-items:center;}
+      #${CONTAINER_ID} .toast__message{flex:1;}
+      #${CONTAINER_ID} .toast__close{flex-shrink:0;display:flex;align-items:center;background:none;border:none;cursor:pointer;padding:2px;border-radius:4px;color:inherit;opacity:.6;transition:opacity .2s;}
+      #${CONTAINER_ID} .toast__close:hover{opacity:1;}
+    `;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
 
   /* ── Garante que o container existe ── */
   function getContainer() {
+    ensureStyles();
     let el = document.getElementById(CONTAINER_ID);
     if (!el) {
       el = document.createElement('div');

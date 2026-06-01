@@ -154,19 +154,51 @@
     // Botão seguir: esconde se for o próprio perfil
     if (targetId === currentUser.id) {
       $('#btn-follow').style.display = 'none';
-      $('#btn-message').style.display = 'none';
-    } else {
-      $('#btn-message').href = '/pages/mensagens.html';
     }
+    // Visibilidade inicial do botão Mensagem (empresa já vê; dev só após follow-status)
+    updateMessageButton();
 
     $('#pp-loading').hidden = true;
     $('#pp-content').hidden = false;
   }
 
+  /* ===== REGRA DO BOTÃO MENSAGEM =====
+     Aparece se: sou empresa (posso falar direto) OU já sigo o dono do perfil.
+     Nunca aparece no próprio perfil. */
+  function canMessage() {
+    return currentUser.type === 'company' || following === true;
+  }
+  function updateMessageButton() {
+    const msg = $('#btn-message');
+    if (!msg) return;
+    if (targetId === currentUser.id) { msg.style.display = 'none'; return; }
+    msg.style.display = canMessage() ? '' : 'none';
+  }
+  // Reflete o estado de follow no botão Seguir + revalida o botão Mensagem
+  function applyFollowState() {
+    const btn = $('#btn-follow');
+    if (btn && targetId !== currentUser.id) {
+      btn.classList.toggle('is-following', following);
+      btn.textContent = following ? 'Seguindo' : 'Seguir';
+    }
+    updateMessageButton();
+  }
+  // Busca o estado real de follow no load (corrige o rótulo e a visibilidade)
+  async function loadFollowStatus() {
+    if (targetId === currentUser.id) return;
+    try {
+      const res = await api(`/api/users/${targetId}/follow-status`);
+      if (res.ok) {
+        const data = await res.json();
+        following = !!data.following;
+      }
+    } catch (err) { /* mantém following=false em caso de erro */ }
+    applyFollowState();
+  }
+
   /* ===== SEGUIR (compatível com/sem endpoint de follows) ===== */
   let following = false;
   async function toggleFollow() {
-    const btn = $('#btn-follow');
     try {
       // tenta persistir via endpoint de follows (existe após integração com a feature de follows)
       const res = await api('/api/follows', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
@@ -180,9 +212,24 @@
       if (err.message === 'Token expirado') return;
       following = !following; // endpoint ausente nesta branch → alterna localmente
     }
-    btn.classList.toggle('is-following', following);
-    btn.textContent = following ? 'Seguindo' : 'Seguir';
+    applyFollowState(); // atualiza rótulo do Seguir + mostra/esconde o Mensagem
     toast(following ? 'Você começou a seguir.' : 'Você deixou de seguir.', 'success');
+  }
+
+  /* ===== MENSAGEM: cria/reaproveita a conversa e abre o chat ===== */
+  async function startConversationAndGo() {
+    try {
+      const res  = await api('/api/conversations', { method: 'POST', body: JSON.stringify({ targetUserId: targetId }) });
+      const data = await res.json();
+      if (!res.ok) {
+        toast(data.error || 'Não foi possível iniciar a conversa.', 'error');
+        return;
+      }
+      // redireciona já com a conversa aberta (deep-link tratado em mensagens.js)
+      window.location.href = `/pages/mensagens.html?c=${encodeURIComponent(data.id)}`;
+    } catch (err) {
+      if (err.message !== 'Token expirado') toast('Não foi possível iniciar a conversa.', 'error');
+    }
   }
 
   /* ===== TOPBAR (avatar do usuário logado) ===== */
@@ -199,6 +246,8 @@
   function setupEvents() {
     const follow = $('#btn-follow');
     if (follow) follow.addEventListener('click', toggleFollow);
+    const msg = $('#btn-message');
+    if (msg) msg.addEventListener('click', (e) => { e.preventDefault(); startConversationAndGo(); });
   }
 
   /* ===== INIT ===== */
@@ -209,6 +258,7 @@
       const res = await api(`/api/users/${targetId}/profile`);
       if (!res.ok) { $('#pp-loading').textContent = 'Perfil não encontrado.'; return; }
       render(await res.json());
+      await loadFollowStatus(); // estado real de follow → rótulo + visibilidade do Mensagem
     } catch (err) {
       if (err.message !== 'Token expirado') $('#pp-loading').textContent = 'Não foi possível carregar o perfil.';
     }

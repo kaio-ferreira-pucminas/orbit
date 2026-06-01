@@ -1086,8 +1086,10 @@ server.post('/api/conversations', requireAuth, (req, res) => {
   const target = db.users.find(u => u.id === targetUserId);
   if (!target) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-  // Regra de follow
-  if (!hasConnection(db, req.user.id, targetUserId)) {
+  // Regra de follow — exceção: contas do tipo empresa podem iniciar conversa
+  // diretamente (ex.: recrutador entrando em contato com um talento).
+  const isCompany = req.user.type === 'company';
+  if (!isCompany && !hasConnection(db, req.user.id, targetUserId)) {
     return res.status(403).json({ error: 'Você só pode iniciar conversa com usuários que segue ou que seguem você.' });
   }
 
@@ -1211,12 +1213,49 @@ server.post('/api/conversations/:id/messages', requireAuth, (req, res) => {
 
 // ── NOTIFICATIONS (#11) ──────────────────────────────────────────────────────
 
-// GET /api/notifications/me — notificações do usuário
+// Enriquece a notificação resolvendo o "actor" (quem gerou) a partir do refId,
+// na hora da leitura — assim o nome/avatar aparecem mesmo em notificações antigas.
+function enrichNotification(db, n, meId) {
+  const mini = (u) => u ? { id: u.id, name: u.name, avatarUrl: u.avatarUrl || null, type: u.type } : null;
+
+  if (n.type === 'new_follower') {
+    const actor = db.users.find(u => u.id === n.refId);
+    const name  = actor ? actor.name : null;
+    return {
+      ...n,
+      actor:   mini(actor),
+      message: name ? `${name} começou a seguir você.` : n.message,
+      link:    actor ? `/pages/perfil-publico.html?id=${actor.id}` : null,
+    };
+  }
+
+  if (n.type === 'new_message') {
+    const conv = (db.conversations || []).find(c => c.id === n.refId);
+    let actor = null;
+    if (conv) {
+      const otherId = (conv.participantIds || []).find(id => id !== meId);
+      actor = db.users.find(u => u.id === otherId) || null;
+    }
+    const name = actor ? actor.name : null;
+    return {
+      ...n,
+      actor:          mini(actor),
+      message:        name ? `${name} te enviou uma nova mensagem.` : n.message,
+      link:           conv ? `/pages/mensagens.html?c=${conv.id}` : '/pages/mensagens.html',
+      conversationId: conv ? conv.id : null,
+    };
+  }
+
+  return { ...n, actor: null, link: null };
+}
+
+// GET /api/notifications/me — notificações do usuário (enriquecidas com actor)
 server.get('/api/notifications/me', requireAuth, (req, res) => {
   const db = getDb();
   const list = (db.notifications || [])
     .filter(n => n.userId === req.user.id)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(n => enrichNotification(db, n, req.user.id));
   const unreadCount = list.filter(n => !n.read).length;
   return res.status(200).json({ unreadCount, notifications: list });
 });
