@@ -1,0 +1,110 @@
+/* ============================================================
+   COMPLETAR-PERFIL.CSS — Orbit · Completar Perfil Profissional (#9 — Lucas Valle)
+   Stack: CSS puro, sem framework. Tela centralizada (sem sidebar).
+============================================================ */
+
+:root {
+  --primary:#4648d4; --primary-light:rgba(70,72,212,0.1); --primary-hover:#3537b8;
+  --bg:#faf8ff; --card-bg:#fff; --border-light:rgba(199,196,215,0.3); --border-purple:#e2e7ff;
+  --text-dark:#131b2e; --text-muted:#464554; --text-soft:#767586; --light-purple:#f2f3ff;
+  --lighter-purple:#e2e7ff; --lightest-purple:#dae2fd;
+  --shadow-card:0 8px 15px rgba(0,0,0,0.04); --shadow-btn:0 10px 15px -3px rgba(70,72,212,0.25),0 4px 6px -4px rgba(70,72,212,0.25);
+  --radius:8px; --radius-chip:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text-dark);min-height:100vh;}
+a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;background:none;font-family:inherit;}
+[hidden]{display:none !important;}
+
+/* Topbar */
+.cp-topbar{position:sticky;top:0;z-index:50;background:rgba(250,248,255,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--border-purple);box-shadow:0 4px 20px -4px rgba(70,72,212,0.08);}
+.cp-topbar__inner{max-width:1440px;margin:0 auto;height:80px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;}
+.cp-topbar__logo{font-family:'Inter',sans-serif;font-weight:700;font-size:24px;letter-spacing:-1.2px;color:var(--text-dark);}
+.cp-topbar__avatar{width:40px;height:40px;border-radius:var(--radius-chip);background:var(--lighter-purple);border:2px solid rgba(70,72,212,0.1);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;overflow:hidden;}
+.cp-topbar__avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* Main */
+.cp-main{max-width:896px;margin:0 auto;padding:48px 24px 96px;display:flex;flex-direction:column;gap:32px;}
+
+/* Header */
+.cp-header{display:flex;flex-direction:column;gap:12px;}
+.cp-header__title{font-family:'Manrope',sans-serif;font-weight:800;font-size:40px;letter-spacing:-1px;color:var(--text-dark);line-height:46px;}
+.cp-header__subtitle{font-size:17px;color:var(--text-muted);line-height:26px;max-width:680px;}
+
+/* Card base */
+.cp-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow-card);padding:32px;display:flex;flex-direction:column;gap:20px;}
+.cp-card__head{display:flex;align-items:center;gap:12px;}
+.cp-card__head--between{justify-content:space-between;}
+.cp-card__head-left{display:flex;align-items:center;gap:12px;}
+.cp-card__title{font-family:'Manrope',sans-serif;font-weight:700;font-size:22px;color:var(--text-dark);}
+
+/* Progresso */
+.cp-progress{gap:24px;}
+.cp-progress__head{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.cp-progress__title{font-family:'Manrope',sans-serif;font-weight:700;font-size:20px;color:var(--text-dark);}
+.cp-progress__sub{font-size:14px;color:var(--text-muted);margin-top:2px;}
+.cp-progress__pct-wrap{display:flex;align-items:center;gap:12px;}
+.cp-progress__pct{font-size:30px;font-weight:700;color:var(--primary);line-height:36px;}
+.cp-progress__level{background:var(--lighter-purple);color:var(--text-muted);font-size:14px;font-weight:700;padding:4px 12px;border-radius:var(--radius-chip);white-space:nowrap;}
+.cp-progress__bar{height:16px;background:var(--lighter-purple);border-radius:var(--radius-chip);overflow:hidden;}
+.cp-progress__bar-fill{height:100%;width:0%;background:var(--primary);border-radius:var(--radius-chip);box-shadow:0 0 12px rgba(70,72,212,0.4);transition:width .5s ease;}
+
+/* Habilidades */
+.cp-skill-input{position:relative;}
+.cp-skill-input__icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--primary);pointer-events:none;}
+.cp-skill-input input{width:100%;padding:18px 16px 18px 48px;border:none;border-radius:var(--radius);background:var(--light-purple);font-size:16px;font-family:inherit;color:var(--text-dark);transition:box-shadow .15s;}
+.cp-skill-input input::placeholder{color:var(--text-soft);}
+.cp-skill-input input:focus{outline:none;box-shadow:0 0 0 3px var(--primary-light);}
+.cp-skill-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.cp-skill-chip{display:flex;align-items:center;gap:8px;background:var(--lightest-purple);color:var(--text-muted);font-size:16px;font-weight:500;padding:8px 16px;border-radius:var(--radius-chip);}
+.cp-skill-chip__remove{display:flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--text-muted);border-radius:50%;transition:background .15s,color .15s;}
+.cp-skill-chip__remove:hover{background:rgba(0,0,0,0.08);color:var(--text-dark);}
+.cp-skill-empty{font-size:14px;color:var(--text-soft);}
+
+/* Experiência */
+.cp-add-btn{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--radius);color:var(--primary);font-size:15px;font-weight:700;transition:background .15s;}
+.cp-add-btn:hover{background:var(--primary-light);}
+.cp-exp-list{display:flex;flex-direction:column;gap:16px;}
+.cp-exp-card{background:var(--light-purple);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;gap:12px;}
+.cp-exp-card__top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.cp-exp-card__left{display:flex;gap:16px;align-items:flex-start;}
+.cp-exp-card__icon{width:48px;height:48px;border-radius:6px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--primary);}
+.cp-exp-card__role{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;color:var(--text-dark);}
+.cp-exp-card__company{font-size:16px;font-weight:500;color:var(--primary);margin-top:4px;}
+.cp-exp-card__period{font-size:14px;font-weight:700;color:var(--text-muted);text-align:right;white-space:nowrap;}
+.cp-exp-card__desc{font-size:14px;color:var(--text-muted);line-height:22px;}
+.cp-exp-card__actions{display:flex;gap:8px;}
+.cp-exp-card__btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-soft);transition:background .15s,color .15s;}
+.cp-exp-card__btn:hover{background:rgba(0,0,0,0.05);color:var(--text-dark);}
+
+/* Form nova experiência */
+.cp-exp-form{display:flex;flex-direction:column;gap:12px;background:var(--light-purple);border-radius:var(--radius);padding:24px;}
+.cp-exp-form__row{display:flex;gap:12px;}
+.cp-exp-form input,.cp-exp-form textarea{flex:1;padding:12px 16px;border:1px solid var(--border-purple);border-radius:var(--radius);background:#fff;font-size:14px;font-family:inherit;color:var(--text-dark);resize:vertical;}
+.cp-exp-form input:focus,.cp-exp-form textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+.cp-exp-form__actions{display:flex;justify-content:flex-end;gap:12px;}
+
+/* Empty experiência */
+.cp-exp-empty{border:2px dashed #c7c4d7;border-radius:var(--radius);padding:34px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;}
+.cp-exp-empty__icon{width:64px;height:64px;border-radius:var(--radius-chip);background:#eaedff;display:flex;align-items:center;justify-content:center;}
+.cp-exp-empty__title{font-size:16px;font-weight:700;color:var(--text-dark);}
+.cp-exp-empty__text{font-size:14px;color:var(--text-muted);}
+
+/* Ações */
+.cp-actions{display:flex;align-items:center;justify-content:flex-end;gap:16px;padding-top:8px;}
+.cp-btn-text{padding:16px 32px;border-radius:var(--radius);color:var(--text-muted);font-size:16px;font-weight:700;transition:background .15s;}
+.cp-btn-text:hover{background:var(--light-purple);}
+.cp-btn-primary{display:flex;align-items:center;gap:8px;padding:16px 48px;border-radius:var(--radius);background:var(--primary);color:#fff;font-size:16px;font-weight:700;box-shadow:var(--shadow-btn);transition:background .15s,transform .1s;}
+.cp-btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);}
+.cp-btn-primary--sm{padding:12px 28px;font-size:14px;}
+
+/* Responsivo */
+@media (max-width:680px){
+  .cp-header__title{font-size:30px;line-height:36px;}
+  .cp-progress__head{flex-direction:column;align-items:flex-start;gap:12px;}
+  .cp-exp-form__row{flex-direction:column;}
+  .cp-exp-card__top{flex-direction:column;}
+  .cp-exp-card__period{text-align:left;}
+  .cp-actions{flex-direction:column-reverse;align-items:stretch;}
+  .cp-btn-primary,.cp-btn-text{justify-content:center;text-align:center;}
+}

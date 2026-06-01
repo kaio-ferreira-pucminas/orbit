@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalhes da Vaga — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/vaga-detalhes.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR ESQUERDA (usuário)
+  ====================================================== -->
+  <aside class="dash-sidebar" aria-label="Menu lateral">
+    <div class="dash-sidebar__brand">
+      <div class="dash-sidebar__logo-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+          <path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="dash-sidebar__brand-text">
+        <span class="dash-sidebar__brand-name">Orbit</span>
+        <span class="dash-sidebar__brand-sub">DEVELOPER PLATFORM</span>
+      </div>
+    </div>
+
+    <nav class="dash-sidebar__nav" aria-label="Navegação principal">
+      <a href="/pages/dashboard.html" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/pages/vagas.html" class="dash-nav__link dash-nav__link--active" aria-current="page">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>Oportunidades</span>
+      </a>
+      <a href="/pages/mensagens.html" class="dash-nav__link">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensagens</span>
+      </a>
+    </nav>
+
+    <div class="dash-sidebar__bottom">
+      <div class="dash-sidebar__divider"></div>
+      <button type="button" class="dash-nav__link dash-nav__link--btn" id="btn-logout">
+        <svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CONTEÚDO
+  ====================================================== -->
+  <main class="vd-main">
+    <a href="/pages/vagas.html" class="vd-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Voltar para Oportunidades
+    </a>
+
+    <div class="vd-loading" id="vd-loading">Carregando vaga...</div>
+
+    <div class="vd-grid" id="vd-content" hidden>
+      <!-- Coluna principal -->
+      <div class="vd-primary">
+        <header class="vd-header">
+          <div class="vd-header__logo" id="vd-logo">ST</div>
+          <div class="vd-header__info">
+            <h1 class="vd-header__title" id="vd-title">—</h1>
+            <p class="vd-header__company" id="vd-company">—</p>
+            <p class="vd-header__posted" id="vd-posted">—</p>
+          </div>
+        </header>
+
+        <section class="vd-meta">
+          <div class="vd-meta__item"><span class="vd-meta__label">SALÁRIO</span><span class="vd-meta__value" id="vd-salary">—</span></div>
+          <div class="vd-meta__item"><span class="vd-meta__label">NÍVEL</span><span class="vd-meta__value" id="vd-level">—</span></div>
+          <div class="vd-meta__item"><span class="vd-meta__label">CONTRATO</span><span class="vd-meta__value" id="vd-contract">—</span></div>
+          <div class="vd-meta__item"><span class="vd-meta__label">MODALIDADE</span><span class="vd-meta__value" id="vd-modality">—</span></div>
+        </section>
+
+        <section class="vd-section">
+          <h2 class="vd-section__title">Sobre a vaga</h2>
+          <p class="vd-section__text" id="vd-about">—</p>
+        </section>
+
+        <section class="vd-section">
+          <h2 class="vd-section__title">Requisitos Técnicos</h2>
+          <div class="vd-tags" id="vd-skills"></div>
+        </section>
+
+        <section class="vd-section">
+          <h2 class="vd-section__title">Responsabilidades</h2>
+          <ul class="vd-list">
+            <li>Desenvolver novas funcionalidades voltadas para o usuário final.</li>
+            <li>Construir bibliotecas e componentes reutilizáveis para uso futuro.</li>
+            <li>Garantir a viabilidade técnica de designs de UI/UX.</li>
+            <li>Otimizar aplicações para velocidade máxima e escalabilidade.</li>
+          </ul>
+        </section>
+
+        <section class="vd-section">
+          <h2 class="vd-section__title">Benefícios</h2>
+          <div class="vd-benefits">
+            <div class="vd-benefit"><span class="vd-benefit__title">Remoto First</span><span class="vd-benefit__desc">Trabalhe de onde preferir com flexibilidade de horários.</span></div>
+            <div class="vd-benefit"><span class="vd-benefit__title">Saúde &amp; Bem-estar</span><span class="vd-benefit__desc">Plano de saúde e odontológico premium sem coparticipação.</span></div>
+            <div class="vd-benefit"><span class="vd-benefit__title">Auxílio Educação</span><span class="vd-benefit__desc">Orçamento anual para cursos, eventos e certificações.</span></div>
+            <div class="vd-benefit"><span class="vd-benefit__title">Vale Refeição</span><span class="vd-benefit__desc">Cartão multibenefícios com valor acima da média.</span></div>
+          </div>
+        </section>
+
+        <!-- Vagas similares -->
+        <section class="vd-section">
+          <div class="vd-section__head">
+            <h2 class="vd-section__title">Vagas similares</h2>
+            <a href="/pages/vagas.html" class="vd-section__link">Ver todas</a>
+          </div>
+          <div class="vd-similar" id="vd-similar"></div>
+        </section>
+      </div>
+
+      <!-- Coluna lateral (sticky) -->
+      <aside class="vd-aside">
+        <div class="vd-cta-card">
+          <h3 class="vd-cta-card__title">Pronto para o próximo passo?</h3>
+          <p class="vd-cta-card__text">Candidate-se hoje e entre na órbita de uma das empresas que mais crescem no setor tech.</p>
+          <button type="button" class="vd-btn-primary" id="btn-apply">
+            Candidatar-se agora
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button type="button" class="vd-btn-ghost" id="btn-save">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span id="btn-save-label">Salvar Vaga</span>
+          </button>
+        </div>
+
+        <div class="vd-recruiter">
+          <span class="vd-recruiter__label">Recrutador Responsável</span>
+          <div class="vd-recruiter__person">
+            <div class="vd-recruiter__avatar" id="vd-recruiter-initials">HS</div>
+            <span class="vd-recruiter__name" id="vd-recruiter-name">Henrique Silva</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/vaga-detalhes.js"></script>
+</body>
+</html>
