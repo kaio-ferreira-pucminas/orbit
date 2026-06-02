@@ -165,6 +165,11 @@
       window.showToast(`Email copiado: ${user.email}`, 'success');
     });
 
+    // Empresa: esconde elementos de dev no hero (disponibilidade + rating)
+    const isCompany = user.type === 'company';
+    availBadge.style.display = isCompany ? 'none' : '';
+    $('#profile-rating').style.display = isCompany ? 'none' : '';
+
     // Atualiza title da aba
     document.title = `${user.name} — Orbit`;
   }
@@ -330,14 +335,98 @@
       }
 
       renderHero(data.user, data.stats);
-      renderAbout(data.user);
-      renderSkills(data.user);
-      renderProjects(data.projects);
-      renderReviews(data.reviews);
+      if (data.user.type === 'company') {
+        renderCompanyProfile();
+      } else {
+        renderAbout(data.user);
+        renderSkills(data.user);
+        renderProjects(data.projects);
+        renderReviews(data.reviews);
+      }
 
     } catch {
       window.showToast('Não foi possível conectar ao servidor.', 'error');
     }
+  }
+
+  /* =========================================================
+     PERFIL DE EMPRESA (conta dona da conta) — corpo estilo empresa-perfil
+  ========================================================= */
+  let companyData = null;
+  const CO_STAR = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.9 5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>';
+  function coInitials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join(''); }
+  function coChips(arr){ return (arr||[]).slice(0,4).map(s=>`<span class="pco-chip">${escapeHtml(s)}</span>`).join(''); }
+
+  async function renderCompanyProfile() {
+    const devBody = $('#profile-dev-body'); if (devBody) devBody.hidden = true;
+    const coBody  = $('#profile-company-body'); if (coBody) coBody.hidden = false;
+
+    try {
+      const res = await api('/api/companies/me');
+      const d = res.ok ? await res.json() : {};
+      companyData = d.company || null;
+    } catch { companyData = null; }
+
+    if (!companyData) {
+      ['#pco-culture-section', '#pco-jobs-section', '#pco-testimonials-section'].forEach(s => { const el = $(s); if (el) el.hidden = true; });
+      $('#pco-empty').hidden = false;
+      $('#pco-about').textContent = 'Complete o perfil da sua empresa para exibir as informações aqui.';
+      ['#pco-stat-employees', '#pco-stat-projects', '#pco-stat-countries', '#pco-stat-rating'].forEach(s => { $(s).textContent = '—'; });
+      return;
+    }
+
+    let stats = {}, jobs = [], company = companyData;
+    try {
+      const r2 = await api('/api/companies/' + encodeURIComponent(companyData.id));
+      if (r2.ok) { const dd = await r2.json(); company = dd.company || companyData; stats = dd.stats || {}; jobs = dd.jobs || []; }
+    } catch {}
+    fillCompanyBody(company, stats, jobs);
+  }
+
+  function fillCompanyBody(c, stats, jobs) {
+    $('#pco-about').textContent = c.about || 'Esta empresa ainda não adicionou uma descrição.';
+    $('#pco-stat-employees').textContent = stats.employees != null ? stats.employees : '—';
+    $('#pco-stat-projects').textContent  = stats.projects != null ? stats.projects : (stats.jobs != null ? stats.jobs : '—');
+    $('#pco-stat-countries').textContent = stats.countries != null ? stats.countries : '—';
+    $('#pco-stat-rating').textContent    = stats.rating != null ? stats.rating : '—';
+
+    const culture = Array.isArray(c.culture) ? c.culture : [];
+    if (culture.length) {
+      $('#pco-culture').innerHTML = culture.map(v => `
+        <div class="pco-culture__card">
+          <div class="pco-culture__icon">${CO_STAR}</div>
+          <div class="pco-culture__title">${escapeHtml(v.title || '')}</div>
+          <div class="pco-culture__text">${escapeHtml(v.text || '')}</div>
+        </div>`).join('');
+    } else { $('#pco-culture-section').hidden = true; }
+
+    $('#pco-jobs-count').textContent = jobs.length;
+    $('#pco-jobs').innerHTML = jobs.length
+      ? jobs.map(j => `
+        <div class="pco-job">
+          <span class="pco-job__tag">${escapeHtml(j.modality || 'Vaga')}</span>
+          <div class="pco-job__title">${escapeHtml(j.title)}</div>
+          <div class="pco-job__desc">${escapeHtml(j.description || '')}</div>
+          <div class="pco-job__chips">${coChips(j.skills)}</div>
+          <a class="pco-job__cta" href="/pages/vaga-detalhes.html?id=${encodeURIComponent(j.id)}">Ver vaga</a>
+        </div>`).join('')
+      : '<p class="pco-jobs__empty">Nenhuma vaga publicada no momento.</p>';
+
+    const ts = Array.isArray(c.testimonials) ? c.testimonials : [];
+    if (ts.length) {
+      $('#pco-testimonials').innerHTML = ts.map(t => `
+        <div class="pco-testimonial">
+          <span class="pco-testimonial__badge">99</span>
+          <p class="pco-testimonial__quote">${escapeHtml(t.quote || '')}</p>
+          <div class="pco-testimonial__author">
+            <div class="pco-testimonial__avatar">${escapeHtml(coInitials(t.authorName))}</div>
+            <div>
+              <div class="pco-testimonial__name">${escapeHtml(t.authorName || '')}</div>
+              <div class="pco-testimonial__role">${escapeHtml(t.authorRole || '')}</div>
+            </div>
+          </div>
+        </div>`).join('');
+    } else { $('#pco-testimonials-section').hidden = true; }
   }
 
   /* =========================================================
@@ -369,15 +458,34 @@
 
   function openEditModal() {
     const u = currentUser;
+    const isCompany = u.type === 'company';
 
-    // Popula campos
-    $('#edit-name').value     = u.name     || '';
-    $('#edit-headline').value = u.headline || '';
-    $('#edit-bio').value      = u.bio      || '';
-    $('#edit-skills').value   = (u.skills || []).join(', ');
-    $('#edit-github').value   = u.github   || '';
-    $('#edit-linkedin').value = u.linkedin || '';
-    $('#edit-available').checked = !!u.available;
+    // Alterna blocos do formulário conforme o tipo de conta
+    const devFields = $('#edit-dev-fields'); if (devFields) devFields.hidden = isCompany;
+    const coFields  = $('#edit-company-fields'); if (coFields) coFields.hidden = !isCompany;
+    const nameLabel = document.querySelector('label[for="edit-name"]');
+    if (nameLabel) nameLabel.textContent = isCompany ? 'Nome da empresa' : 'Nome completo';
+
+    if (isCompany) {
+      const c = companyData || {};
+      $('#edit-name').value        = c.name || u.name || '';
+      $('#edit-headline').value    = c.tagline || '';
+      $('#edit-co-about').value    = c.about || '';
+      $('#edit-co-industry').value = c.industry || '';
+      $('#edit-co-location').value = c.location || '';
+      $('#edit-co-size').value     = c.size || '';
+      $('#edit-co-founded').value  = c.founded || '';
+      $('#edit-co-website').value  = c.website || '';
+    } else {
+      // Popula campos (dev)
+      $('#edit-name').value     = u.name     || '';
+      $('#edit-headline').value = u.headline || '';
+      $('#edit-bio').value      = u.bio      || '';
+      $('#edit-skills').value   = (u.skills || []).join(', ');
+      $('#edit-github').value   = u.github   || '';
+      $('#edit-linkedin').value = u.linkedin || '';
+      $('#edit-available').checked = !!u.available;
+    }
 
     // Avatar preview
     setAvatar(avatarPreview, u.avatarUrl, u.name, '#edit-avatar-initials');
@@ -526,6 +634,44 @@
     const name = $('#edit-name').value.trim();
     if (!name) {
       window.showToast('Nome é obrigatório.', 'error');
+      return;
+    }
+
+    // ===== Conta EMPRESA: salva na coleção companies (PUT /api/companies/me) =====
+    if (currentUser.type === 'company') {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+      const foundedRaw = $('#edit-co-founded').value.trim();
+      const coPayload = {
+        name,
+        tagline:  $('#edit-headline').value.trim(),
+        about:    $('#edit-co-about').value.trim(),
+        industry: $('#edit-co-industry').value.trim(),
+        location: $('#edit-co-location').value.trim(),
+        size:     $('#edit-co-size').value,
+        founded:  foundedRaw ? parseInt(foundedRaw, 10) : null,
+        website:  $('#edit-co-website').value.trim(),
+      };
+      try {
+        const r = await api('/api/companies/me', { method: 'PUT', body: JSON.stringify(coPayload) });
+        const cd = await r.json();
+        if (!r.ok) { window.showToast(cd.error || 'Erro ao salvar.', 'error'); return; }
+        companyData = cd.company || companyData;
+        // mantém nome + avatar do usuário em sincronia (header)
+        const userPatch = { name };
+        if (pendingAvatar !== undefined) userPatch.avatarUrl = pendingAvatar;
+        const ur = await api(`/api/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify(userPatch) });
+        const ud = await ur.json().catch(() => ({}));
+        if (ur.ok) { Object.assign(currentUser, ud); localStorage.setItem('orbit_user', JSON.stringify(currentUser)); }
+        await loadProfile();
+        window.showToast('Perfil da empresa atualizado!', 'success');
+        closeEditModal();
+      } catch {
+        window.showToast('Erro de conexão. Tente novamente.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar alterações';
+      }
       return;
     }
 

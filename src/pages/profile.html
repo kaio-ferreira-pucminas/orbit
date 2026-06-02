@@ -116,6 +116,9 @@
       </div>
     </section>
 
+    <!-- ============ CORPO DEV (perfil de desenvolvedor) ============ -->
+    <div id="profile-dev-body">
+
     <!-- ============ ABOUT ============ -->
     <section class="profile-section profile-section--tinted">
       <div class="profile-section__inner profile-about">
@@ -170,6 +173,59 @@
         </div>
       </div>
     </section>
+    </div><!-- /#profile-dev-body -->
+
+    <!-- ============ CORPO EMPRESA (conta do tipo empresa) ============ -->
+    <div id="profile-company-body" hidden>
+
+      <!-- Sobre Nós + Estatísticas -->
+      <section class="profile-section profile-section--tinted">
+        <div class="profile-section__inner pco-overview">
+          <div class="pco-about">
+            <h2 class="profile-section__title">Sobre Nós</h2>
+            <p class="pco-about__text" id="pco-about">—</p>
+          </div>
+          <div class="pco-stats">
+            <div class="pco-stat"><span class="pco-stat__value" id="pco-stat-employees">—</span><span class="pco-stat__label">Colaboradores</span></div>
+            <div class="pco-stat pco-stat--hl"><span class="pco-stat__value" id="pco-stat-projects">—</span><span class="pco-stat__label">Projetos</span></div>
+            <div class="pco-stat"><span class="pco-stat__value" id="pco-stat-countries">—</span><span class="pco-stat__label">Países</span></div>
+            <div class="pco-stat"><span class="pco-stat__value" id="pco-stat-rating">—</span><span class="pco-stat__label">Avaliação</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cultura e Valores -->
+      <section class="profile-section" id="pco-culture-section">
+        <div class="profile-section__inner">
+          <h2 class="profile-section__title profile-section__title--center">Cultura e Valores</h2>
+          <div class="pco-culture" id="pco-culture"></div>
+        </div>
+      </section>
+
+      <!-- Vagas Abertas -->
+      <section class="profile-section profile-section--tinted" id="pco-jobs-section">
+        <div class="profile-section__inner">
+          <h2 class="profile-section__title">Vagas Abertas <span class="pco-count" id="pco-jobs-count">0</span></h2>
+          <div class="pco-jobs" id="pco-jobs"></div>
+        </div>
+      </section>
+
+      <!-- Depoimentos -->
+      <section class="profile-section" id="pco-testimonials-section">
+        <div class="profile-section__inner">
+          <h2 class="profile-section__title profile-section__title--center">Depoimentos</h2>
+          <div class="pco-testimonials" id="pco-testimonials"></div>
+        </div>
+      </section>
+
+      <!-- Estado vazio: empresa sem perfil completo -->
+      <section class="profile-section" id="pco-empty" hidden>
+        <div class="profile-section__inner pco-empty">
+          <p class="pco-empty__text">Sua empresa ainda não tem um perfil completo.</p>
+          <a href="/pages/completar-perfil-empresa.html" class="pco-empty__cta">Completar perfil da empresa</a>
+        </div>
+      </section>
+    </div><!-- /#profile-company-body -->
   </main>
 
   <!-- ============ FOOTER ============ -->
@@ -251,6 +307,9 @@
             placeholder="ex: Full Stack Developer | React & Node.js" />
         </div>
 
+        <!-- ===== Campos DEV ===== -->
+        <div id="edit-dev-fields">
+
         <!-- Bio -->
         <div class="edit-form__group">
           <label class="edit-form__label" for="edit-bio">
@@ -318,6 +377,48 @@
             <span class="edit-form__check-box"></span>
             <span class="edit-form__check-label">Disponível para projetos</span>
           </label>
+        </div>
+
+        </div><!-- /#edit-dev-fields -->
+
+        <!-- ===== Campos EMPRESA ===== -->
+        <div id="edit-company-fields" hidden>
+          <div class="edit-form__group">
+            <label class="edit-form__label" for="edit-co-about">Sobre nós</label>
+            <textarea id="edit-co-about" class="edit-form__textarea" rows="5" maxlength="2000"
+              placeholder="Conte o que a empresa faz, sua missão e cultura..."></textarea>
+          </div>
+          <div class="edit-form__row">
+            <div class="edit-form__group">
+              <label class="edit-form__label" for="edit-co-industry">Setor</label>
+              <input type="text" id="edit-co-industry" class="edit-form__input" placeholder="Ex: Produtos SaaS" />
+            </div>
+            <div class="edit-form__group">
+              <label class="edit-form__label" for="edit-co-location">Localização</label>
+              <input type="text" id="edit-co-location" class="edit-form__input" placeholder="Ex: São Paulo, SP / Remoto" />
+            </div>
+          </div>
+          <div class="edit-form__row">
+            <div class="edit-form__group">
+              <label class="edit-form__label" for="edit-co-size">Porte</label>
+              <select id="edit-co-size" class="edit-form__input">
+                <option value="">Selecione…</option>
+                <option>1-10 funcionários</option>
+                <option>11-50 funcionários</option>
+                <option>51-200 funcionários</option>
+                <option>201-500 funcionários</option>
+                <option>500+ funcionários</option>
+              </select>
+            </div>
+            <div class="edit-form__group">
+              <label class="edit-form__label" for="edit-co-founded">Ano de fundação</label>
+              <input type="number" id="edit-co-founded" class="edit-form__input" min="1900" max="2100" placeholder="Ex: 2018" />
+            </div>
+          </div>
+          <div class="edit-form__group">
+            <label class="edit-form__label" for="edit-co-website">Site</label>
+            <input type="text" id="edit-co-website" class="edit-form__input" placeholder="https://suaempresa.com" />
+          </div>
         </div>
 
         <!-- =============================================
@@ -438,5 +539,6 @@
   <script src="../scripts/config.js"></script>
   <script src="../scripts/header.js"></script>
   <script src="../scripts/profile.js"></script>
+  <script src="../scripts/orbit-select.js"></script>
 </body>
 </html>
