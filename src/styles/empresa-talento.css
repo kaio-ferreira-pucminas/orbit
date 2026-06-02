@@ -1,0 +1,138 @@
+/* ============================================================
+   EMPRESA-TALENTO.CSS — Orbit · Perfil do Talento (visão recrutador)
+   Depende de empresa.css (shell: sidebar, topbar, variáveis).
+============================================================ */
+
+.talent-loading { padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 15px; }
+
+/* Voltar */
+.talent-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 4px; width: fit-content;
+}
+.talent-back:hover { color: var(--primary); }
+
+/* ===================== HERO ===================== */
+.talent-hero {
+  display: flex; gap: 28px; align-items: flex-start;
+  background: var(--card-bg); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-card);
+}
+.talent-hero__avatar {
+  width: 132px; height: 132px; flex-shrink: 0; border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #4648d4 0%, #6d6ff0 100%);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  color: #fff; font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 44px;
+  box-shadow: var(--shadow-btn);
+}
+.talent-hero__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.talent-hero__main { flex: 1; min-width: 0; }
+.talent-hero__status {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--green);
+  background: var(--green-bg); padding: 5px 11px; border-radius: 999px; margin-bottom: 10px;
+}
+.talent-hero__status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.talent-hero__name {
+  font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 34px;
+  line-height: 1.1; letter-spacing: -1px; color: var(--text-dark);
+}
+.talent-hero__title { font-size: 16px; font-weight: 600; color: var(--primary); margin-top: 4px; }
+
+.talent-hero__actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+.talent-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+.talent-btn--primary { background: var(--primary); color: #fff; box-shadow: var(--shadow-btn); }
+.talent-btn--primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+.talent-btn--ghost { background: var(--light-purple); color: var(--text-dark); border: 1px solid var(--border-purple); }
+.talent-btn--ghost:hover { background: var(--lighter-purple); }
+
+.talent-meta { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 14px; }
+.talent-meta__item { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--text-muted); }
+.talent-meta__item svg { color: var(--primary); flex-shrink: 0; }
+
+.talent-hero__bio { font-size: 14.5px; line-height: 1.6; color: var(--text-muted); max-width: 70ch; }
+
+/* ===================== CORPO ===================== */
+.talent-body { display: grid; grid-template-columns: minmax(0, 1fr) 332px; gap: 24px; align-items: start; }
+.talent-body__main { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.talent-body__side { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 24px; }
+
+.talent-section {
+  background: var(--card-bg); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);
+}
+.talent-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.talent-section__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 20px; color: var(--text-dark); }
+.talent-section__link { font-size: 13px; font-weight: 700; color: var(--primary); cursor: default; }
+
+/* Projetos */
+.talent-projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.talent-proj { border: 1px solid var(--border-light); border-radius: var(--radius); overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+.talent-proj__cover {
+  height: 124px; display: flex; align-items: center; justify-content: center;
+  color: rgba(255, 255, 255, .9); font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 28px;
+}
+.talent-proj__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.talent-proj__title { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+.talent-proj__desc {
+  font-size: 13px; color: var(--text-muted); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.talent-proj__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.talent-proj__tag { font-size: 11px; font-weight: 600; color: var(--primary); background: var(--light-purple); padding: 3px 9px; border-radius: 999px; }
+
+/* Avaliações */
+.talent-reviews { display: flex; flex-direction: column; gap: 14px; }
+.talent-review { border: 1px solid var(--border-light); border-radius: var(--radius); padding: 16px; background: #fff; }
+.talent-review__top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.talent-review__badge {
+  width: 40px; height: 40px; border-radius: var(--radius-sm); flex-shrink: 0;
+  background: var(--light-purple); color: var(--primary); display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+.talent-review__id { flex: 1; min-width: 0; }
+.talent-review__author { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+.talent-review__role { font-size: 12px; color: var(--text-muted); }
+.talent-review__stars { display: inline-flex; gap: 2px; color: #f5a623; }
+.talent-review__text { font-size: 13.5px; line-height: 1.6; color: var(--text-muted); }
+
+/* ===================== LATERAL ===================== */
+.talent-card {
+  background: var(--card-bg); border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-card);
+}
+.talent-card__title { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 17px; color: var(--text-dark); margin-bottom: 16px; }
+.talent-skills { display: flex; flex-wrap: wrap; gap: 8px; }
+.talent-skill { font-size: 12.5px; font-weight: 600; color: var(--text-dark); background: var(--light-purple); border: 1px solid var(--border-purple); padding: 6px 12px; border-radius: 999px; }
+
+/* Score Orbit */
+.talent-score { background: linear-gradient(160deg, #1d2540 0%, #2c2f8f 100%); border: none; color: #fff; }
+.talent-score__head { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, .85); }
+.talent-score__value { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 56px; line-height: 1; margin: 12px 0 2px; }
+.talent-score__sub { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #8e90ff; margin-bottom: 18px; }
+.talent-score__metrics { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.talent-score__metrics li { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, .75); }
+.talent-score__metrics strong { color: #fff; font-weight: 700; }
+.talent-score__cv {
+  width: 100%; margin-top: 20px; padding: 12px; border-radius: var(--radius-sm);
+  background: #fff; color: #1d2540; font-size: 14px; font-weight: 700; transition: opacity .12s ease, transform .12s ease;
+}
+.talent-score__cv:hover { transform: translateY(-1px); }
+.talent-score__cv:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+/* ===================== RESPONSIVO ===================== */
+@media (max-width: 1024px) {
+  .talent-body { grid-template-columns: 1fr; }
+  .talent-body__side { position: static; }
+}
+@media (max-width: 680px) {
+  .talent-hero { flex-direction: column; align-items: center; text-align: center; }
+  .talent-hero__actions, .talent-meta { justify-content: center; }
+  .talent-projects { grid-template-columns: 1fr; }
+  .talent-hero__name { font-size: 28px; }
+}

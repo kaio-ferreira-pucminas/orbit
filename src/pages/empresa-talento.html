@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil do Talento — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/empresa.css" />
+  <link rel="stylesheet" href="../styles/empresa-talento.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR EMPRESA
+  ====================================================== -->
+  <aside class="emp-sidebar" aria-label="Menu lateral da empresa">
+    <a href="/pages/profile.html" class="emp-sidebar__brand emp-sidebar__brand--link" title="Ver meu perfil">
+      <div class="emp-sidebar__logo-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+          <path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="emp-sidebar__brand-text">
+        <span class="emp-sidebar__brand-name" id="sidebar-company-name">Orbit Corp</span>
+        <span class="emp-sidebar__brand-sub">RECRUTAMENTO ATIVO</span>
+      </div>
+    </a>
+
+    <nav class="emp-sidebar__nav" aria-label="Navegação da empresa">
+      <a href="/pages/empresa-dashboard.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/pages/feed.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Feed</span>
+      </a>
+      <a href="/pages/empresa-talentos.html" class="emp-nav__link emp-nav__link--active" aria-current="page">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Busca de Talentos</span>
+      </a>
+      <a href="/pages/empresa-candidatos.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>Gerenciar Vagas</span>
+      </a>
+      <a href="/pages/mensagens.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensagens</span>
+      </a>
+    </nav>
+
+    <div class="emp-sidebar__bottom">
+      <div class="emp-sidebar__divider"></div>
+      <button type="button" class="emp-nav__link emp-nav__link--btn" id="btn-logout">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CONTEÚDO
+  ====================================================== -->
+  <div class="emp-shell">
+    <header class="emp-topbar">
+      <div class="emp-topbar__search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="topbar-search" placeholder="Buscar talentos, tecnologias..." aria-label="Buscar talentos" />
+      </div>
+      <div class="emp-topbar__actions">
+        <button class="emp-btn-primary" id="btn-novo-job">+ Novo Job</button>
+        <div class="emp-topbar__avatar" id="emp-avatar"><span id="emp-initials">OC</span></div>
+      </div>
+    </header>
+
+    <main class="emp-content">
+      <a href="/pages/empresa-talentos.html" class="talent-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        VOLTAR PARA BUSCA DE TALENTOS
+      </a>
+
+      <div class="talent-loading" id="talent-loading">Carregando perfil...</div>
+
+      <div id="talent-content" hidden>
+        <!-- HERO -->
+        <header class="talent-hero">
+          <div class="talent-hero__avatar" id="talent-avatar"><span id="talent-initials">--</span></div>
+          <div class="talent-hero__main">
+            <div class="talent-hero__status" id="talent-status" hidden>
+              <span class="talent-hero__status-dot"></span> DISPONÍVEL PARA PROJETOS
+            </div>
+            <h1 class="talent-hero__name" id="talent-name">—</h1>
+            <p class="talent-hero__title" id="talent-title">—</p>
+
+            <div class="talent-hero__actions">
+              <button type="button" class="talent-btn talent-btn--ghost" id="btn-contact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Entrar em Contato
+              </button>
+              <button type="button" class="talent-btn talent-btn--primary" id="btn-interview">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Agendar Entrevista
+              </button>
+            </div>
+
+            <ul class="talent-meta" id="talent-meta" aria-label="Informações do candidato"></ul>
+            <p class="talent-hero__bio" id="talent-bio"></p>
+          </div>
+        </header>
+
+        <!-- CORPO: principal + lateral -->
+        <div class="talent-body">
+          <div class="talent-body__main">
+            <!-- Projetos -->
+            <section class="talent-section" id="talent-projects-section">
+              <div class="talent-section__head">
+                <h2 class="talent-section__title">Projetos em Destaque</h2>
+                <span class="talent-section__link" id="talent-projects-all" hidden></span>
+              </div>
+              <div class="talent-projects" id="talent-projects"></div>
+            </section>
+
+            <!-- Avaliações -->
+            <section class="talent-section" id="talent-reviews-section">
+              <h2 class="talent-section__title">Avaliações de Empresas</h2>
+              <div class="talent-reviews" id="talent-reviews"></div>
+            </section>
+          </div>
+
+          <aside class="talent-body__side">
+            <!-- Habilidades -->
+            <div class="talent-card" id="talent-skills-card">
+              <h3 class="talent-card__title">Principais Habilidades</h3>
+              <div class="talent-skills" id="talent-skills"></div>
+            </div>
+
+            <!-- Score Orbit -->
+            <div class="talent-card talent-score">
+              <div class="talent-score__head">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Score Orbit
+              </div>
+              <div class="talent-score__value" id="talent-score">—</div>
+              <div class="talent-score__sub">TOP 1% TALENT POOL</div>
+              <ul class="talent-score__metrics">
+                <li><span>Qualidade de Código</span><strong id="talent-quality">—</strong></li>
+                <li><span>Tempo de Resposta</span><strong id="talent-response">—</strong></li>
+                <li><span>Projetos Validados</span><strong id="talent-validated">—</strong></li>
+              </ul>
+              <button type="button" class="talent-score__cv" id="btn-cv">Download CV Completo</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/empresa-talento.js"></script>
+</body>
+</html>

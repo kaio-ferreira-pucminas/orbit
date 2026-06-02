@@ -221,7 +221,7 @@
       if (profileBtn) {
         const card = profileBtn.closest('[data-user-id]');
         const id = card && card.getAttribute('data-user-id');
-        if (id) window.location.href = `/pages/profile.html?id=${encodeURIComponent(id)}`;
+        if (id) window.location.href = `/pages/empresa-talento.html?id=${encodeURIComponent(id)}`;
       }
     });
 

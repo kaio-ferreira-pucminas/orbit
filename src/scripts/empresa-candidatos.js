@@ -74,7 +74,7 @@
         </div>
         <div class="cand-card__actions">
           <span class="cand-status cand-status--${st}">${escapeHtml(STATUS_LABEL[st] || st)}</span>
-          <a class="cand-btn-primary" href="/pages/perfil-publico.html?id=${encodeURIComponent(c.id || '')}">Ver Perfil Completo</a>
+          <a class="cand-btn-primary" href="/pages/empresa-talento.html?id=${encodeURIComponent(c.id || '')}">Ver Perfil Completo</a>
           <a class="cand-btn-ghost" href="/pages/mensagens.html">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Enviar Mensagem
