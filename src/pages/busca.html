@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Busca — Orbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/busca.css" />
+</head>
+<body>
+  <div id="orbit-header"></div>
+
+  <main class="busca-main">
+    <form class="busca-bar" id="busca-form" role="search">
+      <svg class="busca-bar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" class="busca-bar__input" id="busca-input" placeholder="Buscar pessoas, empresas, vagas, posts…" autocomplete="off" />
+      <button type="submit" class="busca-bar__submit">Buscar</button>
+    </form>
+
+    <p class="busca-summary" id="busca-summary"></p>
+
+    <nav class="busca-tabs" id="busca-tabs" aria-label="Categorias de resultado">
+      <button type="button" class="busca-tab busca-tab--active" data-tab="posts">Posts <span class="busca-tab__count" id="count-posts">0</span></button>
+      <button type="button" class="busca-tab" data-tab="people">Pessoas <span class="busca-tab__count" id="count-people">0</span></button>
+      <button type="button" class="busca-tab" data-tab="companies">Empresas <span class="busca-tab__count" id="count-companies">0</span></button>
+      <button type="button" class="busca-tab" data-tab="jobs">Vagas <span class="busca-tab__count" id="count-jobs">0</span></button>
+    </nav>
+
+    <section class="busca-results" id="busca-results" aria-live="polite">
+      <p class="busca-empty">Digite algo para buscar.</p>
+    </section>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/header.js"></script>
+  <script src="../scripts/busca.js"></script>
+</body>
+</html>

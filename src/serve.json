@@ -21,6 +21,8 @@
     { "source": "/meus-projetos",   "destination": "/pages/meus-projetos.html" },
     { "source": "/perfil-publico",  "destination": "/pages/perfil-publico.html" },
     { "source": "/oportunidades",   "destination": "/pages/oportunidades.html" },
-    { "source": "/candidatos",      "destination": "/pages/empresa-candidatos.html" }
+    { "source": "/candidatos",      "destination": "/pages/empresa-candidatos.html" },
+    { "source": "/busca",           "destination": "/pages/busca.html" },
+    { "source": "/empresa-perfil",  "destination": "/pages/empresa-perfil.html" }
   ]
 }

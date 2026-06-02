@@ -1546,6 +1546,142 @@ server.get('/api/trending', requireAuth, (req, res) => {
   return res.status(200).json(list);
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// BUSCA GLOBAL — pesquisa unificada do site (pessoas, empresas, vagas, posts, tópicos)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// normaliza p/ busca: minúsculas + sem acentos
+function searchNorm(s) {
+  return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+function searchTokens(q) {
+  return searchNorm(q).split(/\s+/).filter(Boolean);
+}
+// Casa se TODOS os tokens aparecem no texto combinado dos campos.
+// Score = soma dos pesos dos campos que casam todos os tokens (nome casa > bio casa).
+function relevance(fields, toks) {
+  const combined = fields.map(f => searchNorm(f.text)).join('  ');
+  const allInCombined = toks.length > 0 && toks.every(t => combined.includes(t));
+  if (!allInCombined) return 0;
+  let score = 0;
+  fields.forEach(f => {
+    const h = searchNorm(f.text);
+    if (toks.every(t => h.includes(t))) score += f.w;
+  });
+  return score || 0.1; // casou via combinação de campos
+}
+
+// GET /api/search?q=...&limit=  — busca em tudo, categorizado
+server.get('/api/search', requireAuth, (req, res) => {
+  const db    = getDb();
+  const q     = req.query.q || '';
+  const toks  = searchTokens(q);
+  const limit = parseInt(req.query.limit, 10) || 50;
+  const empty = { query: q, people: [], companies: [], jobs: [], posts: [], topics: [] };
+  if (!toks.length) return res.status(200).json(empty);
+
+  // PESSOAS (dev)
+  const people = (db.users || [])
+    .filter(u => u.type === 'dev' && !u.disabledAt)
+    .map(u => ({ u, score: relevance([
+      { text: u.name, w: 5 },
+      { text: u.title, w: 3 },
+      { text: u.headline, w: 2 },
+      { text: (u.skills || []).join(' '), w: 3 },
+      { text: u.bio, w: 1 },
+    ], toks) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => ({ ...sanitizeUser(x.u), _score: +x.score.toFixed(2) }));
+
+  // EMPRESAS
+  const companies = (db.companies || [])
+    .map(c => ({ c, score: relevance([
+      { text: c.name, w: 5 },
+      { text: c.industry, w: 3 },
+      { text: c.location, w: 2 },
+      { text: c.about, w: 1 },
+    ], toks) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => ({ ...x.c, _score: +x.score.toFixed(2) }));
+
+  // VAGAS (ativas primeiro)
+  const jobs = (db.jobs || [])
+    .map(j => ({ j, score: relevance([
+      { text: j.title, w: 5 },
+      { text: j.companyName, w: 3 },
+      { text: (j.skills || []).join(' '), w: 3 },
+      { text: j.level, w: 1 },
+      { text: j.modality, w: 1 },
+      { text: j.location, w: 1 },
+      { text: j.description, w: 1 },
+    ], toks) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => (b.j.status === 'active') - (a.j.status === 'active') || b.score - a.score)
+    .slice(0, limit)
+    .map(x => ({ ...x.j, _score: +x.score.toFixed(2) }));
+
+  // POSTS (texto + hashtags + skills do autor)
+  const posts = (db.posts || [])
+    .map(p => {
+      const author = db.users.find(u => u.id === p.userId);
+      const hashtags = extractHashtags(p.content).join(' ');
+      const authorSkills = (author && author.skills || []).join(' ');
+      const score = relevance([
+        { text: hashtags, w: 4 },
+        { text: author ? author.name : '', w: 3 },
+        { text: authorSkills, w: 2 },
+        { text: p.content, w: 2 },
+      ], toks);
+      return { p, author, score };
+    })
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => ({
+      ...x.p,
+      author:        x.author ? sanitizeUser(x.author) : null,
+      likesCount:    (db.likes || []).filter(l => l.postId === x.p.id).length,
+      commentsCount: (db.comments || []).filter(c => c.postId === x.p.id).length,
+      likedByMe:     (db.likes || []).some(l => l.postId === x.p.id && l.userId === req.user.id),
+      _score:        +x.score.toFixed(2),
+    }));
+
+  // TÓPICOS (hashtags/skills/techs que casam a busca) — p/ o modal rápido
+  const topicCount = new Map();
+  (db.posts || []).forEach(p => {
+    const author = db.users.find(u => u.id === p.userId);
+    const tags = new Set();
+    extractHashtags(p.content).forEach(h => tags.add('#' + h));
+    if (author && Array.isArray(author.skills)) author.skills.forEach(s => tags.add(s));
+    tags.forEach(label => {
+      const h = searchNorm(label);
+      if (toks.every(t => h.includes(t))) {
+        const e = topicCount.get(searchNorm(label)) || { tag: label, postsCount: 0 };
+        e.postsCount++;
+        topicCount.set(searchNorm(label), e);
+      }
+    });
+  });
+  const topics = [...topicCount.values()].sort((a, b) => b.postsCount - a.postsCount).slice(0, limit);
+
+  return res.status(200).json({ query: q, people, companies, jobs, posts, topics });
+});
+
+// GET /api/companies/:id — perfil público de empresa + vagas
+server.get('/api/companies/:id', requireAuth, (req, res) => {
+  const db = getDb();
+  const company = (db.companies || []).find(c => c.id === req.params.id);
+  if (!company) return res.status(404).json({ error: 'Empresa não encontrada.' });
+  const jobs = (db.jobs || [])
+    .filter(j => j.companyId === company.id)
+    .sort((a, b) => (b.status === 'active') - (a.status === 'active') || new Date(b.createdAt) - new Date(a.createdAt));
+  return res.status(200).json({ company, jobs });
+});
+
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);
