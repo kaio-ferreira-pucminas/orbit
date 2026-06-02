@@ -470,6 +470,7 @@
   let pendingResume     = undefined;
   let pendingResumeName = undefined;
   let pendingCultureImages = []; // galeria de cultura (conta empresa)
+  let pendingCover = undefined;  // imagem de capa/banner (conta empresa)
 
   async function openEditModal() {
     const u = currentUser;
@@ -500,6 +501,8 @@
       $('#edit-co-website').value  = c.website || '';
       pendingCultureImages = Array.isArray(c.cultureImages) ? [...c.cultureImages] : [];
       renderGalleryThumbs();
+      pendingCover = undefined;
+      renderCoverPreview(c.coverUrl);
     } else {
       // Popula campos (dev)
       $('#edit-name').value     = u.name     || '';
@@ -641,6 +644,32 @@
     });
   }
 
+  // ===== Capa/banner (conta empresa) =====
+  function renderCoverPreview(url) {
+    const box = $('#edit-cover-preview');
+    if (!box) return;
+    if (url) { box.style.backgroundImage = `url("${url}")`; box.classList.add('edit-cover--has'); }
+    else { box.style.backgroundImage = ''; box.classList.remove('edit-cover--has'); }
+  }
+  const coverInput = $('#edit-cover-input');
+  if (coverInput) {
+    coverInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { window.showToast('Apenas JPG, PNG ou WebP.', 'error'); coverInput.value = ''; return; }
+      if (file.size > MAX_AVATAR_BYTES) { window.showToast('Imagem muito grande. Máx 10MB.', 'error'); coverInput.value = ''; return; }
+      try {
+        pendingCover = await resizeImageToDataUrl(file, 1600, 0.82);
+        renderCoverPreview(pendingCover);
+      } catch { window.showToast('Erro ao processar a capa.', 'error'); }
+      coverInput.value = '';
+    });
+  }
+  const coverRemove = $('#edit-cover-remove');
+  if (coverRemove) {
+    coverRemove.addEventListener('click', () => { pendingCover = null; renderCoverPreview(null); });
+  }
+
   // Upload de avatar
   avatarInput.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
@@ -742,6 +771,10 @@
         website:  $('#edit-co-website').value.trim(),
         cultureImages: pendingCultureImages,
       };
+      // A foto da empresa também vira o logo público (logoUrl); a capa vai em coverUrl.
+      // (undefined = não mexe; null = remover; string base64 = novo arquivo no backend)
+      if (pendingAvatar !== undefined) coPayload.logoUrl  = pendingAvatar;
+      if (pendingCover  !== undefined) coPayload.coverUrl = pendingCover;
       try {
         const r = await api('/api/companies/me', { method: 'PUT', body: JSON.stringify(coPayload) });
         const cd = await r.json();

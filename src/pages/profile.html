@@ -420,6 +420,22 @@
             <input type="text" id="edit-co-website" class="edit-form__input" placeholder="https://suaempresa.com" />
           </div>
           <div class="edit-form__group">
+            <label class="edit-form__label">Imagem de capa (banner)</label>
+            <div class="edit-cover" id="edit-cover-preview"></div>
+            <div class="edit-cover__actions">
+              <label class="edit-form__file-btn edit-form__file-btn--full" id="edit-cover-trigger">
+                <input type="file" id="edit-cover-input" accept="image/png,image/jpeg,image/webp" hidden />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Trocar capa</span>
+              </label>
+              <button type="button" class="edit-form__file-btn edit-form__file-btn--ghost" id="edit-cover-remove">Remover capa</button>
+            </div>
+            <p class="edit-form__hint">JPG, PNG ou WebP. Recomendado 1400×400. Máx 10MB.</p>
+          </div>
+          <div class="edit-form__group">
             <label class="edit-form__label">Galeria — Cultura e Valores</label>
             <div class="edit-gallery" id="edit-gallery-grid"></div>
             <label class="edit-form__file-btn edit-form__file-btn--full" id="edit-gallery-trigger">

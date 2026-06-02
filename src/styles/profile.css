@@ -1274,3 +1274,9 @@
 .edit-gallery__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .edit-gallery__remove { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(19,27,46,.75); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .edit-gallery__remove:hover { background: #c0392b; }
+
+/* Capa/banner (conta empresa) no modal de edição */
+.edit-cover { width: 100%; height: 120px; border-radius: 12px; border: 1px dashed var(--feed-border, #e2e7ff); background: #f2f3ff center/cover no-repeat; margin-bottom: 10px; }
+.edit-cover--has { border-style: solid; }
+.edit-cover__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.edit-cover__actions .edit-form__file-btn--full { flex: 1; }

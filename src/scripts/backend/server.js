@@ -1744,7 +1744,7 @@ server.put('/api/companies/me', requireAuth, (req, res) => {
   const db = getDb();
   db.companies = db.companies || [];
 
-  const ALLOWED = ['name', 'logoInitials', 'industry', 'location', 'about', 'website', 'size', 'founded', 'tagline', 'interests', 'cultureImages', 'cultureSubtitle'];
+  const ALLOWED = ['name', 'logoInitials', 'logoUrl', 'coverUrl', 'industry', 'location', 'about', 'website', 'size', 'founded', 'tagline', 'interests', 'cultureImages', 'cultureSubtitle'];
   const updates = {};
   for (const k of ALLOWED) { if (k in req.body) updates[k] = req.body[k]; }
 
@@ -1756,6 +1756,14 @@ server.put('/api/companies/me', requireAuth, (req, res) => {
       }
       return img;
     }).filter(Boolean);
+  }
+
+  // Logo e capa enviados como base64 → salva como arquivo e guarda só o caminho
+  for (const k of ['logoUrl', 'coverUrl']) {
+    if (typeof updates[k] === 'string' && updates[k].startsWith('data:')) {
+      const saved = saveDataUrlImage(updates[k], k === 'logoUrl' ? 'logos' : 'covers', `${req.user.id}-${k}`);
+      updates[k] = saved ? `${saved}?v=${Date.now()}` : null;
+    }
   }
 
   const me = db.users.find(u => u.id === req.user.id);
