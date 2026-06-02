@@ -129,8 +129,12 @@ server.use(cors({
     if (CORS_ORIGINS.includes(origin)) return callback(null, true);
     // Padrão wildcard *.onrender.com → permite (cobre o static site na Render)
     if (/^https:\/\/[^.]+\.onrender\.com$/.test(origin)) return callback(null, true);
-    // Resto → bloqueia
-    return callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+    // Padrão wildcard *.railway.app → permite (serviço único no Railway)
+    if (/^https:\/\/[\w.-]+\.railway\.app$/.test(origin)) return callback(null, true);
+    // Origem desconhecida: NÃO derruba com erro (evita 500). Apenas não envia os
+    // cabeçalhos de CORS — requisições de mesma origem seguem normalmente; cross-origin
+    // não autorizada é barrada pelo próprio navegador.
+    return callback(null, false);
   },
   credentials: true,
 }));
