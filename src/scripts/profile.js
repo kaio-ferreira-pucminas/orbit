@@ -169,6 +169,9 @@
     const isCompany = user.type === 'company';
     availBadge.style.display = isCompany ? 'none' : '';
     $('#profile-rating').style.display = isCompany ? 'none' : '';
+    // "Ir para o Dashboard" aponta para o dashboard certo conforme o tipo
+    const dashLink = document.querySelector('.profile-actions .profile-cta--primary');
+    if (dashLink) dashLink.href = isCompany ? '/pages/empresa-dashboard.html' : '/pages/dashboard.html';
 
     // Atualiza title da aba
     document.title = `${user.name} — Orbit`;

@@ -19,6 +19,12 @@
 
   const currentUser = JSON.parse(userJson);
 
+  // Conta empresa não usa o dashboard de dev — vai para o dashboard da empresa
+  if (currentUser.type === 'company') {
+    window.location.replace('/pages/empresa-dashboard.html');
+    return;
+  }
+
   /* =========================================================
      HELPERS
   ========================================================= */

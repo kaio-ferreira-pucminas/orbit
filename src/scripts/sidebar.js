@@ -38,6 +38,7 @@
     projetos:  '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     oportunidades: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
     mensagens: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    talentos:  '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     config:    '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>',
     logout:    '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
     orbit:     '<circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="white"/><path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>',
@@ -46,17 +47,28 @@
     return `<svg class="dash-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
   }
 
-  /* ===== NAV ===== */
-  const NAV = [
+  /* ===== NAV (adapta por tipo de conta) ===== */
+  const isCompany = !!(currentUser && currentUser.type === 'company');
+  const NAV = isCompany ? [
+    { key: 'dashboard', href: '/pages/empresa-dashboard.html', label: 'Dashboard',         icon: ICONS.dashboard },
+    { key: 'talentos',  href: '/pages/empresa-talentos.html',  label: 'Busca de Talentos', icon: ICONS.talentos },
+    { key: 'vagas',     href: '/pages/empresa-candidatos.html', label: 'Gerenciar Vagas',   icon: ICONS.oportunidades },
+    { key: 'mensagens', href: '/pages/mensagens.html',         label: 'Mensagens',         icon: ICONS.mensagens },
+  ] : [
     { key: 'dashboard',     href: '/pages/dashboard.html',     label: 'Dashboard',     icon: ICONS.dashboard },
     { key: 'feed',          href: '/pages/feed.html',          label: 'Feed',          icon: ICONS.feed },
     { key: 'projetos',      href: '/pages/meus-projetos.html', label: 'Meus Projetos', icon: ICONS.projetos },
     { key: 'oportunidades', href: '/pages/oportunidades.html', label: 'Oportunidades', icon: ICONS.oportunidades },
     { key: 'mensagens',     href: '/pages/mensagens.html',     label: 'Mensagens',     icon: ICONS.mensagens },
   ];
-  // aba ativa pela URL (vagas/vaga-detalhes contam como Oportunidades)
+  // aba ativa pela URL
   const FILE = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
-  const ACTIVE = {
+  const ACTIVE = (isCompany ? {
+    'empresa-dashboard.html': 'dashboard',
+    'empresa-talentos.html':  'talentos',
+    'empresa-candidatos.html': 'vagas',
+    'mensagens.html': 'mensagens',
+  } : {
     'dashboard.html': 'dashboard',
     'feed.html': 'feed',
     'meus-projetos.html': 'projetos',
@@ -64,7 +76,7 @@
     'vagas.html': 'oportunidades',
     'vaga-detalhes.html': 'oportunidades',
     'mensagens.html': 'mensagens',
-  }[FILE] || '';
+  })[FILE] || '';
 
   /* ===== MARKUP ===== */
   function buildHTML() {
