@@ -134,6 +134,7 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .cp-interest-chip{padding:9px 16px;border-radius:999px;border:1.5px solid var(--border-purple);background:var(--card-bg);color:var(--text-muted);font-size:14px;font-weight:600;transition:background .15s,color .15s,border-color .15s;}
 .cp-interest-chip:hover{border-color:var(--primary);color:var(--primary);}
 .cp-interest-chip--active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.cp-interest-chip--active:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff;}
 .cp-interests__add{margin-top:4px;}
 
 /* Navegação do wizard */
