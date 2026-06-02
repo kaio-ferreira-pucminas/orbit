@@ -3,8 +3,11 @@
    Depende de empresa.css (shell: sidebar, topbar, variáveis).
 ============================================================ */
 
-/* Centraliza o conteúdo na área útil (sem ficar colado à esquerda em telas largas) */
-.emp-content { margin-left: auto; margin-right: auto; width: 100%; }
+/* A área ocupa toda a largura: o "Voltar" fica à esquerda e só o miolo (hero + corpo)
+   é centralizado. */
+.emp-content { max-width: none; }
+.talent-loading,
+#talent-content { max-width: 1280px; margin-left: auto; margin-right: auto; width: 100%; }
 
 .talent-loading { padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 15px; }
 
