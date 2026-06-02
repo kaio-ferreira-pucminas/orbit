@@ -111,8 +111,8 @@
       const data = await res.json();
       if (!res.ok) { btn.disabled = false; btn.innerHTML = original; toast(data.error || 'Erro ao salvar.', 'error'); return; }
       toast('Perfil da empresa salvo com sucesso!', 'success');
-      const id = data.company && data.company.id;
-      setTimeout(() => { window.location.href = id ? `/pages/empresa-perfil.html?id=${encodeURIComponent(id)}` : '/pages/empresa-dashboard.html'; }, 800);
+      // Vai para o perfil do usuário logado (que se adapta para empresa), não para o perfil público
+      setTimeout(() => { window.location.href = '/pages/profile.html'; }, 800);
     } catch (err) {
       if (err.message !== 'Token expirado') { btn.disabled = false; btn.innerHTML = original; toast('Não foi possível salvar.', 'error'); }
     }
