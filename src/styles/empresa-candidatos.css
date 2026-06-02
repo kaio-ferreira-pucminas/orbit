@@ -19,6 +19,8 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 /* Sidebar empresa */
 .emp-sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--card-bg);border-right:1px solid var(--border-light);display:flex;flex-direction:column;padding:28px 16px;z-index:100;}
 .emp-sidebar__brand{display:flex;align-items:center;gap:12px;padding:0 12px 36px;}
+.emp-sidebar__brand--link{text-decoration:none;cursor:pointer;}
+.emp-sidebar__brand--link:hover .emp-sidebar__brand-name{color:var(--primary);}
 .emp-sidebar__logo-icon{width:40px;height:40px;background:var(--primary);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .emp-sidebar__brand-text{display:flex;flex-direction:column;}
 .emp-sidebar__brand-name{font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text-dark);line-height:24px;}

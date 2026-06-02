@@ -54,6 +54,8 @@ ul, ol { list-style: none; }
   display: flex; flex-direction: column; padding: 28px 16px; z-index: 100;
 }
 .emp-sidebar__brand { display: flex; align-items: center; gap: 12px; padding: 0 12px 36px; }
+.emp-sidebar__brand--link { text-decoration: none; cursor: pointer; }
+.emp-sidebar__brand--link:hover .emp-sidebar__brand-name { color: var(--primary); }
 .emp-sidebar__logo-icon {
   width: 40px; height: 40px; background: var(--primary); border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;

@@ -51,6 +51,7 @@
   const isCompany = !!(currentUser && currentUser.type === 'company');
   const NAV = isCompany ? [
     { key: 'dashboard', href: '/pages/empresa-dashboard.html', label: 'Dashboard',         icon: ICONS.dashboard },
+    { key: 'feed',      href: '/pages/feed.html',              label: 'Feed',              icon: ICONS.feed },
     { key: 'talentos',  href: '/pages/empresa-talentos.html',  label: 'Busca de Talentos', icon: ICONS.talentos },
     { key: 'vagas',     href: '/pages/empresa-candidatos.html', label: 'Gerenciar Vagas',   icon: ICONS.oportunidades },
     { key: 'mensagens', href: '/pages/mensagens.html',         label: 'Mensagens',         icon: ICONS.mensagens },
@@ -65,6 +66,7 @@
   const FILE = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
   const ACTIVE = (isCompany ? {
     'empresa-dashboard.html': 'dashboard',
+    'feed.html': 'feed',
     'empresa-talentos.html':  'talentos',
     'empresa-candidatos.html': 'vagas',
     'mensagens.html': 'mensagens',
