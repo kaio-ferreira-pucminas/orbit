@@ -100,8 +100,8 @@ server.use(cors({
 // Aumenta limite do body parser para suportar upload de imagens/PDFs em base64
 // (10MB raw → ~13MB base64; avatar + currículo no mesmo PATCH → bumpamos pra 30MB)
 const express = require('express');
-server.use(express.json({ limit: '30mb' }));
-server.use(express.urlencoded({ extended: true, limit: '30mb' }));
+server.use(express.json({ limit: '150mb' }));
+server.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
 // ── Middleware de JWT ────────────────────────────────────────────────────────
 function requireAuth(req, res, next) {
