@@ -7,6 +7,27 @@
   const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
 
   /* -----------------------------------------------
+     SESSÃO — persiste token + usuário no localStorage
+     O avatar pode vir como data URL base64 grande (fotos antigas de vários MB) e
+     estourar a cota do localStorage. Tentamos guardar o usuário completo; se falhar,
+     guardamos sem o avatarUrl para o login nunca quebrar por causa da foto.
+  ----------------------------------------------- */
+  function persistSession(token, user) {
+    localStorage.setItem('orbit_token', token);
+    try {
+      localStorage.setItem('orbit_user', JSON.stringify(user));
+    } catch (e) {
+      try {
+        const { avatarUrl, ...slim } = user || {};
+        localStorage.setItem('orbit_user', JSON.stringify(slim));
+      } catch (e2) {
+        const u = user || {};
+        localStorage.setItem('orbit_user', JSON.stringify({ id: u.id, type: u.type, name: u.name, email: u.email }));
+      }
+    }
+  }
+
+  /* -----------------------------------------------
      TABS: Entrar / Criar Conta
   ----------------------------------------------- */
   const tabs         = document.querySelectorAll('.auth-tab');
@@ -141,8 +162,7 @@
           return;
         }
 
-        localStorage.setItem('orbit_token', data.token);
-        localStorage.setItem('orbit_user',  JSON.stringify(data.user));
+        persistSession(data.token, data.user);
 
         showToast('Login realizado com sucesso!', 'success');
         setTimeout(() => { window.location.href = '/pages/feed.html'; }, 1200);
@@ -190,8 +210,7 @@
           return;
         }
 
-        localStorage.setItem('orbit_token', data.token);
-        localStorage.setItem('orbit_user',  JSON.stringify(data.user));
+        persistSession(data.token, data.user);
 
         showToast('Conta criada com sucesso! Complete seu perfil profissional.', 'success');
         setTimeout(() => { window.location.href = '/pages/completar-perfil.html'; }, 1200);
@@ -239,8 +258,7 @@
           return;
         }
 
-        localStorage.setItem('orbit_token', data.token);
-        localStorage.setItem('orbit_user',  JSON.stringify(data.user));
+        persistSession(data.token, data.user);
 
         showToast('Conta criada com sucesso! Complete o perfil da sua empresa.', 'success');
         setTimeout(() => { window.location.href = '/pages/completar-perfil-empresa.html'; }, 1200);

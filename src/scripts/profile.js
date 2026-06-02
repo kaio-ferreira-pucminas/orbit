@@ -576,6 +576,36 @@
     });
   }
 
+  // Helper: redimensiona/comprime uma imagem para um data URL leve. Evita guardar
+  // fotos de vários MB (que estouram a cota do localStorage e incham as respostas).
+  // Mantém a proporção; o maior lado fica <= maxSize. WebP preserva transparência.
+  function resizeImageToDataUrl(file, maxSize = 256, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+      reader.onload  = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+        img.onload  = () => {
+          let w = img.width, h = img.height;
+          if (w > maxSize || h > maxSize) {
+            const scale = Math.min(maxSize / w, maxSize / h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          let out = canvas.toDataURL('image/webp', quality);
+          if (!out.startsWith('data:image/webp')) out = canvas.toDataURL('image/png');
+          resolve(out);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   // ===== Galeria (Cultura e Valores) — upload de várias imagens (conta empresa) =====
   function renderGalleryThumbs() {
     const grid = $('#edit-gallery-grid');
@@ -595,7 +625,7 @@
       for (const file of files) {
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { window.showToast(`"${file.name}": apenas JPG, PNG ou WebP.`, 'error'); continue; }
         if (file.size > MAX_AVATAR_BYTES) { window.showToast(`"${file.name}": muito grande (máx 10MB).`, 'error'); continue; }
-        try { pendingCultureImages.push(await fileToDataUrl(file)); } catch {}
+        try { pendingCultureImages.push(await resizeImageToDataUrl(file, 1000, 0.82)); } catch {}
       }
       galleryInput.value = '';
       renderGalleryThumbs();
@@ -628,7 +658,7 @@
     }
 
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const dataUrl = await resizeImageToDataUrl(file, 256, 0.85);
       pendingAvatar = dataUrl;
       // Atualiza preview
       avatarPreview.querySelector('img')?.remove();
