@@ -356,6 +356,14 @@
   const CO_STAR = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.9 5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>';
   function coInitials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join(''); }
   function coChips(arr){ return (arr||[]).slice(0,4).map(s=>`<span class="pco-chip">${escapeHtml(s)}</span>`).join(''); }
+  function coGalleryImg(url){ return `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`; }
+  function renderCoGallery(images, overlay){
+    const cells = [];
+    cells.push(`<div class="pco-gallery__cell pco-gallery__cell--large">${images[0] ? coGalleryImg(images[0]) : ''}${overlay ? `<div class="pco-gallery__overlay"><div class="pco-gallery__overlay-title">${escapeHtml(overlay.title || '')}</div><div class="pco-gallery__overlay-text">${escapeHtml(overlay.text || '')}</div></div>` : ''}</div>`);
+    if (images[1]) cells.push(`<div class="pco-gallery__cell">${coGalleryImg(images[1])}</div>`);
+    if (images[2]) cells.push(`<div class="pco-gallery__cell">${coGalleryImg(images[2])}</div>`);
+    return `<div class="pco-gallery">${cells.join('')}</div>`;
+  }
 
   async function renderCompanyProfile() {
     const devBody = $('#profile-dev-body'); if (devBody) devBody.hidden = true;
@@ -390,8 +398,11 @@
     $('#pco-stat-countries').textContent = stats.countries != null ? stats.countries : '—';
     $('#pco-stat-rating').textContent    = stats.rating != null ? stats.rating : '—';
 
+    const images = Array.isArray(c.cultureImages) ? c.cultureImages.filter(Boolean) : [];
     const culture = Array.isArray(c.culture) ? c.culture : [];
-    if (culture.length) {
+    if (images.length) {
+      $('#pco-culture').innerHTML = renderCoGallery(images, culture[0]);
+    } else if (culture.length) {
       $('#pco-culture').innerHTML = culture.map(v => `
         <div class="pco-culture__card">
           <div class="pco-culture__icon">${CO_STAR}</div>
@@ -455,6 +466,7 @@
   let pendingAvatar     = undefined;
   let pendingResume     = undefined;
   let pendingResumeName = undefined;
+  let pendingCultureImages = []; // galeria de cultura (conta empresa)
 
   function openEditModal() {
     const u = currentUser;
@@ -476,6 +488,8 @@
       $('#edit-co-size').value     = c.size || '';
       $('#edit-co-founded').value  = c.founded || '';
       $('#edit-co-website').value  = c.website || '';
+      pendingCultureImages = Array.isArray(c.cultureImages) ? [...c.cultureImages] : [];
+      renderGalleryThumbs();
     } else {
       // Popula campos (dev)
       $('#edit-name').value     = u.name     || '';
@@ -549,6 +563,41 @@
       reader.onload  = () => resolve(reader.result);
       reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
       reader.readAsDataURL(file);
+    });
+  }
+
+  // ===== Galeria (Cultura e Valores) — upload de várias imagens (conta empresa) =====
+  function renderGalleryThumbs() {
+    const grid = $('#edit-gallery-grid');
+    if (!grid) return;
+    grid.innerHTML = pendingCultureImages.map((src, i) => `
+      <div class="edit-gallery__thumb">
+        <img src="${src}" alt="" />
+        <button type="button" class="edit-gallery__remove" data-gallery-remove="${i}" aria-label="Remover imagem">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`).join('');
+  }
+  const galleryInput = $('#edit-gallery-input');
+  if (galleryInput) {
+    galleryInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      for (const file of files) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { window.showToast(`"${file.name}": apenas JPG, PNG ou WebP.`, 'error'); continue; }
+        if (file.size > MAX_AVATAR_BYTES) { window.showToast(`"${file.name}": muito grande (máx 10MB).`, 'error'); continue; }
+        try { pendingCultureImages.push(await fileToDataUrl(file)); } catch {}
+      }
+      galleryInput.value = '';
+      renderGalleryThumbs();
+    });
+  }
+  const galleryGrid = $('#edit-gallery-grid');
+  if (galleryGrid) {
+    galleryGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-gallery-remove]');
+      if (!btn) return;
+      pendingCultureImages.splice(Number(btn.getAttribute('data-gallery-remove')), 1);
+      renderGalleryThumbs();
     });
   }
 
@@ -651,6 +700,7 @@
         size:     $('#edit-co-size').value,
         founded:  foundedRaw ? parseInt(foundedRaw, 10) : null,
         website:  $('#edit-co-website').value.trim(),
+        cultureImages: pendingCultureImages,
       };
       try {
         const r = await api('/api/companies/me', { method: 'PUT', body: JSON.stringify(coPayload) });

@@ -1695,7 +1695,7 @@ server.put('/api/companies/me', requireAuth, (req, res) => {
   const db = getDb();
   db.companies = db.companies || [];
 
-  const ALLOWED = ['name', 'logoInitials', 'industry', 'location', 'about', 'website', 'size', 'founded', 'tagline', 'interests'];
+  const ALLOWED = ['name', 'logoInitials', 'industry', 'location', 'about', 'website', 'size', 'founded', 'tagline', 'interests', 'cultureImages', 'cultureSubtitle'];
   const updates = {};
   for (const k of ALLOWED) { if (k in req.body) updates[k] = req.body[k]; }
 
