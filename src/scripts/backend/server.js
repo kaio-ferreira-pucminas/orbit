@@ -46,7 +46,13 @@ const {
 const PORT       = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'orbit-jwt-secret-2026';
 const JWT_EXPIRES = '1d';
-const DB_PATH    = path.join(__dirname, 'db.json');
+// DATA_DIR: em produção (Railway) aponta para o volume persistente (ex.: /data).
+// Local cai em __dirname. db.json e uploads ficam aqui → persistem entre deploys.
+const DATA_DIR     = process.env.DATA_DIR || __dirname;
+const DB_PATH      = path.join(DATA_DIR, 'db.json');
+const SEED_DB_PATH = path.join(__dirname, 'db.json');      // semente versionada (repo)
+const UPLOADS_DIR  = path.join(DATA_DIR, 'uploads');       // fotos salvas como arquivo
+const FRONTEND_DIR = path.resolve(__dirname, '..', '..');  // pasta src/ (frontend estático)
 const APP_URL    = process.env.APP_URL || 'http://localhost:3000';
 
 // CORS — lista de origens permitidas (em produção, usa env CORS_ORIGINS separada por vírgula)
@@ -63,6 +69,34 @@ const ACCOUNT_DELETE_DAYS  = 30;     // dias após disabledAt
 function getDb()       { return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8')); }
 function saveDb(data)  { fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2)); }
 
+// Prepara o diretório de dados (volume): cria uploads e, na 1ª vez, copia a semente do db.json
+function ensureDataDir() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.mkdirSync(path.join(UPLOADS_DIR, 'avatars'), { recursive: true });
+    if (!fs.existsSync(DB_PATH) && fs.existsSync(SEED_DB_PATH)) {
+      fs.copyFileSync(SEED_DB_PATH, DB_PATH);
+      console.log(`📦 db.json inicial copiado para ${DB_PATH}`);
+    }
+  } catch (e) {
+    console.error('Erro ao preparar DATA_DIR:', e.message);
+  }
+}
+ensureDataDir();
+
+// Salva uma imagem em data URL (base64) como arquivo e retorna o caminho público (/uploads/...).
+// Mantém o db.json leve: guardamos só o caminho, não o base64.
+function saveDataUrlImage(dataUrl, subdir, baseName) {
+  const m = /^data:image\/(png|jpe?g|webp|gif);base64,(.+)$/i.exec(dataUrl || '');
+  if (!m) return null;
+  const ext = m[1].toLowerCase() === 'jpeg' ? 'jpg' : m[1].toLowerCase();
+  const dir = path.join(UPLOADS_DIR, subdir);
+  fs.mkdirSync(dir, { recursive: true });
+  const fileName = `${baseName}.${ext}`;
+  fs.writeFileSync(path.join(dir, fileName), Buffer.from(m[2], 'base64'));
+  return `/uploads/${subdir}/${fileName}`;
+}
+
 // Remove passwordHash antes de retornar o usuário ao front
 function sanitizeUser(user) {
   const { passwordHash, ...publicUser } = user;
@@ -78,6 +112,10 @@ function generateId() {
 const server      = jsonServer.create();
 const router      = jsonServer.router(DB_PATH);
 const middlewares = jsonServer.defaults({ noCors: false });
+
+// Raiz → app. Registrado ANTES do middleware do json-server (que serve a página
+// padrão dele em "/"), senão o "/" cairia na home do json-server em vez do Orbit.
+server.get('/', (req, res) => res.redirect('/pages/index.html'));
 
 server.use(middlewares);
 
@@ -520,6 +558,13 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
   const updates = {};
   for (const key of ALLOWED) {
     if (key in req.body) updates[key] = req.body[key];
+  }
+
+  // Avatar enviado como base64 → salva como arquivo no volume e guarda só o caminho.
+  // Mantém o db.json e as respostas leves (evita o estouro de memória/payload gigante).
+  if (typeof updates.avatarUrl === 'string' && updates.avatarUrl.startsWith('data:')) {
+    const saved = saveDataUrlImage(updates.avatarUrl, 'avatars', req.params.id);
+    updates.avatarUrl = saved ? `${saved}?v=${Date.now()}` : db.users[idx].avatarUrl;
   }
 
   // Validações básicas
@@ -1699,6 +1744,16 @@ server.put('/api/companies/me', requireAuth, (req, res) => {
   const updates = {};
   for (const k of ALLOWED) { if (k in req.body) updates[k] = req.body[k]; }
 
+  // Imagens da galeria enviadas como base64 → salva como arquivo e guarda só o caminho
+  if (Array.isArray(updates.cultureImages)) {
+    updates.cultureImages = updates.cultureImages.map((img, i) => {
+      if (typeof img === 'string' && img.startsWith('data:')) {
+        return saveDataUrlImage(img, 'culture', `${req.user.id}-${i}-${Date.now()}`);
+      }
+      return img;
+    }).filter(Boolean);
+  }
+
   const me = db.users.find(u => u.id === req.user.id);
   let company = db.companies.find(c => c.userId === req.user.id);
 
@@ -1749,6 +1804,14 @@ server.get('/api/companies/:id', requireAuth, (req, res) => {
 
   return res.status(200).json({ company, jobs, stats });
 });
+
+// ── Frontend estático + uploads (servidos pelo MESMO serviço) ────────────────
+// Fotos salvas no volume
+server.use('/uploads', express.static(UPLOADS_DIR));
+// Nunca expor a pasta do backend (server.js, .env, db.json semente) pela web
+server.use('/scripts/backend', (req, res) => res.status(404).end());
+// Páginas, estilos, scripts do front (pasta src/)
+server.use(express.static(FRONTEND_DIR));
 
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
