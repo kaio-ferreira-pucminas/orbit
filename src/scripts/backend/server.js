@@ -514,7 +514,7 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
   const ALLOWED = [
     'name', 'headline', 'bio', 'skills', 'github', 'linkedin',
     'available', 'avatarUrl', 'resumeUrl', 'resumeFileName', 'title',
-    'experiences',
+    'experiences', 'interests',
   ];
 
   const updates = {};
@@ -1390,6 +1390,8 @@ function interestProfile(db, userId) {
   const set = new Set();
   const u = (db.users || []).find(x => x.id === userId);
   if (u && Array.isArray(u.skills)) u.skills.forEach(s => set.add(normTopic(s)));
+  // interesses declarados (etapa de "gostos" no completar perfil) → pré-personalização
+  if (u && Array.isArray(u.interests)) u.interests.forEach(i => set.add(normTopic(i)));
   (db.projects || []).filter(p => p.userId === userId).forEach(p => {
     (p.technologies || p.stack || []).forEach(t => set.add(normTopic(t)));
   });

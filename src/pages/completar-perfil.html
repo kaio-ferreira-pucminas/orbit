@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Completar Perfil — Orbit</title>
-
+  <title>Complete seu Perfil — Orbit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="../styles/completar-perfil.css" />
 </head>
 <body>
@@ -26,31 +24,31 @@
     <header class="cp-header">
       <h1 class="cp-header__title">Complete seu Perfil Profissional</h1>
       <p class="cp-header__subtitle">
-        Estamos quase lá! Adicione suas competências e histórico para que possamos conectar você às melhores oportunidades do ecossistema Orbit.
+        Em poucos passos montamos seu perfil e já deixamos seu feed pronto com o que você curte.
       </p>
     </header>
 
-    <!-- Progresso -->
-    <section class="cp-card cp-progress">
-      <div class="cp-progress__head">
-        <div>
-          <h2 class="cp-progress__title">Progresso do Perfil</h2>
-          <p class="cp-progress__sub">Faltam apenas alguns passos para alcançar a órbita total.</p>
-        </div>
-        <div class="cp-progress__pct-wrap">
-          <span class="cp-progress__pct" id="cp-pct">0%</span>
-          <span class="cp-progress__level" id="cp-level">Nível 1</span>
-        </div>
+    <!-- Indicador de passos -->
+    <section class="cp-steps">
+      <div class="cp-steps__head">
+        <span class="cp-steps__count" id="cp-step-count">Passo 1 de 3</span>
+        <span class="cp-steps__pct" id="cp-step-pct">33%</span>
       </div>
-      <div class="cp-progress__bar"><div class="cp-progress__bar-fill" id="cp-bar"></div></div>
+      <div class="cp-steps__bar"><div class="cp-steps__bar-fill" id="cp-steps-fill"></div></div>
+      <div class="cp-steps__labels">
+        <span class="cp-steps__label cp-steps__label--active" data-step-label="1">Habilidades</span>
+        <span class="cp-steps__label" data-step-label="2">Experiência</span>
+        <span class="cp-steps__label" data-step-label="3">Interesses</span>
+      </div>
     </section>
 
-    <!-- Habilidades -->
-    <section class="cp-card">
+    <!-- STEP 1: Habilidades -->
+    <section class="cp-card cp-step cp-step--active" data-step="1">
       <div class="cp-card__head">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         <h2 class="cp-card__title">Habilidades Técnicas</h2>
       </div>
+      <p class="cp-step__hint">Adicione as tecnologias e ferramentas que você domina.</p>
       <div class="cp-skill-input">
         <svg class="cp-skill-input__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         <input type="text" id="skill-input" placeholder="Ex: React, Node.js, Python, Figma... (Enter para adicionar)" aria-label="Adicionar habilidade" />
@@ -58,8 +56,8 @@
       <div class="cp-skill-chips" id="skill-chips"></div>
     </section>
 
-    <!-- Experiência -->
-    <section class="cp-card">
+    <!-- STEP 2: Experiência -->
+    <section class="cp-card cp-step" data-step="2">
       <div class="cp-card__head cp-card__head--between">
         <div class="cp-card__head-left">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
@@ -73,7 +71,6 @@
 
       <div class="cp-exp-list" id="exp-list"></div>
 
-      <!-- Form de nova experiência (oculto por padrão) -->
       <form class="cp-exp-form" id="exp-form" hidden>
         <div class="cp-exp-form__row">
           <input type="text" id="exp-role" placeholder="Cargo (ex: Frontend Developer)" />
@@ -89,23 +86,43 @@
         </div>
       </form>
 
-      <!-- Empty/placeholder visual -->
       <div class="cp-exp-empty" id="exp-empty">
         <div class="cp-exp-empty__icon">
           <svg width="28" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         </div>
         <p class="cp-exp-empty__title">Tem mais alguma história para contar?</p>
-        <p class="cp-exp-empty__text">Compartilhe sua jornada e ganhe visibilidade.</p>
+        <p class="cp-exp-empty__text">Compartilhe sua jornada e ganhe visibilidade. (Você pode pular esta etapa.)</p>
       </div>
     </section>
 
-    <!-- Ações -->
-    <div class="cp-actions">
+    <!-- STEP 3: Interesses -->
+    <section class="cp-card cp-step" data-step="3">
+      <div class="cp-card__head">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <h2 class="cp-card__title">Seus Interesses</h2>
+      </div>
+      <p class="cp-step__hint">Escolha os temas que você curte — usamos isso para montar seu feed e suas recomendações desde o primeiro acesso.</p>
+      <div class="cp-interests" id="cp-interests"></div>
+      <div class="cp-skill-input cp-interests__add">
+        <svg class="cp-skill-input__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <input type="text" id="interest-input" placeholder="Adicionar outro interesse... (Enter para adicionar)" aria-label="Adicionar interesse" />
+      </div>
+    </section>
+
+    <!-- Navegação do wizard -->
+    <div class="cp-nav">
       <a href="/pages/dashboard.html" class="cp-btn-text">Pular por enquanto</a>
-      <button type="button" class="cp-btn-primary" id="btn-save">
-        Salvar e Continuar
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </button>
+      <div class="cp-nav__right">
+        <button type="button" class="cp-btn-ghost" id="btn-back" hidden>Voltar</button>
+        <button type="button" class="cp-btn-primary" id="btn-next">
+          Próximo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button type="button" class="cp-btn-primary" id="btn-finish" hidden>
+          Concluir
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>
     </div>
   </main>
 

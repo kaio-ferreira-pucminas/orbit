@@ -108,3 +108,43 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
   .cp-actions{flex-direction:column-reverse;align-items:stretch;}
   .cp-btn-primary,.cp-btn-text{justify-content:center;text-align:center;}
 }
+
+/* ============================================================
+   WIZARD (steps) + INTERESSES
+============================================================ */
+/* Indicador de passos */
+.cp-steps{background:var(--card-bg);border:1px solid var(--border-purple);border-radius:16px;padding:20px 24px;box-shadow:var(--shadow-card);}
+.cp-steps__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cp-steps__count{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:var(--text-dark);}
+.cp-steps__pct{font-size:13px;font-weight:700;color:var(--primary);}
+.cp-steps__bar{height:8px;border-radius:999px;background:var(--lighter-purple);overflow:hidden;}
+.cp-steps__bar-fill{height:100%;width:33%;border-radius:999px;background:linear-gradient(90deg,var(--primary),#6063ee);transition:width .35s ease;}
+.cp-steps__labels{display:flex;justify-content:space-between;margin-top:14px;gap:8px;}
+.cp-steps__label{flex:1;text-align:center;font-size:12.5px;font-weight:600;color:var(--text-soft);padding-top:8px;border-top:2px solid var(--border-purple);transition:color .2s,border-color .2s;}
+.cp-steps__label--active{color:var(--primary);border-top-color:var(--primary);}
+
+/* Painéis de passo */
+.cp-step{display:none;}
+.cp-step--active{display:block;animation:cp-fade .25s ease;}
+@keyframes cp-fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.cp-step__hint{font-size:14px;color:var(--text-soft);margin:-4px 0 16px;line-height:20px;}
+
+/* Interesses (chips toggle) */
+.cp-interests{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.cp-interest-chip{padding:9px 16px;border-radius:999px;border:1.5px solid var(--border-purple);background:var(--card-bg);color:var(--text-muted);font-size:14px;font-weight:600;transition:background .15s,color .15s,border-color .15s;}
+.cp-interest-chip:hover{border-color:var(--primary);color:var(--primary);}
+.cp-interest-chip--active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.cp-interests__add{margin-top:4px;}
+
+/* Navegação do wizard */
+.cp-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.cp-nav__right{display:flex;align-items:center;gap:12px;}
+.cp-btn-ghost{display:flex;align-items:center;gap:8px;padding:16px 32px;border-radius:var(--radius);border:1.5px solid var(--border-purple);color:var(--text-dark);font-size:16px;font-weight:700;background:var(--card-bg);transition:background .15s;}
+.cp-btn-ghost:hover{background:var(--light-purple);}
+
+@media (max-width:680px){
+  .cp-nav{flex-direction:column-reverse;align-items:stretch;}
+  .cp-nav__right{flex-direction:column-reverse;}
+  .cp-btn-ghost,.cp-btn-primary{justify-content:center;}
+  .cp-steps__label{font-size:11px;}
+}
