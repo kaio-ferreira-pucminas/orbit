@@ -1671,15 +1671,31 @@ server.get('/api/search', requireAuth, (req, res) => {
   return res.status(200).json({ query: q, people, companies, jobs, posts, topics });
 });
 
-// GET /api/companies/:id — perfil público de empresa + vagas
+// GET /api/companies/:id — perfil público de empresa + vagas + estatísticas
 server.get('/api/companies/:id', requireAuth, (req, res) => {
   const db = getDb();
   const company = (db.companies || []).find(c => c.id === req.params.id);
   if (!company) return res.status(404).json({ error: 'Empresa não encontrada.' });
+
   const jobs = (db.jobs || [])
     .filter(j => j.companyId === company.id)
     .sort((a, b) => (b.status === 'active') - (a.status === 'active') || new Date(b.createdAt) - new Date(a.createdAt));
-  return res.status(200).json({ company, jobs });
+
+  const activeJobs = jobs.filter(j => j.status === 'active').length;
+  // seguidores reais (follows no usuário-empresa) com fallback ao número de seed
+  const realFollowers = company.userId
+    ? (db.follows || []).filter(f => f.followingId === company.userId).length
+    : 0;
+  const stats = {
+    jobs:         activeJobs,
+    followers:    (company.followers || 0) + realFollowers,
+    rating:       company.rating != null ? company.rating : null,
+    reviewsCount: company.reviewsCount || 0,
+    founded:      company.founded || null,
+    size:         company.size || null,
+  };
+
+  return res.status(200).json({ company, jobs, stats });
 });
 
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────

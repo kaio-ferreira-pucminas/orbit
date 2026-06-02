@@ -16,28 +16,59 @@
     <div class="emp-loading" id="emp-loading">Carregando empresa…</div>
 
     <div class="emp-wrap" id="emp-content" hidden>
-      <!-- Cabeçalho -->
-      <section class="emp-hero">
-        <div class="emp-hero__logo" id="emp-logo">?</div>
-        <div class="emp-hero__info">
-          <h1 class="emp-hero__name" id="emp-name">—</h1>
-          <p class="emp-hero__industry" id="emp-industry">—</p>
-          <p class="emp-hero__location" id="emp-location"></p>
-          <a class="emp-hero__site" id="emp-site" href="#" target="_blank" rel="noopener" hidden>Visitar site</a>
+
+      <!-- Capa + cabeçalho -->
+      <section class="emp-top">
+        <div class="emp-cover" id="emp-cover"></div>
+        <div class="emp-head">
+          <div class="emp-id">
+            <div class="emp-id__logo" id="emp-logo">?</div>
+            <div class="emp-id__info">
+              <h1 class="emp-id__name" id="emp-name">—</h1>
+              <p class="emp-id__tagline" id="emp-tagline"></p>
+              <p class="emp-id__location" id="emp-location"></p>
+              <div class="emp-id__actions">
+                <button type="button" class="emp-btn-primary" id="btn-follow-company" hidden>Seguir Empresa</button>
+                <button type="button" class="emp-btn-ghost" id="btn-ver-vagas">Ver Vagas</button>
+                <a class="emp-btn-ghost" id="emp-site" href="#" target="_blank" rel="noopener" hidden>Visitar site</a>
+              </div>
+            </div>
+          </div>
+
+          <aside class="emp-stats" aria-label="Estatísticas da empresa">
+            <div class="emp-stat"><span class="emp-stat__value" id="stat-followers">—</span><span class="emp-stat__label">Seguidores</span></div>
+            <div class="emp-stat"><span class="emp-stat__value" id="stat-jobs">—</span><span class="emp-stat__label">Vagas abertas</span></div>
+            <div class="emp-stat"><span class="emp-stat__value" id="stat-rating">—</span><span class="emp-stat__label">Avaliação</span></div>
+            <div class="emp-stat"><span class="emp-stat__value" id="stat-founded">—</span><span class="emp-stat__label">Fundada</span></div>
+          </aside>
         </div>
       </section>
 
       <!-- Sobre -->
       <section class="emp-section" id="emp-about-section">
-        <h2 class="emp-section__title">Sobre a empresa</h2>
+        <h2 class="emp-section__title">Sobre Nós</h2>
         <p class="emp-section__text" id="emp-about">—</p>
+        <div class="emp-meta" id="emp-meta"></div>
+      </section>
+
+      <!-- Cultura e Valores -->
+      <section class="emp-section" id="emp-culture-section">
+        <h2 class="emp-section__title">Cultura e Valores</h2>
+        <div class="emp-culture" id="emp-culture"></div>
       </section>
 
       <!-- Vagas -->
-      <section class="emp-section">
-        <h2 class="emp-section__title">Vagas abertas <span class="emp-jobs__count" id="emp-jobs-count">0</span></h2>
+      <section class="emp-section" id="emp-jobs-section">
+        <h2 class="emp-section__title">Vagas Abertas <span class="emp-count" id="emp-jobs-count">0</span></h2>
         <div class="emp-jobs" id="emp-jobs"></div>
       </section>
+
+      <!-- Depoimentos -->
+      <section class="emp-section" id="emp-testimonials-section">
+        <h2 class="emp-section__title">Depoimentos</h2>
+        <div class="emp-testimonials" id="emp-testimonials"></div>
+      </section>
+
     </div>
   </main>
 

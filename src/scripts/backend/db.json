@@ -276,6 +276,13 @@
       "content": "dADASDASD",
       "createdAt": "2026-06-01T20:45:32.407Z",
       "updatedAt": "2026-06-01T20:45:32.407Z"
+    },
+    {
+      "id": "27f92908-7016-43dc-b87f-60cb9f6911c9",
+      "userId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "content": "Aqui nos somos bons",
+      "createdAt": "2026-06-02T05:38:00.557Z",
+      "updatedAt": "2026-06-02T05:38:00.557Z"
     }
   ],
   "comments": [
@@ -343,6 +350,12 @@
       "postId": "b7172d00-9636-41a8-ac3f-427f768a01ee",
       "userId": "1413528c-12ba-427d-b89f-23112353c4ee",
       "createdAt": "2026-06-01T20:47:04.609Z"
+    },
+    {
+      "id": "27142288-ab99-43b9-9d55-ed0306dcf89c",
+      "postId": "27f92908-7016-43dc-b87f-60cb9f6911c9",
+      "userId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "createdAt": "2026-06-02T05:38:04.789Z"
     }
   ],
   "projects": [
@@ -554,8 +567,24 @@
       "logoInitials": "ST",
       "industry": "Produtos SaaS",
       "location": "São Paulo, SP",
-      "about": "Empresa de produtos digitais focada em escala e experiência do desenvolvedor.",
-      "website": "https://stellartech.example.com"
+      "about": "A Stellar Tech constrói produtos SaaS de alta escala com foco total na experiência do desenvolvedor. Combinamos engenharia sólida, design de produto e cultura de dados para entregar plataformas que milhares de times usam todos os dias.",
+      "website": "https://stellartech.example.com",
+      "tagline": "Construindo produtos SaaS que escalam com a experiência do desenvolvedor.",
+      "coverGradient": "linear-gradient(135deg, #131b2e 0%, #4648d4 100%)",
+      "founded": 2018,
+      "size": "51-200 funcionários",
+      "followers": 512,
+      "rating": 4.8,
+      "reviewsCount": 64,
+      "culture": [
+        { "title": "Colaboração Radical", "text": "Times multidisciplinares que decidem juntos, do design ao deploy." },
+        { "title": "Crescimento Contínuo", "text": "Budget de aprendizado e mentoria para cada pessoa evoluir na carreira." },
+        { "title": "Autonomia com Propósito", "text": "Liberdade para experimentar, sempre com foco no impacto ao usuário." }
+      ],
+      "testimonials": [
+        { "quote": "O ambiente técnico é desafiador e acolhedor ao mesmo tempo. Cresci muito como engenheira aqui.", "authorName": "Camila Duarte", "authorRole": "Engenheira de Software" },
+        { "quote": "Processos enxutos e liderança próxima. Dá pra entregar valor de verdade todos os ciclos.", "authorName": "Rafael Nunes", "authorRole": "Tech Lead" }
+      ]
     },
     {
       "id": "comp-dataflow-001",
@@ -564,8 +593,23 @@
       "logoInitials": "DF",
       "industry": "Engenharia de Dados",
       "location": "Belo Horizonte, MG",
-      "about": "Soluções de dados e integração de sistemas legados com tecnologias modernas.",
-      "website": "https://dataflow.example.com"
+      "about": "A DataFlow Solutions moderniza ecossistemas de dados legados, conectando sistemas antigos a pipelines em tempo real. Ajudamos empresas a tomar decisões melhores com dados confiáveis e governança de ponta a ponta.",
+      "website": "https://dataflow.example.com",
+      "tagline": "Transformando dados legados em decisões em tempo real.",
+      "coverGradient": "linear-gradient(135deg, #0f766e 0%, #10b981 100%)",
+      "founded": 2016,
+      "size": "11-50 funcionários",
+      "followers": 248,
+      "rating": 4.6,
+      "reviewsCount": 31,
+      "culture": [
+        { "title": "Engenharia de Excelência", "text": "Qualidade de código e testes como parte inegociável do processo." },
+        { "title": "Dados com Responsabilidade", "text": "Privacidade e governança no centro de cada pipeline que entregamos." },
+        { "title": "Aprendizado Coletivo", "text": "Sessões semanais de troca técnica entre todos os times." }
+      ],
+      "testimonials": [
+        { "quote": "Trabalhar com problemas de dados em escala real é o que me move. Aqui tem isso de sobra.", "authorName": "Bruno Carvalho", "authorRole": "Engenheiro de Dados" }
+      ]
     },
     {
       "id": "comp-lumina-001",
@@ -574,8 +618,23 @@
       "logoInitials": "LD",
       "industry": "Design & Produto",
       "location": "Remoto",
-      "about": "Estúdio de produto digital com foco em design systems e acessibilidade.",
-      "website": "https://lumina.example.com"
+      "about": "A Lumina Design é um estúdio de produto digital especializado em design systems e acessibilidade. Colocamos as pessoas no centro de cada decisão, criando experiências consistentes, inclusivas e bonitas.",
+      "website": "https://lumina.example.com",
+      "tagline": "Design systems acessíveis que colocam as pessoas no centro.",
+      "coverGradient": "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)",
+      "founded": 2020,
+      "size": "11-50 funcionários",
+      "followers": 389,
+      "rating": 4.9,
+      "reviewsCount": 42,
+      "culture": [
+        { "title": "Acessibilidade Primeiro", "text": "Produtos pensados para todas as pessoas, desde o primeiro rascunho." },
+        { "title": "Craft & Detalhe", "text": "Cuidado obsessivo com micro-interações e consistência visual." },
+        { "title": "Remoto de Verdade", "text": "Cultura assíncrona e flexível, com autonomia para todos." }
+      ],
+      "testimonials": [
+        { "quote": "Nunca vi um time tão comprometido com acessibilidade. Orgulho de cada entrega.", "authorName": "Letícia Prado", "authorRole": "Product Designer" }
+      ]
     }
   ],
   "jobs": [
@@ -912,6 +971,24 @@
       "message": "Você recebeu uma nova mensagem de Tiago Uorak.",
       "read": true,
       "createdAt": "2026-06-01T20:46:17.903Z"
+    },
+    {
+      "id": "34e85bbe-b10b-4f8d-8da5-f14b30ea0978",
+      "userId": "seed-beatriz-001",
+      "type": "new_follower",
+      "refId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "message": "Kaio Henrique Dos Santos Ferreira começou a seguir você.",
+      "read": false,
+      "createdAt": "2026-06-02T05:37:45.125Z"
+    },
+    {
+      "id": "09f7f6aa-5d30-4f73-b6ef-543cd331a0be",
+      "userId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "type": "new_follower",
+      "refId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "message": "Kaio Henrique Dos Santos Ferreira começou a seguir você.",
+      "read": false,
+      "createdAt": "2026-06-02T05:37:46.785Z"
     }
   ],
   "follows": [
@@ -974,6 +1051,18 @@
       "followerId": "1413528c-12ba-427d-b89f-23112353c4ee",
       "followingId": "cd282e30-0c2c-4f75-b428-d270bf20c716",
       "createdAt": "2026-06-01T20:45:46.888Z"
+    },
+    {
+      "id": "36b3c277-d7c3-4f04-8c42-dd74841b854e",
+      "followerId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "followingId": "seed-beatriz-001",
+      "createdAt": "2026-06-02T05:37:45.125Z"
+    },
+    {
+      "id": "6c19d4cb-1453-4f25-a488-3838b4afb96e",
+      "followerId": "1413528c-12ba-427d-b89f-23112353c4ee",
+      "followingId": "a1b2c3d4-0002-4e5f-a6b7-c8d9e0f10002",
+      "createdAt": "2026-06-02T05:37:46.785Z"
     }
   ]
 }
