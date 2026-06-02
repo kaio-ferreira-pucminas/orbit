@@ -112,6 +112,20 @@
     $('#count-jobs').textContent      = data.jobs.length;
   }
 
+  // Ativa uma tab (atualiza classe + renderiza)
+  function setActiveTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.busca-tab').forEach(b =>
+      b.classList.toggle('busca-tab--active', b.getAttribute('data-tab') === tab));
+    renderActive();
+  }
+
+  // Seleciona a 1ª tab (na ordem) que tiver resultado; se todas vazias, Posts
+  function autoSelectTab() {
+    const order = ['posts', 'people', 'companies', 'jobs'];
+    setActiveTab(order.find(t => RENDERERS[t].list().length > 0) || 'posts');
+  }
+
   /* ===== BUSCA ===== */
   async function search(q) {
     const summary = $('#busca-summary');
@@ -125,7 +139,7 @@
       const total = data.people.length + data.companies.length + data.jobs.length + data.posts.length;
       summary.innerHTML = `<b>${total}</b> resultado(s) para <b>"${escapeHtml(q)}"</b>`;
       updateCounts();
-      renderActive();
+      autoSelectTab(); // ativa a 1ª categoria com resultado
     } catch (e) {
       if (e.message !== '401') box.innerHTML = '<p class="busca-empty">Não foi possível buscar. Verifique a conexão.</p>';
     }
@@ -135,9 +149,7 @@
   $('#busca-tabs').addEventListener('click', (ev) => {
     const btn = ev.target.closest('.busca-tab');
     if (!btn) return;
-    activeTab = btn.getAttribute('data-tab');
-    document.querySelectorAll('.busca-tab').forEach(b => b.classList.toggle('busca-tab--active', b === btn));
-    renderActive();
+    setActiveTab(btn.getAttribute('data-tab'));
   });
 
   $('#busca-form').addEventListener('submit', (ev) => {
