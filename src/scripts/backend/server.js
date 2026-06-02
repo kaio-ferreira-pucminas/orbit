@@ -1742,6 +1742,9 @@ server.get('/api/companies/:id', requireAuth, (req, res) => {
     reviewsCount: company.reviewsCount || 0,
     founded:      company.founded || null,
     size:         company.size || null,
+    employees:    company.employees != null ? company.employees : null,
+    projects:     company.projects != null ? company.projects : null,
+    countries:    company.countries != null ? company.countries : null,
   };
 
   return res.status(200).json({ company, jobs, stats });

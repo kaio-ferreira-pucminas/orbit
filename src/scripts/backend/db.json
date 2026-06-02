@@ -576,6 +576,16 @@
       "followers": 512,
       "rating": 4.8,
       "reviewsCount": 64,
+      "employees": 520,
+      "projects": 120,
+      "countries": 15,
+      "coverUrl": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1400&q=70",
+      "cultureSubtitle": "Nosso ambiente é movido pela curiosidade e pelo respeito mútuo. Valorizamos o erro como etapa do aprendizado.",
+      "cultureImages": [
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=70",
+        "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=700&q=70",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=700&q=70"
+      ],
       "culture": [
         { "title": "Colaboração Radical", "text": "Times multidisciplinares que decidem juntos, do design ao deploy." },
         { "title": "Crescimento Contínuo", "text": "Budget de aprendizado e mentoria para cada pessoa evoluir na carreira." },
@@ -602,6 +612,16 @@
       "followers": 248,
       "rating": 4.6,
       "reviewsCount": 31,
+      "employees": 85,
+      "projects": 60,
+      "countries": 4,
+      "coverUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=70",
+      "cultureSubtitle": "Acreditamos em engenharia de excelência e em decisões guiadas por dados confiáveis.",
+      "cultureImages": [
+        "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=70",
+        "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=700&q=70",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=70"
+      ],
       "culture": [
         { "title": "Engenharia de Excelência", "text": "Qualidade de código e testes como parte inegociável do processo." },
         { "title": "Dados com Responsabilidade", "text": "Privacidade e governança no centro de cada pipeline que entregamos." },
@@ -627,6 +647,16 @@
       "followers": 389,
       "rating": 4.9,
       "reviewsCount": 42,
+      "employees": 40,
+      "projects": 90,
+      "countries": 8,
+      "coverUrl": "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1400&q=70",
+      "cultureSubtitle": "Cultura remota, assíncrona e centrada em pessoas — onde o craft e a acessibilidade vêm primeiro.",
+      "cultureImages": [
+        "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=900&q=70",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=700&q=70",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=700&q=70"
+      ],
       "culture": [
         { "title": "Acessibilidade Primeiro", "text": "Produtos pensados para todas as pessoas, desde o primeiro rascunho." },
         { "title": "Craft & Detalhe", "text": "Cuidado obsessivo com micro-interações e consistência visual." },
