@@ -339,7 +339,7 @@
 
       renderHero(data.user, data.stats);
       if (data.user.type === 'company') {
-        renderCompanyProfile();
+        await renderCompanyProfile();
       } else {
         renderAbout(data.user);
         renderSkills(data.user);
@@ -471,7 +471,7 @@
   let pendingResumeName = undefined;
   let pendingCultureImages = []; // galeria de cultura (conta empresa)
 
-  function openEditModal() {
+  async function openEditModal() {
     const u = currentUser;
     const isCompany = u.type === 'company';
 
@@ -482,6 +482,13 @@
     if (nameLabel) nameLabel.textContent = isCompany ? 'Nome da empresa' : 'Nome completo';
 
     if (isCompany) {
+      // Busca os dados mais recentes da empresa antes de preencher — evita a corrida
+      // com renderCompanyProfile() (que roda em paralelo e pode não ter populado
+      // companyData ainda quando o usuário clica em "Editar perfil").
+      try {
+        const res = await api('/api/companies/me');
+        if (res.ok) { const d = await res.json(); if (d.company) companyData = d.company; }
+      } catch {}
       const c = companyData || {};
       $('#edit-name').value        = c.name || u.name || '';
       $('#edit-headline').value    = c.tagline || '';
