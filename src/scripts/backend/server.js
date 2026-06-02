@@ -1673,6 +1673,53 @@ server.get('/api/search', requireAuth, (req, res) => {
   return res.status(200).json({ query: q, people, companies, jobs, posts, topics });
 });
 
+// Iniciais a partir do nome (para o logo da empresa)
+function companyInitials(name) {
+  if (!name) return 'EM';
+  return name.split(' ').filter(Boolean).slice(0, 2).map(s => s[0].toUpperCase()).join('');
+}
+
+// GET /api/companies/me — empresa do usuário-empresa logado (ou null)
+// (registrada ANTES de /:id para não ser capturada pela rota com parâmetro)
+server.get('/api/companies/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const company = (db.companies || []).find(c => c.userId === req.user.id) || null;
+  return res.status(200).json({ company });
+});
+
+// PUT /api/companies/me — cria ou atualiza o perfil da empresa do usuário logado
+server.put('/api/companies/me', requireAuth, (req, res) => {
+  if (req.user.type !== 'company') {
+    return res.status(403).json({ error: 'Apenas contas de empresa podem editar o perfil de empresa.' });
+  }
+  const db = getDb();
+  db.companies = db.companies || [];
+
+  const ALLOWED = ['name', 'logoInitials', 'industry', 'location', 'about', 'website', 'size', 'founded', 'tagline', 'interests'];
+  const updates = {};
+  for (const k of ALLOWED) { if (k in req.body) updates[k] = req.body[k]; }
+
+  const me = db.users.find(u => u.id === req.user.id);
+  let company = db.companies.find(c => c.userId === req.user.id);
+
+  if (company) {
+    Object.assign(company, updates, { updatedAt: new Date().toISOString() });
+  } else {
+    const name = updates.name || (me ? me.name : 'Empresa');
+    company = Object.assign({
+      id:           generateId(),
+      userId:       req.user.id,
+      name,
+      logoInitials: updates.logoInitials || companyInitials(name),
+      createdAt:    new Date().toISOString(),
+    }, updates);
+    if (!company.logoInitials) company.logoInitials = companyInitials(company.name);
+    db.companies.push(company);
+  }
+  saveDb(db);
+  return res.status(200).json({ company });
+});
+
 // GET /api/companies/:id — perfil público de empresa + vagas + estatísticas
 server.get('/api/companies/:id', requireAuth, (req, res) => {
   const db = getDb();

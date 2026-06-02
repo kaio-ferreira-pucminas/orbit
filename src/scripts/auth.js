@@ -242,8 +242,8 @@
         localStorage.setItem('orbit_token', data.token);
         localStorage.setItem('orbit_user',  JSON.stringify(data.user));
 
-        showToast('Conta criada com sucesso! Bem-vindo ao Orbit.', 'success');
-        setTimeout(() => { window.location.href = '/pages/empresa-dashboard.html'; }, 1200);
+        showToast('Conta criada com sucesso! Complete o perfil da sua empresa.', 'success');
+        setTimeout(() => { window.location.href = '/pages/completar-perfil-empresa.html'; }, 1200);
 
       } catch {
         showToast('Não foi possível conectar ao servidor. Verifique se o backend está rodando.', 'error');

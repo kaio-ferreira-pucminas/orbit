@@ -1,0 +1,18 @@
+/* ============================================================
+   COMPLETAR-PERFIL-EMPRESA.CSS — Orbit
+   Campos de formulário da empresa. O layout do wizard (steps, interesses,
+   navegação) é reaproveitado de completar-perfil.css (carregado antes).
+============================================================ */
+.cp-field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.cp-field__row{display:flex;gap:16px;}
+.cp-field__row .cp-field{flex:1;min-width:0;}
+.cp-field__label{font-size:13px;font-weight:700;color:var(--text-dark);}
+.cp-field__input{width:100%;padding:13px 16px;border:1.5px solid var(--border-purple);border-radius:var(--radius);font-family:inherit;font-size:15px;color:var(--text-dark);background:#fff;transition:border-color .15s,box-shadow .15s;}
+.cp-field__input::placeholder{color:var(--text-soft);}
+.cp-field__input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+textarea.cp-field__input{resize:vertical;min-height:96px;line-height:1.5;}
+select.cp-field__input{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23767586' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px;}
+
+@media (max-width:680px){
+  .cp-field__row{flex-direction:column;gap:0;}
+}

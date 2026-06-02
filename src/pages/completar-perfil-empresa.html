@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Complete o Perfil da Empresa — Orbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/completar-perfil.css" />
+  <link rel="stylesheet" href="../styles/completar-perfil-empresa.css" />
+</head>
+<body>
+
+  <!-- Top bar -->
+  <header class="cp-topbar">
+    <div class="cp-topbar__inner">
+      <a href="/pages/empresa-dashboard.html" class="cp-topbar__logo">Orbit</a>
+      <div class="cp-topbar__avatar" id="cp-avatar"><span id="cp-initials">E</span></div>
+    </div>
+  </header>
+
+  <main class="cp-main">
+    <header class="cp-header">
+      <h1 class="cp-header__title">Complete o Perfil da Empresa</h1>
+      <p class="cp-header__subtitle">
+        Apresente sua empresa aos talentos do Orbit. Em dois passos seu perfil fica pronto.
+      </p>
+    </header>
+
+    <!-- Indicador de passos -->
+    <section class="cp-steps">
+      <div class="cp-steps__head">
+        <span class="cp-steps__count" id="cp-step-count">Passo 1 de 2</span>
+        <span class="cp-steps__pct" id="cp-step-pct">50%</span>
+      </div>
+      <div class="cp-steps__bar"><div class="cp-steps__bar-fill" id="cp-steps-fill"></div></div>
+      <div class="cp-steps__labels">
+        <span class="cp-steps__label cp-steps__label--active" data-step-label="1">Sobre a empresa</span>
+        <span class="cp-steps__label" data-step-label="2">Interesses</span>
+      </div>
+    </section>
+
+    <!-- STEP 1: Sobre a empresa -->
+    <section class="cp-card cp-step cp-step--active" data-step="1">
+      <div class="cp-card__head">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+        <h2 class="cp-card__title">Sobre a Empresa</h2>
+      </div>
+      <p class="cp-step__hint">Esses dados aparecem no perfil público da sua empresa.</p>
+
+      <div class="cp-field">
+        <label class="cp-field__label" for="co-name">Nome da empresa</label>
+        <input class="cp-field__input" id="co-name" type="text" placeholder="Ex: Stellar Tech" />
+      </div>
+      <div class="cp-field__row">
+        <div class="cp-field">
+          <label class="cp-field__label" for="co-industry">Setor</label>
+          <input class="cp-field__input" id="co-industry" type="text" placeholder="Ex: Produtos SaaS" />
+        </div>
+        <div class="cp-field">
+          <label class="cp-field__label" for="co-location">Localização</label>
+          <input class="cp-field__input" id="co-location" type="text" placeholder="Ex: São Paulo, SP / Remoto" />
+        </div>
+      </div>
+      <div class="cp-field__row">
+        <div class="cp-field">
+          <label class="cp-field__label" for="co-size">Porte</label>
+          <select class="cp-field__input" id="co-size">
+            <option value="">Selecione…</option>
+            <option>1-10 funcionários</option>
+            <option>11-50 funcionários</option>
+            <option>51-200 funcionários</option>
+            <option>201-500 funcionários</option>
+            <option>500+ funcionários</option>
+          </select>
+        </div>
+        <div class="cp-field">
+          <label class="cp-field__label" for="co-founded">Ano de fundação</label>
+          <input class="cp-field__input" id="co-founded" type="number" min="1900" max="2100" placeholder="Ex: 2018" />
+        </div>
+      </div>
+      <div class="cp-field">
+        <label class="cp-field__label" for="co-website">Site</label>
+        <input class="cp-field__input" id="co-website" type="text" placeholder="https://suaempresa.com" />
+      </div>
+      <div class="cp-field">
+        <label class="cp-field__label" for="co-tagline">Tagline</label>
+        <input class="cp-field__input" id="co-tagline" type="text" placeholder="Uma frase curta sobre a empresa" />
+      </div>
+      <div class="cp-field">
+        <label class="cp-field__label" for="co-about">Sobre nós</label>
+        <textarea class="cp-field__input" id="co-about" rows="4" placeholder="Conte o que a empresa faz, sua missão e cultura..."></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 2: Interesses -->
+    <section class="cp-card cp-step" data-step="2">
+      <div class="cp-card__head">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <h2 class="cp-card__title">Áreas de Interesse</h2>
+      </div>
+      <p class="cp-step__hint">Selecione as áreas e tecnologias que a empresa busca — usamos isso para recomendar talentos.</p>
+      <div class="cp-interests" id="cp-interests"></div>
+      <div class="cp-skill-input cp-interests__add">
+        <svg class="cp-skill-input__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <input type="text" id="interest-input" placeholder="Adicionar outra área... (Enter para adicionar)" aria-label="Adicionar interesse" />
+      </div>
+    </section>
+
+    <!-- Navegação -->
+    <div class="cp-nav">
+      <a href="/pages/empresa-dashboard.html" class="cp-btn-text">Pular por enquanto</a>
+      <div class="cp-nav__right">
+        <button type="button" class="cp-btn-ghost" id="btn-back" hidden>Voltar</button>
+        <button type="button" class="cp-btn-primary" id="btn-next">
+          Próximo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button type="button" class="cp-btn-primary" id="btn-finish" hidden>
+          Concluir
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/completar-perfil-empresa.js"></script>
+</body>
+</html>

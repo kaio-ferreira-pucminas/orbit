@@ -23,6 +23,7 @@
     { "source": "/oportunidades",   "destination": "/pages/oportunidades.html" },
     { "source": "/candidatos",      "destination": "/pages/empresa-candidatos.html" },
     { "source": "/busca",           "destination": "/pages/busca.html" },
-    { "source": "/empresa-perfil",  "destination": "/pages/empresa-perfil.html" }
+    { "source": "/empresa-perfil",  "destination": "/pages/empresa-perfil.html" },
+    { "source": "/completar-perfil-empresa", "destination": "/pages/completar-perfil-empresa.html" }
   ]
 }
