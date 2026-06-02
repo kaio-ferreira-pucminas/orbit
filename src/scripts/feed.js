@@ -178,26 +178,27 @@
   }
 
   /* =========================================================
-     SUGESTÕES (mock estático com base nos seeds)
+     SUGESTÕES — algoritmo de grafo (/api/suggestions/me), com motivo
   ========================================================= */
   async function loadSuggestions() {
     try {
-      const res   = await api('/api/users');
+      const res = await api('/api/suggestions/me');
       if (!res.ok) return;
 
-      const users = await res.json();
-      const suggestions = users
-        .filter(u => u.id !== currentUser.id && !u.disabledAt)
-        .slice(0, 3);
-
+      const suggestions = await res.json();
       const container = $('#suggestions-list');
+      if (!suggestions.length) {
+        container.innerHTML = '<p class="suggestion__empty">Sem sugestões no momento.</p>';
+        return;
+      }
+
       container.innerHTML = suggestions.map(u => `
         <div class="suggestion">
           <div class="suggestion__user suggestion__user--link" data-profile-id="${escapeHtml(u.id || '')}" role="link" tabindex="0" title="Ver perfil de ${escapeHtml(u.name || '')}">
             <div class="suggestion__avatar">${avatarInner(u)}</div>
             <div class="suggestion__info">
               <p class="suggestion__name">${escapeHtml(u.name)}</p>
-              <p class="suggestion__title">${escapeHtml(u.title || 'Desenvolvedor(a)')}</p>
+              <p class="suggestion__title">${escapeHtml(u.reason || u.title || 'Desenvolvedor(a)')}</p>
             </div>
           </div>
           <button class="suggestion__follow-btn${followingIds.has(u.id) ? ' is-following' : ''}" type="button" data-follow-id="${escapeHtml(u.id)}"
@@ -212,6 +213,34 @@
           </button>
         </div>
       `).join('');
+    } catch {
+      /* silencioso */
+    }
+  }
+
+  /* =========================================================
+     TÓPICOS EM ALTA — /api/trending
+  ========================================================= */
+  async function loadTrending() {
+    const container = document.getElementById('trending-list');
+    if (!container) return;
+    try {
+      const res = await api('/api/trending');
+      if (!res.ok) return;
+      const topics = await res.json();
+      if (!topics.length) {
+        container.innerHTML = '<p class="trending-empty">Nenhum tópico em alta ainda.</p>';
+        return;
+      }
+      container.innerHTML = topics.map(t => {
+        const tag = t.tag.startsWith('#') ? t.tag : '#' + t.tag;
+        const n   = t.postsCount;
+        return `
+          <a href="/pages/feed.html" class="trending-item">
+            <span class="trending-item__tag">${escapeHtml(tag)}</span>
+            <span class="trending-item__meta">${n} post${n === 1 ? '' : 's'}</span>
+          </a>`;
+      }).join('');
     } catch {
       /* silencioso */
     }
@@ -391,9 +420,10 @@
 
       window.showToast('Publicação criada!', 'success');
       collapseComposer();
-      // Adiciona o post novo no topo do feed sem refetch
-      $('#post-feed').insertAdjacentHTML('afterbegin', renderPost(data));
-      attachPostHandlers($('#post-feed').firstElementChild);
+      // Re-ranqueia o feed pelo algoritmo (o post novo sobe por autoria + recência)
+      // e atualiza os tópicos em alta (o conteúdo novo pode mudar o ranking).
+      loadPosts();
+      loadTrending();
 
     } catch {
       window.showToast('Erro de conexão. Verifique se o backend está rodando.', 'error');
@@ -631,7 +661,8 @@
   async function loadPosts() {
     const container = $('#post-feed');
     try {
-      const res = await api('/api/posts');
+      // Feed personalizado (algoritmo de grafo). Mesmo formato do /api/posts.
+      const res = await api('/api/feed/me');
       const data = await res.json();
       if (!res.ok) {
         container.innerHTML = '<div class="post-feed__empty">Erro ao carregar posts.</div>';
@@ -656,6 +687,7 @@
     await loadFollowing();   // carrega quem já sigo antes de renderizar os botões
     loadSuggestions();
     loadPosts();
+    loadTrending();
   })();
 
 })();

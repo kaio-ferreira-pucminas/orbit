@@ -1320,6 +1320,232 @@ server.post('/api/notifications/read', requireAuth, (req, res) => {
   return res.status(200).json({ unreadCount });
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ALGORITMO DE RECOMENDAÇÃO — GRAFO SOCIAL
+// ------------------------------------------------------------------------------
+// A rede é modelada como um GRAFO DIRIGIDO: usuários = nós; cada follow é uma
+// aresta followerId → followingId. likes/comments são sinais de interação e
+// skills/technologies/hashtags formam o "perfil de interesse" de cada nó.
+// O grafo é montado em MEMÓRIA a cada request (dataset pequeno → custo trivial;
+// numa rede real isso seria pré-computado/cacheado). Tudo em JS puro.
+//
+// Técnicas de grafo usadas:
+//  • Listas de adjacência (seguindo/seguidores).
+//  • Vizinhos em comum / "amigos-de-amigos" (caminho U→X→C, profundidade 2).
+//  • Similaridade de Jaccard entre conjuntos de interesses/skills.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Pesos ajustáveis (documentados para o relatório acadêmico)
+const FEED_W  = { follow: 5, fof: 1.2, content: 3, engagement: 1.5, recency: 4, own: 2 };
+const SUG_W   = { mutual: 3, followsMe: 2.5, similarity: 4, popularity: 0.5 };
+const TREND_W = { halfLifeH: 72, like: 0.5, comment: 0.7, interestBoost: 1.3, hashtag: 1.0, skill: 0.5, tech: 0.4 };
+
+function normTopic(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
+
+function extractHashtags(text) {
+  const out = [];
+  const re = /#([\p{L}\d][\p{L}\d_-]*)/gu;
+  let m;
+  while ((m = re.exec(String(text || '')))) out.push(m[1]);
+  return out;
+}
+
+// Decaimento de recência: 1 agora → 0.5 após `halfLifeH` horas
+function recencyScore(createdAt, nowMs, halfLifeH) {
+  const ageH = (nowMs - new Date(createdAt).getTime()) / 3.6e6;
+  return Math.pow(0.5, Math.max(0, ageH) / halfLifeH);
+}
+
+// Índices de adjacência do grafo de follows
+function buildFollowGraph(db) {
+  const following = new Map(); // userId → Set(quem ele segue)
+  const followers = new Map(); // userId → Set(quem o segue)
+  (db.follows || []).forEach(f => {
+    if (!following.has(f.followerId)) following.set(f.followerId, new Set());
+    following.get(f.followerId).add(f.followingId);
+    if (!followers.has(f.followingId)) followers.set(f.followingId, new Set());
+    followers.get(f.followingId).add(f.followerId);
+  });
+  return { following, followers };
+}
+
+// # de X tal que U→X e X→C (vizinhos em comum / amigos-de-amigos)
+function commonNeighbors(graph, U, C) {
+  const uFollows = graph.following.get(U) || new Set();
+  const cFollowers = graph.followers.get(C) || new Set();
+  let n = 0;
+  uFollows.forEach(x => { if (cFollowers.has(x)) n++; });
+  return n;
+}
+
+function jaccard(a, b) {
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  a.forEach(x => { if (b.has(x)) inter++; });
+  return inter / (a.size + b.size - inter);
+}
+
+// Perfil de interesse de um nó: skills ∪ technologies dos projetos ∪ hashtags dos posts
+function interestProfile(db, userId) {
+  const set = new Set();
+  const u = (db.users || []).find(x => x.id === userId);
+  if (u && Array.isArray(u.skills)) u.skills.forEach(s => set.add(normTopic(s)));
+  (db.projects || []).filter(p => p.userId === userId).forEach(p => {
+    (p.technologies || p.stack || []).forEach(t => set.add(normTopic(t)));
+  });
+  (db.posts || []).filter(p => p.userId === userId).forEach(p => {
+    extractHashtags(p.content).forEach(h => set.add(normTopic(h)));
+  });
+  return set;
+}
+
+// Tópicos de um post: hashtags do conteúdo ∪ skills do autor
+function postTopics(post, author) {
+  const set = new Set();
+  extractHashtags(post.content).forEach(h => set.add(normTopic(h)));
+  if (author && Array.isArray(author.skills)) author.skills.forEach(s => set.add(normTopic(s)));
+  return set;
+}
+
+// GET /api/feed/me — feed personalizado (ranqueado pelo grafo + engajamento + recência)
+server.get('/api/feed/me', requireAuth, (req, res) => {
+  const db    = getDb();
+  const me    = req.user.id;
+  const now   = Date.now();
+  const graph = buildFollowGraph(db);
+  const myInterests = interestProfile(db, me);
+  const myFollowing = graph.following.get(me) || new Set();
+
+  const ranked = (db.posts || []).map(post => {
+    const author   = db.users.find(u => u.id === post.userId);
+    const likes    = (db.likes || []).filter(l => l.postId === post.id);
+    const comments = (db.comments || []).filter(c => c.postId === post.id);
+    const isOwn    = post.userId === me;
+    const follows  = myFollowing.has(post.userId) ? 1 : 0;
+    // só considera 2º grau se ainda não segue diretamente
+    const fof      = follows ? 0 : commonNeighbors(graph, me, post.userId);
+    const content  = jaccard(myInterests, postTopics(post, author));
+    const engage   = Math.log(1 + 2 * likes.length + 3 * comments.length);
+    const recency  = recencyScore(post.createdAt, now, 72);
+
+    const score = FEED_W.follow * follows
+                + FEED_W.fof * fof
+                + FEED_W.content * content
+                + FEED_W.engagement * engage
+                + FEED_W.recency * recency
+                + FEED_W.own * (isOwn ? 1 : 0);
+
+    return {
+      ...post,
+      author:        author ? sanitizeUser(author) : null,
+      likesCount:    likes.length,
+      commentsCount: comments.length,
+      likedByMe:     likes.some(l => l.userId === me),
+      _score:        +score.toFixed(3),
+    };
+  }).sort((a, b) => b._score - a._score);
+
+  return res.status(200).json(ranked);
+});
+
+// GET /api/suggestions/me — quem seguir (amigos-de-amigos + skills + segue-você)
+server.get('/api/suggestions/me', requireAuth, (req, res) => {
+  const db    = getDb();
+  const me    = req.user.id;
+  const limit = parseInt(req.query.limit, 10) || 5;
+  const graph = buildFollowGraph(db);
+  const myFollowing = graph.following.get(me) || new Set();
+  const meUser = db.users.find(u => u.id === me);
+  const mySkills = new Set((meUser && meUser.skills || []).map(normTopic));
+
+  const scored = (db.users || [])
+    .filter(u => u.id !== me && !u.disabledAt && !myFollowing.has(u.id))
+    .map(c => {
+      const mutual    = commonNeighbors(graph, me, c.id);
+      const followsMe = (graph.following.get(c.id) || new Set()).has(me) ? 1 : 0;
+      const cSkills   = new Set((c.skills || []).map(normTopic));
+      const sim       = jaccard(mySkills, cSkills);
+      const followers = (graph.followers.get(c.id) || new Set()).size;
+
+      const score = SUG_W.mutual * mutual
+                  + SUG_W.followsMe * followsMe
+                  + SUG_W.similarity * sim
+                  + SUG_W.popularity * Math.log(1 + followers);
+
+      // motivo (fator dominante) — demonstra o algoritmo p/ o usuário
+      const sharedSkills = [...mySkills].filter(s => cSkills.has(s)).length;
+      let reason = 'Sugerido para você';
+      if (mutual > 0) {
+        const exId = [...myFollowing].find(x => (graph.followers.get(c.id) || new Set()).has(x));
+        const exU  = exId ? db.users.find(u => u.id === exId) : null;
+        reason = exU
+          ? `Seguido por ${exU.name}${mutual > 1 ? ` + ${mutual - 1}` : ''}`
+          : `${mutual} conexõ${mutual > 1 ? 'es' : 'a'} em comum`;
+      } else if (followsMe) {
+        reason = 'Segue você';
+      } else if (sharedSkills > 0) {
+        reason = `${sharedSkills} habilidade${sharedSkills > 1 ? 's' : ''} em comum`;
+      }
+
+      return { ...sanitizeUser(c), _score: +score.toFixed(3), reason, mutualCount: mutual, followsMe: !!followsMe, sharedSkills };
+    })
+    .sort((a, b) => b._score - a._score)
+    .slice(0, limit);
+
+  return res.status(200).json(scored);
+});
+
+// GET /api/trending — tópicos em alta (hashtags/skills/techs ponderados)
+server.get('/api/trending', requireAuth, (req, res) => {
+  const db    = getDb();
+  const me    = req.user.id;
+  const now   = Date.now();
+  const limit = parseInt(req.query.limit, 10) || 5;
+  const myInterests = interestProfile(db, me);
+
+  const topics = new Map(); // key → { label, weight, posts:Set }
+
+  (db.posts || []).forEach(post => {
+    const author   = db.users.find(u => u.id === post.userId);
+    const likes    = (db.likes || []).filter(l => l.postId === post.id).length;
+    const comments = (db.comments || []).filter(c => c.postId === post.id).length;
+    const rec      = recencyScore(post.createdAt, now, TREND_W.halfLifeH);
+    const eng      = 1 + TREND_W.like * likes + TREND_W.comment * comments;
+
+    // tópicos únicos deste post (hashtag tem prioridade de label e maior peso)
+    const postTags = new Map(); // key → { label, w }
+    const addTag = (raw, label, w) => {
+      const key = normTopic(raw);
+      if (!key) return;
+      const cur = postTags.get(key);
+      const preferHash = label.startsWith('#');
+      if (!cur) postTags.set(key, { label, w });
+      else postTags.set(key, { label: (cur.label.startsWith('#') ? cur.label : (preferHash ? label : cur.label)), w: Math.max(cur.w, w) });
+    };
+    extractHashtags(post.content).forEach(h => addTag(h, '#' + h, TREND_W.hashtag));
+    if (author && Array.isArray(author.skills)) author.skills.forEach(s => addTag(s, s, TREND_W.skill));
+    (db.projects || []).filter(p => p.userId === post.userId).forEach(p =>
+      (p.technologies || p.stack || []).forEach(t => addTag(t, t, TREND_W.tech)));
+
+    postTags.forEach((v, key) => {
+      const boost = myInterests.has(key) ? TREND_W.interestBoost : 1;
+      const add   = rec * eng * v.w * boost;
+      const e = topics.get(key) || { label: v.label, weight: 0, posts: new Set() };
+      e.weight += add;
+      e.posts.add(post.id);
+      if (v.label.startsWith('#')) e.label = v.label; // prioriza hashtag no rótulo
+      topics.set(key, e);
+    });
+  });
+
+  const list = [...topics.values()]
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, limit)
+    .map(e => ({ tag: e.label, postsCount: e.posts.size, weight: +e.weight.toFixed(3) }));
+
+  return res.status(200).json(list);
+});
+
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);
