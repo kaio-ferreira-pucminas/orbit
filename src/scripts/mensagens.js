@@ -56,6 +56,57 @@
   let conversations = [];
   let activeConvId  = null;
   let lastMsgCount  = 0; // qtd de mensagens renderizadas na conversa aberta (p/ polling)
+  let lastSig      = '';                          // assinatura (qtd + recibos + não lidas) p/ re-render
+  let openUnread   = { beforeId: null, count: 0 };// divisória "X não lidas" (congelada na abertura)
+  let unseenBelow  = 0;                           // contador do botão "ir para recentes"
+  let chatSettings = Object.assign({ showStatus: true, readReceipts: true }, currentUser.chatSettings || {});
+
+  function myReceipts() { return chatSettings.readReceipts !== false; }
+
+  // Status do outro participante: {online, text} ou null (se ele ocultou o status)
+  function statusInfo(other) {
+    if (!other) return null;
+    const cs = other.chatSettings || {};
+    if (cs.showStatus === false) return null;
+    const last = other.lastSeenAt ? new Date(other.lastSeenAt).getTime() : 0;
+    if (!last) return null;
+    if (Date.now() - last < 70000) return { online: true, text: 'online' };
+    return { online: false, text: 'visto por último às ' + fmtTime(other.lastSeenAt) };
+  }
+  function renderStatus(other) {
+    const el = $('#chat-status'); if (!el) return;
+    const s = statusInfo(other);
+    if (!s) { el.textContent = ''; el.hidden = true; return; }
+    el.hidden = false; el.textContent = s.text; el.classList.toggle('is-online', !!s.online);
+  }
+
+  // Assinatura do estado das mensagens (muda se chegou msg, alguém leu, ou há não lidas)
+  function sigOf(msgs) {
+    return msgs.length + ':' +
+      msgs.filter(m => m.senderId === currentUser.id && m.readAt).length + ':' +
+      msgs.filter(m => m.receiverId === currentUser.id && !m.read).length;
+  }
+  async function markRead(convId) {
+    try { await api(`/api/conversations/${convId}/read`, { method: 'POST' }); } catch (e) { /* silencioso */ }
+  }
+  function showScrollBtn(count) {
+    const b = $('#chat-scroll-btn'); if (!b) return;
+    b.hidden = false;
+    const badge = $('#chat-scroll-count');
+    if (badge) { if (count > 0) { badge.textContent = count; badge.hidden = false; } else { badge.hidden = true; } }
+  }
+  function hideScrollBtn() {
+    const b = $('#chat-scroll-btn'); if (b) b.hidden = true;
+    unseenBelow = 0;
+    const badge = $('#chat-scroll-count'); if (badge) badge.hidden = true;
+  }
+  async function saveChatSettings(patch) {
+    chatSettings = Object.assign({}, chatSettings, patch);
+    currentUser.chatSettings = chatSettings;
+    try { localStorage.setItem('orbit_user', JSON.stringify(currentUser)); } catch (e) {}
+    try { await api(`/api/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify({ chatSettings }) }); } catch (e) {}
+    if (activeConvId) { lastSig = ''; refreshActiveMessages(); } // reflete "Visualizada" na hora
+  }
 
   /* ===== RENDER: LISTA DE CONVERSAS ===== */
   function buildConvItem(conv) {
@@ -103,13 +154,33 @@
   }
 
   /* ===== RENDER: CHAT ===== */
-  function buildBubble(msg) {
+  function buildBubble(msg, showSeen) {
     const mine = msg.senderId === currentUser.id;
     return `
       <div class="msg-bubble ${mine ? 'msg-bubble--me' : 'msg-bubble--them'}">
         ${escapeHtml(msg.content)}
         <span class="msg-bubble__time">${escapeHtml(fmtTime(msg.createdAt))}</span>
+        ${showSeen ? '<span class="msg-bubble__seen">✓ Visualizada</span>' : ''}
       </div>`;
+  }
+
+  // Monta o histórico: divisória "X não lidas" (congelada na abertura) + bolhas +
+  // "Visualizada" apenas na última mensagem MINHA que foi lida (estilo Instagram, mútuo).
+  function renderMessages(msgs) {
+    let lastSeenIdx = -1;
+    if (myReceipts()) {
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].senderId === currentUser.id && msgs[i].readAt) { lastSeenIdx = i; break; }
+      }
+    }
+    let html = '';
+    msgs.forEach((m, i) => {
+      if (openUnread.count > 0 && m.id && m.id === openUnread.beforeId) {
+        html += `<div class="msg-unread-divider">${openUnread.count} ${openUnread.count > 1 ? 'mensagens não lidas' : 'mensagem não lida'}</div>`;
+      }
+      html += buildBubble(m, i === lastSeenIdx);
+    });
+    return html;
   }
 
   async function openConversation(convId) {
@@ -132,6 +203,7 @@
     } else {
       avatarEl.innerHTML = `<span>${initials(other.name)}</span>`;
     }
+    renderStatus(other); // online / visto por último / oculto
 
     // Alterna visões
     $('#chat-empty').hidden  = true;
@@ -144,9 +216,15 @@
     try {
       const res = await api(`/api/conversations/${convId}/messages`);
       const msgs = await res.json();
-      history.innerHTML = msgs.map(buildBubble).join('');
+      // congela a divisória "X não lidas" (na primeira mensagem recebida não lida)
+      const firstUnread = msgs.find(m => m.receiverId === currentUser.id && !m.read);
+      openUnread = { beforeId: firstUnread ? firstUnread.id : null, count: msgs.filter(m => m.receiverId === currentUser.id && !m.read).length };
+      history.innerHTML = renderMessages(msgs);
       lastMsgCount = msgs.length;
+      lastSig = sigOf(msgs);
+      hideScrollBtn();
       history.scrollTop = history.scrollHeight;
+      markRead(convId); // marca recebidas como lidas (zera contador; recibo se confirmação ativa)
     } catch (err) {
       if (err.message !== 'Token expirado') {
         history.innerHTML = `<div class="msg-loading">Não foi possível carregar as mensagens.</div>`;
@@ -161,14 +239,24 @@
       const res = await api(`/api/conversations/${activeConvId}/messages`);
       if (!res.ok) return;
       const msgs = await res.json();
-      if (msgs.length === lastMsgCount) return; // nada novo → não mexe no DOM/scroll
+      const sig = sigOf(msgs);
+      if (sig === lastSig) return; // nada mudou (qtd, recibos de leitura ou não lidas)
       const history = $('#chat-history');
       if (!history) return;
-      // só rola pro fim automaticamente se o usuário já estava no fim da conversa
       const nearBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 80;
-      history.innerHTML = msgs.map(buildBubble).join('');
+      const grew = msgs.length - lastMsgCount;
+      const hasIncomingUnread = msgs.some(m => m.receiverId === currentUser.id && !m.read);
+      history.innerHTML = renderMessages(msgs);
       lastMsgCount = msgs.length;
-      if (nearBottom) history.scrollTop = history.scrollHeight;
+      lastSig = sig;
+      if (nearBottom) {
+        history.scrollTop = history.scrollHeight;
+        hideScrollBtn();
+        if (hasIncomingUnread) markRead(activeConvId); // li (estou no fim) → marca lida
+      } else if (grew > 0) {
+        unseenBelow += grew;                            // chegou msg e estou rolado pra cima
+        showScrollBtn(unseenBelow);
+      }
     } catch (err) {
       /* silencioso (ex.: token expirado já trata redirect) */
     }
@@ -177,6 +265,10 @@
   /* ===== TEMPO REAL: ciclo de polling (lista + conversa aberta) ===== */
   async function pollRealtime() {
     await loadConversations();
+    if (activeConvId) {
+      const conv = conversations.find(c => c.id === activeConvId);
+      if (conv) renderStatus(conv.other); // atualiza online / visto por último
+    }
     await refreshActiveMessages();
   }
 
@@ -333,6 +425,35 @@
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');
       window.location.href = '/pages/auth.html?tab=login';
+    });
+
+    // Configurações do chat (mostrar status + confirmação de leitura)
+    const setBtn = $('#btn-chat-settings');
+    const setPanel = $('#chat-settings-panel');
+    if (setBtn && setPanel) {
+      const cb1 = $('#set-show-status'), cb2 = $('#set-read-receipts');
+      if (cb1) cb1.checked = chatSettings.showStatus !== false;
+      if (cb2) cb2.checked = chatSettings.readReceipts !== false;
+      setBtn.addEventListener('click', (e) => { e.stopPropagation(); setPanel.hidden = !setPanel.hidden; });
+      document.addEventListener('click', (e) => {
+        if (!setPanel.hidden && !setPanel.contains(e.target) && !setBtn.contains(e.target)) setPanel.hidden = true;
+      });
+      if (cb1) cb1.addEventListener('change', (e) => saveChatSettings({ showStatus: e.target.checked }));
+      if (cb2) cb2.addEventListener('change', (e) => saveChatSettings({ readReceipts: e.target.checked }));
+    }
+
+    // Botão "ir para mensagens recentes" + listener de scroll do histórico
+    const scrollBtn = $('#chat-scroll-btn');
+    if (scrollBtn) scrollBtn.addEventListener('click', () => {
+      const h = $('#chat-history'); if (h) h.scrollTop = h.scrollHeight;
+      hideScrollBtn();
+      if (activeConvId) markRead(activeConvId);
+    });
+    const hist = $('#chat-history');
+    if (hist) hist.addEventListener('scroll', () => {
+      const nearBottom = hist.scrollHeight - hist.scrollTop - hist.clientHeight < 80;
+      if (nearBottom) { hideScrollBtn(); if (activeConvId) markRead(activeConvId); }
+      else { showScrollBtn(unseenBelow); } // visível quando rolado pra cima (badge só se houver novas)
     });
   }
 
