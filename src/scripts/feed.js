@@ -265,18 +265,16 @@
       // Mantém o conjunto de "quem eu sigo" em sincronia
       if (data.following) followingIds.add(targetUserId); else followingIds.delete(targetUserId);
       // Atualiza estado visual do botão
-      btn.classList.toggle('is-following', !!data.following);
-      if (btn.classList.contains('suggestion__follow-btn')) {
-        if (data.following) {
-          // Seguiu pela "Sugestões para você": some da lista e busca uma nova pessoa no lugar
-          const item = btn.closest('.suggestion');
-          if (item) item.remove();
-          loadSuggestions();
-        } else {
-          btn.setAttribute('title', 'Seguir');
-        }
-      } else {
-        btn.textContent = data.following ? 'Seguindo' : 'Seguir';
+      // Atualiza TODOS os botões de seguir desse usuário no DOM (posts do feed + sugestões)
+      $$(`[data-follow-id="${targetUserId}"]`).forEach(b => {
+        b.classList.toggle('is-following', !!data.following);
+        if (b.classList.contains('post__follow-btn')) b.textContent = data.following ? 'Seguindo' : 'Seguir';
+        else if (b.classList.contains('suggestion__follow-btn')) b.setAttribute('title', data.following ? 'Seguindo' : 'Seguir');
+      });
+      // Ao seguir, some das "Sugestões para você" (se estiver lá) e entra uma nova pessoa
+      if (data.following) {
+        const sugBtn = document.querySelector(`.suggestion__follow-btn[data-follow-id="${targetUserId}"]`);
+        if (sugBtn) { const card = sugBtn.closest('.suggestion'); if (card) card.remove(); loadSuggestions(); }
       }
       if (window.orbitToast) {
         window.orbitToast(data.following ? 'Você começou a seguir.' : 'Você deixou de seguir.', 'success');
