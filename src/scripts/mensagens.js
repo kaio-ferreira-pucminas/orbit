@@ -89,6 +89,16 @@
   async function markRead(convId) {
     try { await api(`/api/conversations/${convId}/read`, { method: 'POST' }); } catch (e) { /* silencioso */ }
   }
+  // Remove a divisória "X não lidas" quando as mensagens já estão visíveis (usuário no fim do histórico).
+  // A divisória só deve permanecer enquanto a mensagem nova estiver FORA da área visível.
+  function clearUnreadDivider() {
+    openUnread = { beforeId: null, count: 0 };
+    const h = $('#chat-history'); if (!h) return;
+    const d = h.querySelector('.msg-unread-divider'); if (!d) return;
+    const wasBottom = h.scrollHeight - h.scrollTop - h.clientHeight < 80;
+    d.remove();
+    if (wasBottom) h.scrollTop = h.scrollHeight; // mantém ancorado no fim após remover
+  }
   function showScrollBtn(count) {
     const b = $('#chat-scroll-btn'); if (!b) return;
     b.hidden = false;
@@ -225,6 +235,14 @@
       lastSig = sigOf(msgs);
       hideScrollBtn();
       history.scrollTop = history.scrollHeight;
+      // Divisória "não lidas": só faz sentido se a mensagem nova estiver FORA da área visível.
+      // Abrimos no fim do histórico; se a divisória estiver visível, removemos (o usuário já vê a mensagem).
+      const divider = history.querySelector('.msg-unread-divider');
+      if (divider) {
+        const dRect = divider.getBoundingClientRect();
+        const hRect = history.getBoundingClientRect();
+        if (dRect.bottom > hRect.top && dRect.top < hRect.bottom) clearUnreadDivider();
+      }
       markRead(convId); // marca recebidas como lidas (zera contador; recibo se confirmação ativa)
     } catch (err) {
       if (err.message !== 'Token expirado') {
@@ -253,6 +271,7 @@
       if (nearBottom) {
         history.scrollTop = history.scrollHeight;
         hideScrollBtn();
+        clearUnreadDivider();                          // estou no fim → mensagens visíveis → sem divisória
         if (hasIncomingUnread) markRead(activeConvId); // li (estou no fim) → marca lida
       } else if (grew > 0) {
         unseenBelow += grew;                            // chegou msg e estou rolado pra cima
@@ -448,12 +467,13 @@
     if (scrollBtn) scrollBtn.addEventListener('click', () => {
       const h = $('#chat-history'); if (h) h.scrollTop = h.scrollHeight;
       hideScrollBtn();
+      clearUnreadDivider();
       if (activeConvId) markRead(activeConvId);
     });
     const hist = $('#chat-history');
     if (hist) hist.addEventListener('scroll', () => {
       const nearBottom = hist.scrollHeight - hist.scrollTop - hist.clientHeight < 80;
-      if (nearBottom) { hideScrollBtn(); if (activeConvId) markRead(activeConvId); }
+      if (nearBottom) { hideScrollBtn(); clearUnreadDivider(); if (activeConvId) markRead(activeConvId); }
       else { showScrollBtn(unseenBelow); } // visível quando rolado pra cima (badge só se houver novas)
     });
 

@@ -40,7 +40,12 @@
     st.id = 'av-fallback-style';
     st.textContent =
       '.av-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;line-height:1;color:inherit;}' +
-      '.emp-sidebar__logo-icon{color:#fff;}';
+      '.emp-sidebar__logo-icon{color:#fff;}' +
+      // iOS dá "zoom" automático ao focar inputs com font-size < 16px. Forçamos 16px nos campos
+      // de texto em dispositivos de toque (cobre TODO o site, todos os navegadores) p/ evitar o zoom.
+      '@media (pointer: coarse){' +
+        'input[type="text"],input[type="email"],input[type="password"],input[type="search"],input[type="tel"],input[type="url"],input[type="number"],input[type="date"],input:not([type]),textarea,select{font-size:16px !important;}' +
+      '}';
     (document.head || document.documentElement).appendChild(st);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureStyle);
