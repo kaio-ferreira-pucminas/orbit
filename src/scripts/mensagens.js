@@ -27,8 +27,6 @@
       const vv = window.visualViewport;
       const h = (vv && vv.height) ? vv.height : window.innerHeight;
       if (h) root.style.setProperty('--app-height', Math.round(h) + 'px');
-      // Acompanha o deslocamento do viewport visível quando o teclado empurra a tela (iOS).
-      root.style.setProperty('--app-top', (vv ? Math.round(vv.offsetTop) : 0) + 'px');
     }
     set();
     if (window.visualViewport) {
@@ -530,6 +528,7 @@
     // Botão "voltar" (mobile): retorna à lista de conversas para escolher outra
     const backBtn = $('#chat-back');
     if (backBtn) backBtn.addEventListener('click', () => {
+      const inp = $('#chat-input'); if (inp) inp.blur(); // fecha o teclado ao voltar (evita altura "presa")
       $('.msg-main').setAttribute('data-view', 'list');
       document.body.classList.remove('msg-in-chat');
     });
