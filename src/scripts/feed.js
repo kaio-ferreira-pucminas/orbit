@@ -267,7 +267,14 @@
       // Atualiza estado visual do botão
       btn.classList.toggle('is-following', !!data.following);
       if (btn.classList.contains('suggestion__follow-btn')) {
-        btn.setAttribute('title', data.following ? 'Seguindo' : 'Seguir');
+        if (data.following) {
+          // Seguiu pela "Sugestões para você": some da lista e busca uma nova pessoa no lugar
+          const item = btn.closest('.suggestion');
+          if (item) item.remove();
+          loadSuggestions();
+        } else {
+          btn.setAttribute('title', 'Seguir');
+        }
       } else {
         btn.textContent = data.following ? 'Seguindo' : 'Seguir';
       }
