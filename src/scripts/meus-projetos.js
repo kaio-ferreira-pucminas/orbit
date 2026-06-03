@@ -60,41 +60,40 @@
   }
 
   function isPublic(p) { return p.isPublic !== false && p.visibility !== 'private'; }
+  function statusOf(p) { return p.status === 'rascunho' ? 'rascunho' : 'ativo'; }
 
   /* ===== RENDER ===== */
   function buildCard(p) {
     const tech = techArray(p);
     const tags = tech.slice(0, 3).map(t => `<span class="mp-tag">${escapeHtml(t)}</span>`).join('');
-    const pub = isPublic(p);
     const grad = p.coverGradient || gradientFor(p.id);
+    const draft = statusOf(p) === 'rascunho';
+    const repo = p.repoUrl || p.githubUrl;
+    const live = p.liveUrl || null;
 
     return `
-      <article class="mp-card" data-proj-id="${escapeHtml(p.id)}">
+      <article class="mp-card ${draft ? 'mp-card--draft' : ''}" data-proj-id="${escapeHtml(p.id)}">
         <div class="mp-card__thumb" style="background:${escapeHtml(grad)}">
           <span class="mp-card__thumb-text">${escapeHtml(p.title || 'Projeto')}</span>
+          ${p.source === 'github' ? '<span class="mp-card__src" title="Importado do GitHub">GitHub</span>' : ''}
         </div>
         <div class="mp-card__status">
-          <div class="mp-card__status-left">
-            <span class="mp-card__dot mp-card__dot--${pub ? 'public' : 'private'}"></span>
-            <span class="mp-card__status-label">${pub ? 'Público' : 'Privado'}</span>
-          </div>
+          <span class="mp-status mp-status--${draft ? 'draft' : 'active'}">${draft ? 'Rascunho' : 'Ativo'}</span>
           <div class="mp-card__metrics">
-            <span class="mp-card__metric">
-              <svg width="13" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              ${p.views || 0}
-            </span>
+            ${p.ratingCount ? `<span class="mp-card__metric" title="Avaliação média">★ ${p.ratingAvg || 0} (${p.ratingCount})</span>` : ''}
+            <span class="mp-card__metric"><span class="mp-card__dot mp-card__dot--${isPublic(p) ? 'public' : 'private'}"></span>${isPublic(p) ? 'Público' : 'Privado'}</span>
           </div>
         </div>
         <h3 class="mp-card__title">${escapeHtml(p.title || 'Projeto')}</h3>
         <p class="mp-card__desc">${escapeHtml(p.description || 'Sem descrição.')}</p>
         ${tags ? `<div class="mp-card__tags">${tags}</div>` : ''}
         <div class="mp-card__foot">
-          ${p.repoUrl || p.githubUrl
-            ? `<a class="mp-card__link" href="${escapeHtml(p.repoUrl || p.githubUrl)}" target="_blank" rel="noopener noreferrer">Ver Detalhes
-                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-               </a>`
-            : `<span></span>`}
+          <div class="mp-card__links">
+            ${repo ? `<a class="mp-card__link" href="${escapeHtml(repo)}" target="_blank" rel="noopener noreferrer">Repositório</a>` : ''}
+            ${live ? `<a class="mp-card__link mp-card__link--live" href="${escapeHtml(live)}" target="_blank" rel="noopener noreferrer">Ver online</a>` : ''}
+          </div>
           <div class="mp-card__actions">
+            ${draft ? `<button type="button" class="mp-card__btn mp-card__btn--publish" data-action="publish" title="Publicar (aparecer no perfil)">Publicar</button>` : ''}
             <button type="button" class="mp-card__btn" data-action="edit" aria-label="Editar">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
             </button>
@@ -119,8 +118,8 @@
 
   function applyFilter(list) {
     const f = $('#filter-status').value;
-    if (f === 'public') return list.filter(isPublic);
-    if (f === 'private') return list.filter(p => !isPublic(p));
+    if (f === 'ativo') return list.filter(p => statusOf(p) === 'ativo');
+    if (f === 'rascunho') return list.filter(p => statusOf(p) === 'rascunho');
     return list;
   }
 
@@ -142,7 +141,7 @@
     $('#proj-desc').value  = proj ? (proj.description || '') : '';
     $('#proj-tech').value  = proj ? techArray(proj).join(', ') : '';
     $('#proj-repo').value  = proj ? (proj.repoUrl || proj.githubUrl || '') : '';
-    $('#proj-demo').value  = proj ? (proj.demoUrl || '') : '';
+    $('#proj-demo').value  = proj ? (proj.liveUrl || proj.demoUrl || '') : '';
     $('#proj-public').checked = proj ? isPublic(proj) : true;
     setTimeout(() => $('#proj-title').focus(), 50);
   }
@@ -157,7 +156,7 @@
       description: $('#proj-desc').value.trim(),
       technologies: $('#proj-tech').value.split(',').map(s => s.trim()).filter(Boolean),
       repoUrl: $('#proj-repo').value.trim(),
-      demoUrl: $('#proj-demo').value.trim(),
+      liveUrl: $('#proj-demo').value.trim() || null,
       isPublic: $('#proj-public').checked,
     };
     if (!payload.title) { toast('Informe o título do projeto.', 'error'); return; }
@@ -195,6 +194,28 @@
     toast(aindaExiste ? 'Não foi possível excluir o projeto.' : 'Projeto excluído.', aindaExiste ? 'error' : 'success');
   }
 
+  async function publishProject(id) {
+    try {
+      const res = await api(`/api/projects/${id}`, { method: 'PATCH', body: JSON.stringify({ status: 'ativo' }) });
+      if (!res.ok) throw new Error('falha');
+      await load();
+      toast('Projeto publicado! Agora aparece no seu perfil.', 'success');
+    } catch (err) { if (err.message !== 'Token expirado') toast('Não foi possível publicar.', 'error'); }
+  }
+
+  async function syncGithub() {
+    if (!currentUser.github) { toast('Defina seu usuário do GitHub no perfil para importar os projetos.', 'info'); return; }
+    const btn = $('#btn-sync-github'); if (btn) btn.disabled = true;
+    try {
+      const res = await api('/api/github/sync', { method: 'POST', body: JSON.stringify({}) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'falha');
+      await load();
+      toast(data.added > 0 ? `${data.added} projeto(s) importado(s) do GitHub como rascunho.` : 'Nenhum projeto novo do GitHub para importar.', 'success');
+    } catch (err) { if (err.message !== 'Token expirado') toast('Não foi possível sincronizar com o GitHub.', 'error'); }
+    finally { if (btn) btn.disabled = false; }
+  }
+
   /* ===== EVENTOS ===== */
   function setupEvents() {
     $('#filter-status').addEventListener('change', render);
@@ -202,7 +223,8 @@
     $('#proj-modal-close').addEventListener('click', closeModal);
     $('#proj-modal-overlay').addEventListener('click', closeModal);
     $('#proj-cancel').addEventListener('click', closeModal);
-    $('#btn-new-sidebar').addEventListener('click', () => openModal(null));
+    const bNew = $('#btn-new-sidebar'); if (bNew) bNew.addEventListener('click', () => openModal(null));
+    const bSync = $('#btn-sync-github'); if (bSync) bSync.addEventListener('click', syncGithub);
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('#proj-modal').hidden) closeModal(); });
 
     $('#mp-grid').addEventListener('click', (ev) => {
@@ -212,11 +234,14 @@
       const card = btn.closest('[data-proj-id]');
       const id = card && card.getAttribute('data-proj-id');
       const proj = projects.find(p => String(p.id) === String(id));
-      if (btn.getAttribute('data-action') === 'edit') openModal(proj);
-      else if (btn.getAttribute('data-action') === 'delete') deleteProject(id);
+      const action = btn.getAttribute('data-action');
+      if (action === 'edit') openModal(proj);
+      else if (action === 'delete') deleteProject(id);
+      else if (action === 'publish') publishProject(id);
     });
 
-    $('#btn-logout').addEventListener('click', () => {
+    const bLogout = $('#btn-logout');
+    if (bLogout) bLogout.addEventListener('click', () => {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');
       window.location.href = '/pages/auth.html?tab=login';

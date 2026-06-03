@@ -28,11 +28,17 @@
         <h1 class="mp-header__title">Mantenha sua órbita em <span>expansão.</span></h1>
         <p class="mp-header__subtitle" id="mp-subtitle">Continue construindo sua presença técnica no mercado.</p>
       </div>
-      <select id="filter-status" class="mp-filter" aria-label="Filtrar por status">
-        <option value="">Filtrar por Status</option>
-        <option value="public">Públicos</option>
-        <option value="private">Privados</option>
-      </select>
+      <div class="mp-header__tools">
+        <button type="button" class="mp-sync-btn" id="btn-sync-github" title="Importar seus repositórios do GitHub como rascunho">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.8c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 4.6 18 4.9 18 4.9c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+          Sincronizar GitHub
+        </button>
+        <select id="filter-status" class="mp-filter" aria-label="Filtrar por status">
+          <option value="">Todos</option>
+          <option value="ativo">Ativos</option>
+          <option value="rascunho">Rascunhos</option>
+        </select>
+      </div>
     </header>
 
     <section class="mp-grid" id="mp-grid" aria-label="Lista de projetos">
@@ -69,12 +75,12 @@
         </label>
         <div class="mp-form__row">
           <label class="mp-field">
-            <span class="mp-field__label">Link do GitHub</span>
+            <span class="mp-field__label">Repositório (GitHub)</span>
             <input type="url" id="proj-repo" placeholder="https://github.com/..." />
           </label>
           <label class="mp-field">
-            <span class="mp-field__label">Demonstração (URL)</span>
-            <input type="url" id="proj-demo" placeholder="https://..." />
+            <span class="mp-field__label">URL publicada (onde a app roda)</span>
+            <input type="url" id="proj-demo" placeholder="https://meu-app.vercel.app" />
           </label>
         </div>
         <label class="mp-field mp-field--inline">

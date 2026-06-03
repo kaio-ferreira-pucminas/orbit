@@ -133,4 +133,21 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
   .mp-form__row{flex-direction:column;}
   .mp-header__title{font-size:28px;line-height:34px;}
   .mp-main{padding:24px 16px 56px;}
+  .mp-header__tools{width:100%;}
 }
+
+/* ===== Status, sincronização com GitHub, links e publicar (CRUD + import) ===== */
+.mp-header__tools{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.mp-sync-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--radius-sm);background:var(--text-dark);color:#fff;font-size:13px;font-weight:700;transition:opacity .15s;}
+.mp-sync-btn:hover{opacity:.88;}
+.mp-sync-btn:disabled{opacity:.5;cursor:default;}
+.mp-status{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.2px;}
+.mp-status--active{background:rgba(16,185,129,.13);color:#0f766e;}
+.mp-status--draft{background:rgba(245,158,11,.16);color:#b45309;}
+.mp-card--draft{border:1px dashed var(--amber);}
+.mp-card__thumb{position:relative;}
+.mp-card__src{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;}
+.mp-card__links{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.mp-card__link--live{color:var(--green);}
+.mp-card__btn--publish{width:auto;padding:0 12px;font-size:12px;font-weight:700;color:var(--primary);background:var(--primary-light);border-radius:var(--radius-sm);}
+.mp-card__btn--publish:hover{background:var(--lighter-purple);}

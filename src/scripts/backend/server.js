@@ -507,8 +507,11 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     return res.status(404).json({ error: 'Usuário não encontrado.' });
   }
 
-  // Só projetos ATIVOS no perfil (rascunhos importados do GitHub ficam só em "Meus Projetos")
-  const projects = (db.projects || []).filter(p => p.userId === req.params.id && p.status !== 'rascunho');
+  // Só projetos ATIVOS e públicos no perfil (rascunhos do GitHub ficam só em "Meus Projetos";
+  // privados só aparecem para o próprio dono).
+  const projects = (db.projects || []).filter(p =>
+    p.userId === req.params.id && p.status !== 'rascunho' && (p.isPublic !== false || req.user.id === req.params.id)
+  );
   // reviews do perfil — suporta tanto profileUserId quanto userId (compat. com seeds)
   const rawReviews = (db.reviews || []).filter(r => (r.profileUserId || r.userId) === req.params.id);
 
@@ -2013,6 +2016,7 @@ server.post('/api/projects', requireAuth, (req, res) => {
     coverGradient: b.coverGradient || PROJ_GRADS[0],
     status: b.status === 'rascunho' ? 'rascunho' : 'ativo',
     source: 'manual',
+    isPublic: b.isPublic !== false,
     year: b.year || new Date().getFullYear(),
     createdAt: new Date().toISOString(),
   };
@@ -2026,7 +2030,7 @@ server.patch('/api/projects/:id', requireAuth, (req, res) => {
   const idx = (db.projects || []).findIndex(p => p.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Projeto não encontrado.' });
   if (db.projects[idx].userId !== req.user.id) return res.status(403).json({ error: 'Você só pode editar seus projetos.' });
-  const ALLOWED = ['title', 'description', 'technologies', 'repoUrl', 'liveUrl', 'demoUrl', 'coverGradient', 'status', 'year', 'category'];
+  const ALLOWED = ['title', 'description', 'technologies', 'repoUrl', 'liveUrl', 'demoUrl', 'coverGradient', 'status', 'year', 'category', 'isPublic'];
   const updates = {};
   for (const k of ALLOWED) if (k in (req.body || {})) updates[k] = req.body[k];
   if ('status' in updates && !['ativo', 'rascunho'].includes(updates.status)) delete updates.status;
