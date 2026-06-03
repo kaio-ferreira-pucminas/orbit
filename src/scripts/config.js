@@ -100,9 +100,10 @@
     const st = document.createElement('style');
     st.id = 'orbit-msg-badge-style';
     st.textContent =
-      '.orbit-has-msg-badge{position:relative;}' +
-      '.orbit-msg-badge{position:absolute;top:50%;right:12px;transform:translateY(-50%);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(239,68,68,.4);pointer-events:none;}' +
-      '@media (max-width:900px){.orbit-msg-badge{top:6px;right:6px;transform:none;min-width:16px;height:16px;font-size:10px;}}';
+      // Badge como FILHO FLEX do link (margin-left:auto): o próprio link (display:flex,
+      // align-items:center) centraliza verticalmente → alinhamento perfeito com a label.
+      // line-height = height centraliza o número dentro da bolinha.
+      '.orbit-msg-badge{margin-left:auto;flex-shrink:0;min-width:18px;height:18px;padding:0 6px;box-sizing:border-box;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 1px 3px rgba(239,68,68,.4);pointer-events:none;}';
     (document.head || document.documentElement).appendChild(st);
   }
 
@@ -145,4 +146,28 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
+})();
+
+// ============================================================
+// Chrome mobile do dashboard: carrega o mobile-sidebar.js (sidebar off-canvas +
+// sino fixo no topo-direito) automaticamente em QUALQUER tela que tenha sidebar.
+// Assim nenhuma página precisa ser editada e telas novas ganham o comportamento
+// de graça (atende ao pedido de "uma função que renderize por mim").
+// ============================================================
+(function () {
+  'use strict';
+  const SELF = document.currentScript;
+  function srcFor(name) {
+    const base = (SELF && SELF.src) ? SELF.src.replace(/config\.js(\?.*)?$/, '') : '../scripts/';
+    return base + name;
+  }
+  function loadChrome() {
+    if (!document.querySelector('.dash-sidebar, .emp-sidebar')) return;       // tela sem sidebar
+    if (document.querySelector('script[src*="mobile-sidebar.js"]')) return;   // já incluído na página
+    const s = document.createElement('script');
+    s.src = srcFor('mobile-sidebar.js');
+    document.body.appendChild(s);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadChrome);
+  else loadChrome();
 })();

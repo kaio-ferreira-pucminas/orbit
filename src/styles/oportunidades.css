@@ -56,9 +56,10 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .opp-card{background:var(--card-bg);border:1px solid rgba(0,0,0,0);border-radius:var(--radius-lg);padding:25px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;gap:24px;transition:box-shadow .18s,transform .1s;}
 .opp-card:hover{box-shadow:0 12px 28px -8px rgba(70,72,212,0.2);transform:translateY(-2px);}
 .opp-card__top{display:flex;gap:16px;align-items:flex-start;}
+.opp-card__top>.opp-tag--match{flex-shrink:0;white-space:nowrap;align-self:flex-start;}
 .opp-card__logo{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--lighter-purple);color:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;flex-shrink:0;}
 .opp-card__id{flex:1;min-width:0;}
-.opp-card__title{font-family:'Manrope',sans-serif;font-weight:700;font-size:20px;color:var(--text-dark);line-height:28px;}
+.opp-card__title{font-family:'Manrope',sans-serif;font-weight:700;font-size:20px;color:var(--text-dark);line-height:28px;overflow-wrap:anywhere;}
 .opp-card__company{font-size:16px;font-weight:500;color:var(--text-muted);margin-top:2px;}
 .opp-card__tags{display:flex;flex-wrap:wrap;gap:8px;}
 .opp-tag{background:var(--lightest-purple);color:#5c647a;font-size:12px;font-weight:700;padding:4px 12px;border-radius:var(--radius);}
@@ -93,6 +94,13 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
   .opp-header__title{font-size:28px;line-height:36px;}
 }
 @media (max-width:560px){
+  /* Card: cabeçalho compacto p/ o badge de match não brigar com o título */
+  .opp-card{padding:20px;}
+  .opp-card__top{gap:12px;}
+  .opp-card__logo{width:48px;height:48px;font-size:14px;}
+  .opp-card__title{font-size:17px;line-height:23px;}
+  .opp-card__company{font-size:14px;}
+  .opp-card__top>.opp-tag--match{font-size:11px;padding:3px 9px;}
   .opp-filters{flex-direction:column;align-items:stretch;}
   .opp-search{min-width:0;} .opp-select{width:100%;}
   .opp-card__foot{flex-direction:column;align-items:flex-start;gap:12px;}
