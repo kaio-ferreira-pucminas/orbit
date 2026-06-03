@@ -61,3 +61,21 @@
     img.replaceWith(span);
   }, true);
 })();
+
+// ============================================================
+// Heartbeat de presença: enquanto houver uma tela logada aberta, marca o usuário
+// como "online" (atualiza lastSeenAt). Usado pela badge de status do chat.
+// ============================================================
+(function () {
+  'use strict';
+  function beat() {
+    const token = localStorage.getItem('orbit_token');
+    if (!token) return;
+    fetch((window.ORBIT_API_URL || '') + '/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+    }).catch(function () { /* silencioso */ });
+  }
+  beat();
+  setInterval(function () { if (document.visibilityState !== 'hidden') beat(); }, 30000);
+})();

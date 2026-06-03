@@ -556,7 +556,7 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
   const ALLOWED = [
     'name', 'headline', 'bio', 'skills', 'github', 'linkedin',
     'available', 'avatarUrl', 'resumeUrl', 'resumeFileName', 'title',
-    'experiences', 'interests', 'shortcuts',
+    'experiences', 'interests', 'shortcuts', 'chatSettings',
   ];
 
   const updates = {};
@@ -1292,6 +1292,42 @@ server.post('/api/conversations/:id/messages', requireAuth, (req, res) => {
 
   saveDb(db);
   return res.status(201).json(newMsg);
+});
+
+// POST /api/heartbeat — marca o usuário como ativo (presença "online")
+server.post('/api/heartbeat', requireAuth, (req, res) => {
+  const db  = getDb();
+  const idx = db.users.findIndex(u => u.id === req.user.id);
+  if (idx !== -1) {
+    db.users[idx].lastSeenAt = new Date().toISOString();
+    saveDb(db);
+  }
+  return res.status(200).json({ ok: true });
+});
+
+// POST /api/conversations/:id/read — marca como lidas as mensagens recebidas pelo usuário.
+// 'read' (zera o contador) é sempre aplicado; 'readAt' (recibo p/ o remetente) só se a
+// confirmação de leitura do leitor estiver ativa (regra mútua, estilo Instagram).
+server.post('/api/conversations/:id/read', requireAuth, (req, res) => {
+  const db   = getDb();
+  const conv = (db.conversations || []).find(c => c.id === req.params.id);
+  if (!conv) return res.status(404).json({ error: 'Conversa não encontrada.' });
+  if (!(conv.participantIds || []).includes(req.user.id)) {
+    return res.status(403).json({ error: 'Você não participa desta conversa.' });
+  }
+  const me = db.users.find(u => u.id === req.user.id);
+  const myReceipts = !(me && me.chatSettings && me.chatSettings.readReceipts === false); // default: ativo
+  const now = new Date().toISOString();
+  let updated = 0;
+  (db.messages || []).forEach(m => {
+    if (m.conversationId === conv.id && m.receiverId === req.user.id && !m.read) {
+      m.read = true;                  // sempre marca lida (zera meu contador de não lidas)
+      if (myReceipts) m.readAt = now; // só grava o recibo de leitura se minha confirmação está ativa
+      updated++;
+    }
+  });
+  if (updated) saveDb(db);
+  return res.status(200).json({ updated });
 });
 
 // ── NOTIFICATIONS (#11) ──────────────────────────────────────────────────────
