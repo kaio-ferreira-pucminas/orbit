@@ -47,6 +47,9 @@
       .oh-link{font-family:'Manrope','Inter',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.45px;line-height:28px;color:rgba(19,27,46,.6);text-decoration:none;padding-bottom:6px;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
       .oh-link:hover{color:#131b2e;}
       .oh-link--active{color:#4648d4;border-bottom-color:#4648d4;}
+      .oh-burger{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;color:#131b2e;align-items:center;justify-content:center;}
+      .oh-burger:hover{background:#e2e7ff;color:#4648d4;}
+      @keyframes oh-slidedown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
       .oh-right{display:flex;align-items:center;gap:16px;}
       .oh-icon-btn{background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;color:#464554;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s;text-decoration:none;}
       .oh-icon-btn:hover{background:#e2e7ff;color:#4648d4;}
@@ -107,7 +110,20 @@
       .oh-search__footer:hover{background:#f2f3ff;}
       .oh-search__empty{padding:18px 14px;text-align:center;font-size:13px;color:#8a8a99;}
 
-      @media (max-width:680px){ .oh-nav{display:none;} .oh-inner{padding:10px 16px;} .oh-search--open .oh-search__input{width:150px;} .oh-search__modal{width:290px;} }
+      @media (max-width:680px){
+        .oh-inner{padding:10px 16px;}
+        .oh-left{gap:10px;}
+        .oh-burger{display:flex;}
+        /* Nav vira menu dropdown (abre pelo hambúrguer) */
+        .oh-nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:2px;background:#fff;border-top:1px solid #e2e7ff;box-shadow:0 14px 28px rgba(19,27,46,.12);padding:8px 12px;z-index:350;}
+        .oh-header--menu-open .oh-nav{display:flex;animation:oh-slidedown .18s ease;}
+        .oh-nav .oh-link{font-size:16px;padding:12px 10px;border-bottom:none;border-radius:8px;}
+        .oh-nav .oh-link--active{background:#f2f3ff;border-bottom:none;}
+        /* Notificações e busca: fixos, ocupando a tela com margem */
+        .orbit-notif__dropdown{position:fixed;top:60px;left:8px;right:8px;width:auto;max-height:72vh;}
+        .oh-search--open .oh-search__input{position:fixed;top:8px;left:8px;right:8px;width:auto;z-index:400;height:42px;padding:0 12px;border-color:#4648d4;margin:0;}
+        .oh-search__modal{position:fixed;top:58px;left:8px;right:8px;width:auto;max-height:70vh;}
+      }
     `;
     const style = document.createElement('style');
     style.id = 'orbit-header-style';
@@ -141,6 +157,9 @@
       <header class="oh-header">
         <div class="oh-inner">
           <div class="oh-left">
+            <button class="oh-burger" id="oh-burger" type="button" aria-label="Abrir menu" aria-expanded="false">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
             <a href="/pages/feed.html" class="oh-logo">Orbit</a>
             <nav class="oh-nav" aria-label="Navegação principal">${navLinks}</nav>
           </div>
@@ -196,6 +215,24 @@
       localStorage.removeItem('orbit_user');
       window.location.href = '/pages/auth.html?tab=login';
     });
+
+    // Menu mobile (hambúrguer) — abre/fecha a nav no celular
+    const header = document.querySelector('.oh-header');
+    const burger = document.getElementById('oh-burger');
+    if (header && burger) {
+      burger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = header.classList.toggle('oh-header--menu-open');
+        burger.setAttribute('aria-expanded', String(isOpen));
+      });
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.oh-burger')) return;
+        if (!header.contains(e.target) || e.target.closest('.oh-nav .oh-link')) {
+          header.classList.remove('oh-header--menu-open');
+          burger.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
   }
 
   /* ===== BUSCA (ícone → input → modal de resultados rápidos) ===== */
