@@ -338,6 +338,10 @@ body {
   margin: 0;
 }
 
+.aside-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.aside-card__edit { background: none; border: none; cursor: pointer; color: var(--primary, #4648d4); font-family: inherit; font-size: 13px; font-weight: 600; padding: 2px 4px; }
+.aside-card__edit:hover { text-decoration: underline; }
+
 .aside-card__cta {
   background: none;
   border: none;
@@ -471,6 +475,18 @@ body {
   background: var(--feed-border);
   color: var(--primary, #4648d4);
 }
+
+/* Atalhos editáveis */
+.aside-nav__row { display: flex; align-items: center; gap: 4px; }
+.aside-nav__row .aside-nav__link { flex: 1; min-width: 0; }
+.aside-nav__remove { width: 26px; height: 26px; flex-shrink: 0; border: none; background: none; border-radius: 6px; cursor: pointer; color: #c0392b; font-size: 18px; line-height: 1; }
+.aside-nav__remove:hover { background: #fef2f2; }
+.aside-nav__empty { font-size: 13px; color: var(--feed-text-muted, #8a8a99); padding: 6px 2px; margin: 0; }
+.shortcut-add { display: flex; gap: 6px; margin-top: 10px; }
+.shortcut-add__input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--feed-border, #e2e7ff); border-radius: 8px; font: inherit; font-size: 13px; }
+.shortcut-add__input:focus { outline: none; border-color: var(--primary, #4648d4); }
+.shortcut-add__btn { padding: 8px 12px; border: none; border-radius: 8px; background: var(--primary, #4648d4); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+.shortcut-add__btn:hover { background: #3537b8; }
 
 .aside-nav__icon {
   flex-shrink: 0;

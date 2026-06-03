@@ -53,36 +53,17 @@
           </div>
         </section>
 
-        <!-- Shortcuts -->
+        <!-- Shortcuts (dinâmico + editável) -->
         <section class="aside-card">
-          <h3 class="aside-card__title">Meus Atalhos</h3>
-          <nav class="aside-nav" aria-label="Atalhos">
-            <a href="#" class="aside-nav__link">
-              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              <span>Comunidade React Brasil</span>
-            </a>
-            <a href="#" class="aside-nav__link">
-              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
-              </svg>
-              <span>Vagas Fullstack</span>
-            </a>
-            <a href="#" class="aside-nav__link">
-              <svg class="aside-nav__icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-              </svg>
-              <span>Posts Salvos</span>
-            </a>
-          </nav>
+          <div class="aside-card__head">
+            <h3 class="aside-card__title">Meus Atalhos</h3>
+            <button type="button" class="aside-card__edit" id="shortcuts-edit">Editar</button>
+          </div>
+          <nav class="aside-nav" id="shortcuts-list" aria-label="Atalhos"></nav>
+          <form class="shortcut-add" id="shortcut-add" hidden>
+            <input type="text" id="shortcut-input" class="shortcut-add__input" placeholder="Novo atalho (ex.: React)" maxlength="40" autocomplete="off" />
+            <button type="submit" class="shortcut-add__btn">Adicionar</button>
+          </form>
         </section>
       </aside>
 

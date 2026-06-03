@@ -556,7 +556,7 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
   const ALLOWED = [
     'name', 'headline', 'bio', 'skills', 'github', 'linkedin',
     'available', 'avatarUrl', 'resumeUrl', 'resumeFileName', 'title',
-    'experiences', 'interests',
+    'experiences', 'interests', 'shortcuts',
   ];
 
   const updates = {};

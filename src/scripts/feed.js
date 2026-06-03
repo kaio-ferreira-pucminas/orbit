@@ -682,8 +682,70 @@
   /* =========================================================
      INIT
   ========================================================= */
+  /* ===== MEUS ATALHOS (dinâmico a partir dos interesses + editável) ===== */
+  const SHORTCUT_ICON = '<svg class="aside-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
+  let shortcutsEditing = false;
+
+  function defaultShortcuts() {
+    const interests = Array.isArray(currentUser.interests) ? currentUser.interests : [];
+    const fromInterests = interests.slice(0, 6).map(it => ({ label: it, href: '/pages/busca.html?q=' + encodeURIComponent(it) }));
+    if (fromInterests.length) return fromInterests;
+    return [
+      { label: 'Oportunidades', href: '/pages/oportunidades.html' },
+      { label: 'Mensagens', href: '/pages/mensagens.html' },
+    ];
+  }
+  function getShortcuts() {
+    return Array.isArray(currentUser.shortcuts) ? currentUser.shortcuts : defaultShortcuts();
+  }
+  function renderShortcuts() {
+    const list = $('#shortcuts-list');
+    if (!list) return;
+    const items = getShortcuts();
+    list.innerHTML = items.length ? items.map((s, i) => `
+      <div class="aside-nav__row">
+        <a href="${escapeHtml(s.href || '#')}" class="aside-nav__link">${SHORTCUT_ICON}<span>${escapeHtml(s.label)}</span></a>
+        ${shortcutsEditing ? `<button type="button" class="aside-nav__remove" data-remove="${i}" aria-label="Remover atalho">&times;</button>` : ''}
+      </div>`).join('') : '<p class="aside-nav__empty">Sem atalhos. Clique em "Editar" para adicionar.</p>';
+  }
+  async function saveShortcuts(list) {
+    currentUser.shortcuts = list;
+    try { localStorage.setItem('orbit_user', JSON.stringify(currentUser)); } catch (e) {}
+    try { await api(`/api/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify({ shortcuts: list }) }); } catch (e) {}
+  }
+  function setupShortcuts() {
+    renderShortcuts();
+    const editBtn = $('#shortcuts-edit');
+    const addForm = $('#shortcut-add');
+    const input   = $('#shortcut-input');
+    const list    = $('#shortcuts-list');
+    if (editBtn) editBtn.addEventListener('click', () => {
+      shortcutsEditing = !shortcutsEditing;
+      editBtn.textContent = shortcutsEditing ? 'Concluir' : 'Editar';
+      if (addForm) addForm.hidden = !shortcutsEditing;
+      renderShortcuts();
+    });
+    if (list) list.addEventListener('click', (e) => {
+      const rm = e.target.closest('[data-remove]');
+      if (!rm) return;
+      e.preventDefault();
+      const idx = Number(rm.getAttribute('data-remove'));
+      saveShortcuts(getShortcuts().filter((_, i) => i !== idx));
+      renderShortcuts();
+    });
+    if (addForm) addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const label = (input.value || '').trim();
+      if (!label) return;
+      saveShortcuts(getShortcuts().concat([{ label, href: '/pages/busca.html?q=' + encodeURIComponent(label) }]));
+      input.value = '';
+      renderShortcuts();
+    });
+  }
+
   (async function init() {
     renderProfileCard();
+    setupShortcuts();
     await loadFollowing();   // carrega quem já sigo antes de renderizar os botões
     loadSuggestions();
     loadPosts();
