@@ -234,9 +234,10 @@
       }
       container.innerHTML = topics.map(t => {
         const tag = t.tag.startsWith('#') ? t.tag : '#' + t.tag;
+        const q   = encodeURIComponent(tag.replace(/^#/, '')); // busca o tópico sem o "#"
         const n   = t.postsCount;
         return `
-          <a href="/pages/feed.html" class="trending-item">
+          <a href="/pages/busca.html?q=${q}" class="trending-item">
             <span class="trending-item__tag">${escapeHtml(tag)}</span>
             <span class="trending-item__meta">${n} post${n === 1 ? '' : 's'}</span>
           </a>`;
