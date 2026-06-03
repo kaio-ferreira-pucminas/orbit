@@ -162,3 +162,51 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
   .pp-banner__side{flex-direction:column;}
   .pp-projects{grid-template-columns:1fr;}
 }
+
+/* ===== Card de projeto clicável + modal (rodar a app + avaliações) ===== */
+.pp-proj-card--clickable{cursor:pointer;transition:transform .12s,box-shadow .15s;}
+.pp-proj-card--clickable:hover{transform:translateY(-3px);box-shadow:0 12px 28px -10px rgba(70,72,212,.28);}
+.pp-proj-card__cover{position:relative;}
+.pp-proj-card__live{position:absolute;top:10px;right:10px;background:rgba(22,163,74,.92);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;}
+.pp-proj-card__rating{display:inline-block;margin-top:8px;font-size:12px;font-weight:700;color:var(--amber,#f59e0b);}
+
+.pp-projmodal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}
+.pp-projmodal[hidden]{display:none;}
+.pp-projmodal__overlay{position:absolute;inset:0;background:rgba(19,27,46,.55);}
+.pp-projmodal__dialog{position:relative;z-index:1;width:100%;max-width:900px;max-height:90dvh;display:flex;flex-direction:column;background:var(--card-bg,#fff);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(19,27,46,.35);}
+.pp-projmodal__head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border-light,#eceaf5);flex-shrink:0;}
+.pp-projmodal__title{font-family:'Manrope','Inter',sans-serif;font-weight:800;font-size:18px;color:var(--text-dark,#131b2e);}
+.pp-projmodal__close{font-size:26px;line-height:1;color:var(--text-muted,#565e74);width:36px;height:36px;border-radius:8px;}
+.pp-projmodal__close:hover{background:var(--light-purple,#f2f3ff);}
+.pp-projmodal__body{overflow-y:auto;}
+.ppm-live{background:#0b1020;}
+.ppm-iframe{width:100%;height:52vh;min-height:320px;border:0;display:block;background:#fff;}
+.ppm-live__hint{font-size:12px;color:#cbd5e1;padding:8px 16px;}
+.ppm-live__hint a{color:#93c5fd;text-decoration:underline;}
+.ppm-nolive{padding:28px 20px;text-align:center;color:var(--text-muted,#565e74);font-size:14px;background:var(--light-purple,#f2f3ff);}
+.ppm-meta{padding:18px 20px;border-bottom:1px solid var(--border-light,#eceaf5);}
+.ppm-desc{font-size:14px;color:var(--text-muted,#565e74);line-height:21px;margin-bottom:10px;}
+.ppm-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;}
+.ppm-link{font-size:13px;font-weight:700;color:var(--primary,#4648d4);}
+.ppm-link:hover{text-decoration:underline;}
+.ppm-reviews{padding:18px 20px 24px;}
+.ppm-reviews__title{font-family:'Manrope','Inter',sans-serif;font-weight:800;font-size:15px;color:var(--text-dark,#131b2e);margin-bottom:12px;}
+.ppm-review-list{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.ppm-rv{background:var(--light-purple,#f2f3ff);border-radius:10px;padding:10px 14px;}
+.ppm-rv__top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ppm-rv__top strong{font-size:13px;color:var(--text-dark,#131b2e);}
+.ppm-rv__stars{color:var(--amber,#f59e0b);font-size:13px;letter-spacing:1px;}
+.ppm-rv__c{font-size:13px;color:var(--text-muted,#565e74);margin-top:4px;line-height:19px;}
+.ppm-form{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--border-purple,#e2e7ff);padding-top:14px;}
+.ppm-stars-input{display:flex;gap:4px;}
+.ppm-star{font-size:26px;line-height:1;color:#cbd5e1;transition:color .1s;background:none;}
+.ppm-star.is-on{color:var(--amber,#f59e0b);}
+.ppm-comment{width:100%;border:1px solid var(--border-purple,#e2e7ff);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:14px;resize:vertical;}
+.ppm-comment:focus{outline:none;border-color:var(--primary,#4648d4);}
+.ppm-submit{align-self:flex-start;background:var(--primary,#4648d4);color:#fff;font-weight:700;font-size:13px;padding:9px 18px;border-radius:8px;}
+.ppm-submit:hover{background:var(--primary-hover,#3537b8);}
+@media (max-width:680px){
+  .pp-projmodal{padding:0;}
+  .pp-projmodal__dialog{max-width:100%;max-height:100dvh;height:100dvh;border-radius:0;}
+  .ppm-iframe{height:46vh;}
+}
