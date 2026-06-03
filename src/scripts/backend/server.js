@@ -230,6 +230,9 @@ server.post('/api/auth/register', async (req, res) => {
     { expiresIn: JWT_EXPIRES }
   );
 
+  // Se informou o usuário do GitHub, importa os repos como projetos rascunho (2º plano)
+  if (newUser.github) importGithubProjectsBg(newUser.id);
+
   return res.status(201).json({ token, user: sanitizeUser(newUser) });
 });
 
@@ -504,7 +507,8 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     return res.status(404).json({ error: 'Usuário não encontrado.' });
   }
 
-  const projects = (db.projects || []).filter(p => p.userId === req.params.id);
+  // Só projetos ATIVOS no perfil (rascunhos importados do GitHub ficam só em "Meus Projetos")
+  const projects = (db.projects || []).filter(p => p.userId === req.params.id && p.status !== 'rascunho');
   // reviews do perfil — suporta tanto profileUserId quanto userId (compat. com seeds)
   const rawReviews = (db.reviews || []).filter(r => (r.profileUserId || r.userId) === req.params.id);
 
@@ -584,6 +588,8 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'A bio excede 2000 caracteres.' });
   }
 
+  const oldGithub = db.users[idx].github;
+
   // Atualiza
   db.users[idx] = {
     ...db.users[idx],
@@ -592,6 +598,9 @@ server.patch('/api/users/:id', requireAuth, (req, res) => {
   };
 
   saveDb(db);
+
+  // GitHub informado/alterado → importa os projetos como rascunho (2º plano)
+  if (updates.github && updates.github !== oldGithub) importGithubProjectsBg(db.users[idx].id);
 
   return res.status(200).json(sanitizeUser(db.users[idx]));
 });
@@ -1860,6 +1869,213 @@ server.use('/uploads', express.static(UPLOADS_DIR));
 server.use('/scripts/backend', (req, res) => res.status(404).end());
 // Páginas, estilos, scripts do front (pasta src/)
 server.use(express.static(FRONTEND_DIR));
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  GITHUB + PROJETOS  (CRUD com auth/ownership, avaliações e import do GitHub)
+//  Registrado ANTES do json-server para ter precedência sobre o /api/projects automático.
+// ═══════════════════════════════════════════════════════════════════════════
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
+
+async function ghJson(path) {
+  const headers = { 'Accept': 'application/vnd.github+json', 'User-Agent': 'orbit-app' };
+  if (GITHUB_TOKEN) headers['Authorization'] = 'Bearer ' + GITHUB_TOKEN;
+  const r = await fetch('https://api.github.com' + path, { headers });
+  if (!r.ok) { const e = new Error('GitHub ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+// URL publicada (live) do repo: usa homepage quando preenchida (detecção de Pages exige auth).
+function repoLiveUrl(repo) {
+  return (repo.homepage && /^https?:\/\//i.test(repo.homepage)) ? repo.homepage : null;
+}
+const PROJ_GRADS = [
+  'linear-gradient(135deg,#131b2e 0%,#4648d4 100%)', 'linear-gradient(135deg,#4648d4 0%,#6063ee 100%)',
+  'linear-gradient(135deg,#0f172a 0%,#334155 100%)', 'linear-gradient(135deg,#7c3aed 0%,#4648d4 100%)',
+];
+function mapRepoToProject(repo, userId) {
+  const techs = [];
+  if (repo.language) techs.push(repo.language);
+  (repo.topics || []).slice(0, 5).forEach(t => { if (!techs.includes(t)) techs.push(t); });
+  return {
+    userId,
+    title:         repo.name,
+    description:   repo.description || 'Projeto importado do GitHub.',
+    technologies:  techs.length ? techs : ['Código'],
+    repoUrl:       repo.html_url,
+    liveUrl:       repoLiveUrl(repo),
+    coverGradient: PROJ_GRADS[(repo.id || 0) % PROJ_GRADS.length],
+    language:      repo.language || null,
+    stars:         repo.stargazers_count || 0,
+    year:          repo.created_at ? new Date(repo.created_at).getFullYear() : null,
+    source:        'github',
+    githubRepoId:  repo.id,
+    status:        'rascunho',
+  };
+}
+// Importa os repos públicos (não-forks) do usuário como projetos RASCUNHO (dedup por githubRepoId).
+async function importGithubProjects(db, user) {
+  if (!user || !user.github) return 0;
+  let repos;
+  try { repos = await ghJson('/users/' + encodeURIComponent(user.github) + '/repos?per_page=100&sort=updated&type=owner'); }
+  catch (e) { console.warn('Import GitHub falhou:', e.message); return 0; }
+  if (!Array.isArray(repos)) return 0;
+  db.projects = db.projects || [];
+  let added = 0;
+  for (const repo of repos) {
+    if (repo.fork) continue;
+    if (db.projects.find(p => p.userId === user.id && p.githubRepoId === repo.id)) continue;
+    db.projects.push(Object.assign({ id: generateId(), createdAt: new Date().toISOString() }, mapRepoToProject(repo, user.id)));
+    added++;
+  }
+  if (added) saveDb(db);
+  return added;
+}
+// Dispara import em segundo plano (não bloqueia a resposta).
+function importGithubProjectsBg(userId) {
+  setTimeout(() => {
+    try { const db = getDb(); const u = db.users.find(x => x.id === userId); if (u) importGithubProjects(db, u).catch(() => {}); }
+    catch (e) { /* silencioso */ }
+  }, 50);
+}
+
+// GET /api/github/repos?username=
+server.get('/api/github/repos', requireAuth, async (req, res) => {
+  const u = (req.query.username || '').trim();
+  if (!u) return res.status(400).json({ error: 'username é obrigatório.' });
+  try {
+    const repos = await ghJson('/users/' + encodeURIComponent(u) + '/repos?per_page=100&sort=updated&type=owner');
+    res.json((repos || []).map(r => ({ id: r.id, name: r.name, description: r.description, html_url: r.html_url, homepage: r.homepage, language: r.language, topics: r.topics || [], stars: r.stargazers_count, fork: r.fork, updatedAt: r.updated_at })));
+  } catch (e) { res.status(e.status === 404 ? 404 : 502).json({ error: 'GitHub indisponível (' + (e.status || 'erro') + ').' }); }
+});
+// GET /api/github/pages?username= — URL publicada por repo (homepage)
+server.get('/api/github/pages', requireAuth, async (req, res) => {
+  const u = (req.query.username || '').trim();
+  if (!u) return res.status(400).json({ error: 'username é obrigatório.' });
+  try {
+    const repos = await ghJson('/users/' + encodeURIComponent(u) + '/repos?per_page=100&type=owner');
+    res.json((repos || []).filter(r => !r.fork).map(r => ({ repo: r.name, liveUrl: repoLiveUrl(r) })).filter(x => x.liveUrl));
+  } catch (e) { res.status(502).json({ error: 'GitHub indisponível.' }); }
+});
+// GET /api/github/contributions?username= — GraphQL c/ token; senão parse do HTML público
+server.get('/api/github/contributions', requireAuth, async (req, res) => {
+  const u = (req.query.username || '').trim();
+  if (!u) return res.status(400).json({ error: 'username é obrigatório.' });
+  try {
+    if (GITHUB_TOKEN) {
+      const q = { query: 'query($login:String!){user(login:$login){contributionsCollection{contributionCalendar{totalContributions weeks{contributionDays{date contributionCount contributionLevel}}}}}}', variables: { login: u } };
+      const r = await fetch('https://api.github.com/graphql', { method: 'POST', headers: { 'Authorization': 'Bearer ' + GITHUB_TOKEN, 'Content-Type': 'application/json', 'User-Agent': 'orbit-app' }, body: JSON.stringify(q) });
+      const d = await r.json();
+      const cal = d && d.data && d.data.user && d.data.user.contributionsCollection && d.data.user.contributionsCollection.contributionCalendar;
+      if (cal) {
+        const LV = { NONE: 0, FIRST_QUARTILE: 1, SECOND_QUARTILE: 2, THIRD_QUARTILE: 3, FOURTH_QUARTILE: 4 };
+        const days = [];
+        cal.weeks.forEach(w => w.contributionDays.forEach(dd => days.push({ date: dd.date, count: dd.contributionCount, level: LV[dd.contributionLevel] || 0 })));
+        return res.json({ totalLastYear: cal.totalContributions, days, source: 'graphql' });
+      }
+    }
+    const r = await fetch('https://github.com/users/' + encodeURIComponent(u) + '/contributions', { headers: { 'User-Agent': 'orbit-app', 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!r.ok) throw new Error('html ' + r.status);
+    const html = await r.text();
+    const days = []; const re = /data-date="(\d{4}-\d{2}-\d{2})"[^>]*?data-level="(\d)"/g; let m;
+    while ((m = re.exec(html))) days.push({ date: m[1], count: null, level: +m[2] });
+    return res.json({ totalLastYear: null, days, source: 'html', note: days.length ? undefined : 'indisponível' });
+  } catch (e) { res.status(502).json({ error: 'Contribuições indisponíveis.', days: [] }); }
+});
+// GET /api/github/projects?username= — repos mapeados p/ o nosso formato (preview)
+server.get('/api/github/projects', requireAuth, async (req, res) => {
+  const u = (req.query.username || '').trim();
+  if (!u) return res.status(400).json({ error: 'username é obrigatório.' });
+  try {
+    const repos = await ghJson('/users/' + encodeURIComponent(u) + '/repos?per_page=100&sort=updated&type=owner');
+    res.json((repos || []).filter(r => !r.fork).map(r => mapRepoToProject(r, req.user.id)));
+  } catch (e) { res.status(502).json({ error: 'GitHub indisponível.' }); }
+});
+// POST /api/github/sync — importa os repos do usuário logado como rascunhos (awaitable)
+server.post('/api/github/sync', requireAuth, async (req, res) => {
+  const db = getDb();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user || !user.github) return res.status(400).json({ error: 'Defina seu usuário do GitHub no perfil primeiro.' });
+  const added = await importGithubProjects(db, user);
+  res.json({ added });
+});
+
+// ── PROJETOS: CRUD (auth + ownership) ──
+server.post('/api/projects', requireAuth, (req, res) => {
+  const b = req.body || {};
+  if (!b.title || !String(b.title).trim()) return res.status(400).json({ error: 'O título é obrigatório.' });
+  const db = getDb();
+  const project = {
+    id: generateId(), userId: req.user.id,
+    title: String(b.title).trim(),
+    description: b.description || '',
+    technologies: Array.isArray(b.technologies) ? b.technologies : (Array.isArray(b.stack) ? b.stack : []),
+    repoUrl: b.repoUrl || b.demoUrl || null,
+    liveUrl: b.liveUrl || null,
+    coverGradient: b.coverGradient || PROJ_GRADS[0],
+    status: b.status === 'rascunho' ? 'rascunho' : 'ativo',
+    source: 'manual',
+    year: b.year || new Date().getFullYear(),
+    createdAt: new Date().toISOString(),
+  };
+  db.projects = db.projects || [];
+  db.projects.push(project);
+  saveDb(db);
+  res.status(201).json(project);
+});
+server.patch('/api/projects/:id', requireAuth, (req, res) => {
+  const db = getDb();
+  const idx = (db.projects || []).findIndex(p => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Projeto não encontrado.' });
+  if (db.projects[idx].userId !== req.user.id) return res.status(403).json({ error: 'Você só pode editar seus projetos.' });
+  const ALLOWED = ['title', 'description', 'technologies', 'repoUrl', 'liveUrl', 'demoUrl', 'coverGradient', 'status', 'year', 'category'];
+  const updates = {};
+  for (const k of ALLOWED) if (k in (req.body || {})) updates[k] = req.body[k];
+  if ('status' in updates && !['ativo', 'rascunho'].includes(updates.status)) delete updates.status;
+  db.projects[idx] = { ...db.projects[idx], ...updates, updatedAt: new Date().toISOString() };
+  saveDb(db);
+  res.json(db.projects[idx]);
+});
+server.delete('/api/projects/:id', requireAuth, (req, res) => {
+  const db = getDb();
+  const proj = (db.projects || []).find(p => p.id === req.params.id);
+  if (!proj) return res.status(404).json({ error: 'Projeto não encontrado.' });
+  if (proj.userId !== req.user.id) return res.status(403).json({ error: 'Você só pode excluir seus projetos.' });
+  db.projects = db.projects.filter(p => p.id !== req.params.id);
+  db.projectReviews = (db.projectReviews || []).filter(r => r.projectId !== req.params.id);
+  saveDb(db);
+  res.json({ ok: true });
+});
+
+// ── AVALIAÇÕES DE PROJETO (recrutadores e devs podem avaliar) ──
+function recomputeProjectRating(db, projectId) {
+  const rs = (db.projectReviews || []).filter(r => r.projectId === projectId);
+  const idx = (db.projects || []).findIndex(p => p.id === projectId);
+  if (idx === -1) return;
+  db.projects[idx].ratingAvg = rs.length ? +(rs.reduce((a, r) => a + (r.rating || 0), 0) / rs.length).toFixed(1) : 0;
+  db.projects[idx].ratingCount = rs.length;
+}
+server.get('/api/projects/:id/reviews', requireAuth, (req, res) => {
+  const db = getDb();
+  const rs = (db.projectReviews || []).filter(r => r.projectId === req.params.id)
+    .map(r => { const a = db.users.find(u => u.id === r.authorId); return { ...r, authorName: a ? a.name : 'Usuário', authorAvatar: a ? a.avatarUrl : null, authorType: a ? a.type : null }; })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json(rs);
+});
+server.post('/api/projects/:id/reviews', requireAuth, (req, res) => {
+  const db = getDb();
+  const proj = (db.projects || []).find(p => p.id === req.params.id);
+  if (!proj) return res.status(404).json({ error: 'Projeto não encontrado.' });
+  if (proj.userId === req.user.id) return res.status(400).json({ error: 'Você não pode avaliar o próprio projeto.' });
+  const rating = Math.max(0, Math.min(5, parseInt(req.body && req.body.rating, 10) || 0));
+  if (!rating) return res.status(400).json({ error: 'Dê uma nota de 1 a 5.' });
+  db.projectReviews = db.projectReviews || [];
+  const existing = db.projectReviews.find(r => r.projectId === proj.id && r.authorId === req.user.id);
+  if (existing) { existing.rating = rating; existing.comment = (req.body.comment || '').trim(); existing.createdAt = new Date().toISOString(); }
+  else db.projectReviews.push({ id: generateId(), projectId: proj.id, authorId: req.user.id, rating, comment: (req.body.comment || '').trim(), createdAt: new Date().toISOString() });
+  recomputeProjectRating(db, proj.id);
+  saveDb(db);
+  const updated = db.projects.find(p => p.id === proj.id);
+  res.status(201).json({ ok: true, ratingAvg: updated.ratingAvg, ratingCount: updated.ratingCount });
+});
 
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));

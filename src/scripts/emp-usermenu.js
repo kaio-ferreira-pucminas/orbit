@@ -7,6 +7,7 @@
 
   const USER_SVG   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   const LOGOUT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  const DASH_SVG   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
 
   // CSS do dropdown (injetado uma vez). Antes dependia do CSS da página: nas telas que
   // não carregam empresa.css (ex.: Busca de Talentos) o menu ficava sem estilo/"bugado".
@@ -47,10 +48,14 @@
     avatar.setAttribute('aria-expanded', 'false');
     avatar.setAttribute('tabindex', '0');
 
+    let _u = null; try { _u = JSON.parse(localStorage.getItem('orbit_user') || 'null'); } catch (e) {}
+    const dashHref = (_u && _u.type === 'company') ? '/pages/empresa-dashboard.html' : '/pages/dashboard.html';
+
     const dd = document.createElement('div');
     dd.className = 'emp-usermenu__dropdown';
     dd.setAttribute('role', 'menu');
     dd.innerHTML =
+      `<a href="${dashHref}" class="emp-usermenu__item" role="menuitem">${DASH_SVG}<span>Ir para o dashboard</span></a>` +
       `<a href="/pages/profile.html" class="emp-usermenu__item" role="menuitem">${USER_SVG}<span>Ir para o perfil</span></a>` +
       `<button type="button" class="emp-usermenu__item emp-usermenu__item--danger" id="emp-usermenu-logout" role="menuitem">${LOGOUT_SVG}<span>Sair</span></button>`;
     wrap.appendChild(dd);
