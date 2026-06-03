@@ -10,6 +10,16 @@
     const sidebar = document.querySelector('.emp-sidebar, .dash-sidebar');
     if (!sidebar || document.getElementById('ms-toggle-btn')) return;
 
+    // Brand da empresa: usa a foto/logo da empresa no ícone do topo da sidebar (se houver)
+    try {
+      const u = JSON.parse(localStorage.getItem('orbit_user') || 'null');
+      const brandLogo = document.querySelector('.emp-sidebar__logo-icon');
+      if (u && u.avatarUrl && brandLogo) {
+        brandLogo.style.overflow = 'hidden';
+        brandLogo.innerHTML = '<img src="' + String(u.avatarUrl).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" />';
+      }
+    } catch (e) { /* ignora */ }
+
     if (!document.getElementById('mobile-sidebar-style')) {
       const css = `
         #ms-toggle-btn{display:none;}
