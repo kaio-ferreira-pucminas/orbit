@@ -38,9 +38,12 @@
       @media (max-width:900px){
         /* Botão hambúrguer (vira X ao abrir) */
         #ms-toggle-btn{display:flex;position:fixed;top:10px;left:10px;z-index:1200;width:42px;height:42px;border-radius:10px;background:#fff;border:1px solid rgba(199,196,215,.55);box-shadow:0 4px 14px rgba(19,27,46,.16);align-items:center;justify-content:center;color:#131b2e;cursor:pointer;transition:left .28s ease;}
-        body.ms-open #ms-toggle-btn{left:calc(var(--sidebar-w, 256px) - 52px);}
+        body.ms-open #ms-toggle-btn{left:calc(var(--sidebar-w, 256px) - 44px);width:34px;height:34px;border-radius:8px;}
+        body.ms-open #ms-toggle-btn svg{width:18px;height:18px;}
         body.ms-open #ms-toggle-btn .ms-ico-open{display:none;}
         body.ms-open #ms-toggle-btn .ms-ico-close{display:block;}
+        /* Folga no texto do brand p/ o X não cobrir o nome */
+        body.ms-open .dash-sidebar__brand-text,body.ms-open .emp-sidebar__brand-text{padding-right:44px;}
         /* Sidebars deslizam para fora da tela (off-canvas), altura visível (dvh) */
         .emp-sidebar,.dash-sidebar{width:var(--sidebar-w)!important;height:100vh!important;height:100dvh!important;overflow-y:auto;transform:translateX(-100%);transition:transform .28s ease;z-index:1100;box-shadow:6px 0 40px rgba(19,27,46,.22);}
         body.ms-open .emp-sidebar,body.ms-open .dash-sidebar{transform:translateX(0);}
@@ -67,7 +70,7 @@
         .msg-list-panel__header{padding-left:56px!important;}
         /* Sino fixo no canto superior direito (segue o scroll) */
         .dash-welcome #orbit-notif{position:fixed!important;top:10px!important;right:10px!important;left:auto!important;z-index:1200;}
-        .ms-floating-notif{display:block;position:fixed;top:10px;right:10px;left:auto;z-index:1200;}
+        .ms-floating-notif{display:block;position:fixed!important;top:10px!important;right:10px!important;left:auto!important;bottom:auto!important;z-index:1200;}
         body.ms-open .dash-welcome #orbit-notif,body.ms-open .ms-floating-notif{display:none;}
         /* Backdrop */
         .ms-backdrop{display:block;}
