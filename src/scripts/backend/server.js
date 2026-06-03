@@ -1494,7 +1494,7 @@ server.get('/api/feed/me', requireAuth, (req, res) => {
       likedByMe:     likes.some(l => l.userId === me),
       _score:        +score.toFixed(3),
     };
-  }).sort((a, b) => b._score - a._score);
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // feed cronológico (mais recente primeiro)
 
   return res.status(200).json(ranked);
 });

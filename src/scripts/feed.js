@@ -420,9 +420,11 @@
 
       window.showToast('Publicação criada!', 'success');
       collapseComposer();
-      // Re-ranqueia o feed pelo algoritmo (o post novo sobe por autoria + recência)
-      // e atualiza os tópicos em alta (o conteúdo novo pode mudar o ranking).
-      loadPosts();
+      // Post recém-criado pelo próprio usuário: fixa no topo do MEU feed (até dar F5)
+      // e aparece na hora (otimista), sem esperar novo fetch.
+      if (data && data.id) { sessionPostIds.unshift(data.id); feedPosts.unshift(data); }
+      renderFeed();
+      hideNewPostsButton();
       loadTrending();
 
     } catch {
@@ -658,25 +660,81 @@
   /* =========================================================
      LOAD POSTS
   ========================================================= */
+  /* ===== Estado do feed (cronológico + pin dos posts da sessão) ===== */
+  let feedPosts = [];           // posts atuais (servidor + otimistas do autor)
+  const sessionPostIds = [];    // ids criados nesta sessão → fixados no topo (só pro autor, some no F5)
+  let displayedIds = new Set(); // ids exibidos (baseline p/ detectar novos)
+  let pendingFeed = null;       // feed do polling (carregado ao clicar no botão)
+
+  // Posts da sessão (mais novo primeiro) fixados no topo; depois o restante (sem duplicar).
+  function orderedFeed() {
+    const byId = new Map();
+    feedPosts.forEach(p => { if (p && !byId.has(p.id)) byId.set(p.id, p); });
+    const pinned = [];
+    sessionPostIds.forEach(id => { if (byId.has(id)) { pinned.push(byId.get(id)); byId.delete(id); } });
+    return pinned.concat([...byId.values()]);
+  }
+
+  function renderFeed() {
+    const container = $('#post-feed');
+    const ordered = orderedFeed();
+    if (!ordered.length) {
+      container.innerHTML = '<div class="post-feed__empty">Nenhuma publicação ainda. Seja o primeiro!</div>';
+      displayedIds = new Set();
+      return;
+    }
+    container.innerHTML = ordered.map(renderPost).join('');
+    $$('.post', container).forEach(attachPostHandlers);
+    displayedIds = new Set(ordered.map(p => p.id));
+  }
+
   async function loadPosts() {
     const container = $('#post-feed');
     try {
-      // Feed personalizado (algoritmo de grafo). Mesmo formato do /api/posts.
       const res = await api('/api/feed/me');
       const data = await res.json();
-      if (!res.ok) {
-        container.innerHTML = '<div class="post-feed__empty">Erro ao carregar posts.</div>';
-        return;
-      }
-      if (data.length === 0) {
-        container.innerHTML = '<div class="post-feed__empty">Nenhuma publicação ainda. Seja o primeiro!</div>';
-        return;
-      }
-      container.innerHTML = data.map(renderPost).join('');
-      $$('.post', container).forEach(attachPostHandlers);
+      if (!res.ok) { container.innerHTML = '<div class="post-feed__empty">Erro ao carregar posts.</div>'; return; }
+      feedPosts = data;
+      renderFeed();
+      hideNewPostsButton();
     } catch {
       container.innerHTML = '<div class="post-feed__empty">Não foi possível carregar o feed. Verifique se o backend está rodando.</div>';
     }
+  }
+
+  /* ===== Botão flutuante "Visualizar posts recentes" (estilo X) ===== */
+  async function checkNewPosts() {
+    try {
+      const res = await api('/api/feed/me');
+      if (!res.ok) return;
+      const data = await res.json();
+      pendingFeed = data;
+      // posts novos de OUTROS usuários (não exibidos ainda e não meus)
+      const novos = data.filter(p => p && !displayedIds.has(p.id) && p.author && p.author.id !== currentUser.id);
+      if (novos.length) showNewPostsButton(novos.length); else hideNewPostsButton();
+    } catch { /* silencioso */ }
+  }
+  function showNewPostsButton(count) {
+    let btn = document.getElementById('new-posts-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'new-posts-btn';
+      btn.type = 'button';
+      btn.className = 'new-posts-btn';
+      btn.addEventListener('click', () => {
+        if (pendingFeed) { feedPosts = pendingFeed; pendingFeed = null; }
+        renderFeed();
+        hideNewPostsButton();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      document.body.appendChild(btn);
+    }
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg><span>Visualizar posts recentes' + (count > 1 ? ' (' + count + ')' : '') + '</span>';
+    btn.classList.add('new-posts-btn--show');
+  }
+  function hideNewPostsButton() {
+    const btn = document.getElementById('new-posts-btn');
+    if (btn) btn.classList.remove('new-posts-btn--show');
   }
 
   /* =========================================================
@@ -760,8 +818,12 @@
     if (now - _lastResync < 1500) return; // evita disparo duplicado (pageshow + visibilitychange)
     _lastResync = now;
     loadFollowing().then(loadSuggestions);
+    checkNewPosts(); // checa se há posts novos de outros (mostra o botão flutuante)
   }
   window.addEventListener('pageshow', (e) => { if (e.persisted) resyncFollowState(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resyncFollowState(); });
+
+  // Polling em background para detectar novos posts (sem re-renderizar; só mostra o botão)
+  setInterval(() => { if (document.visibilityState === 'visible') checkNewPosts(); }, 30000);
 
 })();
