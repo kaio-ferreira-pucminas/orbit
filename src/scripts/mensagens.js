@@ -209,6 +209,7 @@
     $('#chat-empty').hidden  = true;
     $('#chat-active').hidden = false;
     $('.msg-main').setAttribute('data-view', 'chat');
+    document.body.classList.add('msg-in-chat'); // mobile: esconde o hambúrguer enquanto vê a conversa
 
     // Carrega histórico
     const history = $('#chat-history');
@@ -455,11 +456,19 @@
       if (nearBottom) { hideScrollBtn(); if (activeConvId) markRead(activeConvId); }
       else { showScrollBtn(unseenBelow); } // visível quando rolado pra cima (badge só se houver novas)
     });
+
+    // Botão "voltar" (mobile): retorna à lista de conversas para escolher outra
+    const backBtn = $('#chat-back');
+    if (backBtn) backBtn.addEventListener('click', () => {
+      $('.msg-main').setAttribute('data-view', 'list');
+      document.body.classList.remove('msg-in-chat');
+    });
   }
 
   /* ===== INIT ===== */
   async function init() {
     setupEvents();
+    $('.msg-main').setAttribute('data-view', 'list'); // mobile: começa mostrando a lista
     await loadConversations();
 
     // Deep-link: ?c=<idConversa> abre a conversa indicada (vindo do perfil/notificação)

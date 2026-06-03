@@ -90,6 +90,7 @@ ul, ol { list-style: none; }
 .msg-main {
   margin-left: var(--sidebar-w);
   height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-columns: var(--convlist-w) 1fr;
 }
@@ -102,6 +103,7 @@ ul, ol { list-style: none; }
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   background: var(--dash-bg);
 }
 .msg-list-panel__header {
@@ -164,7 +166,7 @@ ul, ol { list-style: none; }
 /* ============================================================
    PAINEL: CHAT
 ============================================================ */
-.msg-chat-panel { height: 100vh; display: flex; flex-direction: column; background: var(--card-bg); }
+.msg-chat-panel { height: 100vh; height: 100dvh; display: flex; flex-direction: column; background: var(--card-bg); }
 
 /* Estado vazio */
 .msg-chat-empty {
@@ -179,9 +181,14 @@ ul, ol { list-style: none; }
 .msg-chat { flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative; }
 
 .msg-chat__header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: flex-start; gap: 4px;
   padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0;
 }
+.msg-chat__back {
+  display: none; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center;
+  border: none; background: none; border-radius: 8px; color: var(--text-dark); cursor: pointer; padding: 0;
+}
+.msg-chat__back:hover { background: var(--light-purple); }
 .msg-chat__contact { display: flex; align-items: center; gap: 12px; }
 .msg-chat__avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--lighter-purple);
@@ -235,7 +242,8 @@ ul, ol { list-style: none; }
 
 .msg-chat__composer {
   display: flex; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--border-light);
-  flex-shrink: 0; align-items: center;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  flex-shrink: 0; align-items: center; background: var(--card-bg);
 }
 .msg-chat__input {
   flex: 1; padding: 12px 16px; border: 1px solid var(--border-purple); border-radius: var(--radius);
@@ -314,4 +322,6 @@ ul, ol { list-style: none; }
   /* Em telas pequenas, mostra um painel por vez (lista por padrão) */
   .msg-main[data-view="chat"] .msg-list-panel { display: none; }
   .msg-main[data-view="list"] .msg-chat-panel { display: none; }
+  .msg-chat__back { display: flex; }                  /* botão "voltar" para a lista (mobile) */
+  body.msg-in-chat #ms-toggle-btn { display: none; }  /* dentro de uma conversa, esconde o hambúrguer (não sobrepõe o avatar) */
 }
