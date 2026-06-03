@@ -8,10 +8,32 @@
   const USER_SVG   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   const LOGOUT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
 
+  // CSS do dropdown (injetado uma vez). Antes dependia do CSS da página: nas telas que
+  // não carregam empresa.css (ex.: Busca de Talentos) o menu ficava sem estilo/"bugado".
+  function ensureStyles() {
+    if (document.getElementById('emp-usermenu-style')) return;
+    const css =
+      '.emp-usermenu{position:relative;}' +
+      '.emp-usermenu__dropdown{position:absolute;top:calc(100% + 8px);right:0;width:220px;background:#fff;border:1px solid var(--border-purple,#e2e7ff);border-radius:var(--radius,12px);box-shadow:0 8px 24px rgba(19,27,46,.12);padding:6px;z-index:200;opacity:0;pointer-events:none;transform:translateY(-4px) scale(.98);transform-origin:top right;transition:opacity .15s ease,transform .15s ease;}' +
+      '.emp-usermenu--open .emp-usermenu__dropdown{opacity:1;pointer-events:auto;transform:none;}' +
+      '.emp-usermenu__item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;background:none;border-radius:var(--radius-sm,8px);cursor:pointer;text-decoration:none;font-size:14px;font-weight:500;color:var(--text-dark,#131b2e);text-align:left;font-family:inherit;}' +
+      '.emp-usermenu__item:hover{background:var(--light-purple,#f2f3ff);color:var(--primary,#4648d4);}' +
+      '.emp-usermenu__item svg{flex-shrink:0;color:var(--text-muted,#5c647a);}' +
+      '.emp-usermenu__item:hover svg{color:var(--primary,#4648d4);}' +
+      '.emp-usermenu__item--danger{color:#c0392b;}' +
+      '.emp-usermenu__item--danger svg{color:#c0392b;}' +
+      '.emp-usermenu__item--danger:hover{background:#fef2f2;color:#c0392b;}';
+    const st = document.createElement('style');
+    st.id = 'emp-usermenu-style';
+    st.textContent = css;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
   function init() {
     const avatar = document.getElementById('emp-avatar');
     if (!avatar || avatar.dataset.menuDone) return;
     avatar.dataset.menuDone = '1';
+    ensureStyles();
 
     // Envolve o avatar num wrapper relativo e injeta o dropdown
     const wrap = document.createElement('div');
