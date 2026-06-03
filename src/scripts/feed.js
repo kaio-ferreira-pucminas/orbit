@@ -690,4 +690,16 @@
     loadTrending();
   })();
 
+  // Ao voltar para o feed (botão Voltar/bfcache ou retorno de aba), re-busca sugestões
+  // + estado de "seguindo": quem você passou a seguir some das sugestões e os botões atualizam.
+  let _lastResync = 0;
+  function resyncFollowState() {
+    const now = Date.now();
+    if (now - _lastResync < 1500) return; // evita disparo duplicado (pageshow + visibilitychange)
+    _lastResync = now;
+    loadFollowing().then(loadSuggestions);
+  }
+  window.addEventListener('pageshow', (e) => { if (e.persisted) resyncFollowState(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resyncFollowState(); });
+
 })();
