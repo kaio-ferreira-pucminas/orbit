@@ -15,6 +15,28 @@
   }
   const currentUser = JSON.parse(userJson);
 
+  /* ===== ALTURA REAL DA VIEWPORT =====
+     Corrige o "espaço vazio" abaixo do input no mobile (iOS Chrome/Safari e Android):
+     o 100dvh às vezes NÃO reflete a área visível real (barras do navegador/teclado),
+     deixando um vão grande e empurrando o header (voltar) pra fora da tela. A
+     VisualViewport dá a altura visível verdadeira; espelhamos em --app-height,
+     usada pelo body e pelos painéis do chat (ver mensagens.css). */
+  (function appHeight() {
+    const root = document.documentElement;
+    function set() {
+      const vv = window.visualViewport;
+      const h = (vv && vv.height) ? vv.height : window.innerHeight;
+      if (h) root.style.setProperty('--app-height', Math.round(h) + 'px');
+    }
+    set();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', set);
+      window.visualViewport.addEventListener('scroll', set);
+    }
+    window.addEventListener('resize', set);
+    window.addEventListener('orientationchange', function () { setTimeout(set, 250); });
+  })();
+
   /* ===== HELPERS ===== */
   function $(s, root) { return (root || document).querySelector(s); }
 

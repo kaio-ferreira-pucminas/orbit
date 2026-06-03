@@ -32,6 +32,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-dark);
   height: 100vh;
+  height: var(--app-height, 100dvh); /* altura real da viewport (definida via JS — VisualViewport) */
   overflow: hidden;
 }
 
@@ -91,6 +92,7 @@ ul, ol { list-style: none; }
   margin-left: var(--sidebar-w);
   height: 100vh;
   height: 100dvh;
+  height: var(--app-height, 100dvh);
   display: grid;
   grid-template-columns: var(--convlist-w) 1fr;
 }
@@ -104,6 +106,7 @@ ul, ol { list-style: none; }
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
+  height: var(--app-height, 100dvh);
   background: var(--dash-bg);
 }
 .msg-list-panel__header {
@@ -166,7 +169,7 @@ ul, ol { list-style: none; }
 /* ============================================================
    PAINEL: CHAT
 ============================================================ */
-.msg-chat-panel { height: 100vh; height: 100dvh; display: flex; flex-direction: column; background: var(--card-bg); }
+.msg-chat-panel { height: 100vh; height: 100dvh; height: var(--app-height, 100dvh); display: flex; flex-direction: column; background: var(--card-bg); }
 
 /* Estado vazio */
 .msg-chat-empty {
