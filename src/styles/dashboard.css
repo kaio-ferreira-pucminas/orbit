@@ -178,6 +178,14 @@ ul, ol { list-style: none; }
   justify-content: space-between;
   margin-bottom: 48px;
 }
+.dash-welcome__actions { display: flex; align-items: center; gap: 16px; }
+.dash-welcome__notif {
+  width: 44px; height: 44px; border-radius: var(--radius, 12px);
+  background: var(--card-bg, #fff); border: 1px solid var(--border-light, #ececf2); color: var(--text-muted, #464554);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.dash-welcome__notif:hover { background: var(--light-purple, #f2f3ff); color: var(--primary, #4648d4); }
 
 .dash-welcome__title {
   font-family: 'Manrope', sans-serif;

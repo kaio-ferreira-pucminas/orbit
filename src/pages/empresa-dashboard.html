@@ -98,11 +98,14 @@
         <input type="search" placeholder="Buscar talentos ou vagas..." aria-label="Buscar" />
       </div>
       <div class="emp-topbar__actions">
-        <button class="emp-topbar__icon-btn" aria-label="Notificações" id="emp-notif-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
-        </button>
+        <div class="orbit-notif" id="orbit-notif">
+          <button class="emp-topbar__icon-btn orbit-notif__btn" id="notif-btn" aria-label="Notificações" title="Notificações" aria-haspopup="true" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span class="orbit-notif__badge" id="notif-badge" hidden>0</span>
+          </button>
+        </div>
         <button class="emp-topbar__icon-btn" aria-label="Configurações">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -201,6 +204,7 @@
 
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
+  <script src="../scripts/notifications.js"></script>
   <script src="../scripts/empresa-dashboard.js"></script>
   <script src="../scripts/emp-usermenu.js"></script>
   <script src="../scripts/mobile-sidebar.js"></script>

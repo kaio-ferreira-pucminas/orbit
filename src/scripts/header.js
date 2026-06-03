@@ -74,22 +74,8 @@
       .oh-usermenu__item--danger svg{color:#c0392b;}
       .oh-usermenu__item--danger:hover{background:#fef2f2;color:#c0392b;}
 
-      /* ===== Dropdown de notificações (contrato do notifications.js) ===== */
-      .orbit-notif{position:relative;}
-      .orbit-notif__btn{position:relative;}
-      .orbit-notif__badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;}
-      .orbit-notif__dropdown{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-height:420px;background:#fff;border:1px solid #e2e7ff;border-radius:12px;box-shadow:0 12px 32px rgba(19,27,46,.18);z-index:300;display:flex;flex-direction:column;overflow:hidden;}
-      .orbit-notif__header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e2e7ff;}
-      .orbit-notif__title{font-family:'Manrope','Inter',sans-serif;font-weight:800;font-size:15px;color:#131b2e;}
-      .orbit-notif__mark{font-size:12px;font-weight:700;color:#4648d4;background:none;border:none;cursor:pointer;}
-      .orbit-notif__mark:hover{opacity:.75;}
-      .orbit-notif__list{overflow-y:auto;display:flex;flex-direction:column;}
-      .orbit-notif__item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #e2e7ff;align-items:center;}
-      .orbit-notif__item--unread{background:rgba(70,72,212,.04);}
-      .orbit-notif__body{flex:1;min-width:0;}
-      .orbit-notif__msg{font-size:13px;color:#131b2e;line-height:18px;margin:0;}
-      .orbit-notif__time{font-size:11px;color:#464554;margin:2px 0 0;}
-      .orbit-notif__empty{padding:24px 16px;text-align:center;font-size:13px;color:#464554;}
+      /* O CSS do sino/dropdown (.orbit-notif*) é injetado pelo notifications.js
+         (autossuficiente), que o loadDeps já carrega — evita duplicação aqui. */
 
       /* ===== Busca ===== */
       .oh-search{position:relative;display:flex;align-items:center;}
@@ -119,8 +105,7 @@
         .oh-header--menu-open .oh-nav{display:flex;animation:oh-slidedown .18s ease;}
         .oh-nav .oh-link{font-size:16px;padding:12px 10px;border-bottom:none;border-radius:8px;}
         .oh-nav .oh-link--active{background:#f2f3ff;border-bottom:none;}
-        /* Notificações e busca: fixos, ocupando a tela com margem */
-        .orbit-notif__dropdown{position:fixed;top:60px;left:8px;right:8px;width:auto;max-height:72vh;}
+        /* Busca: fixa, ocupando a tela com margem (o dropdown do sino é tratado pelo notifications.js) */
         .oh-search--open .oh-search__input{position:fixed;top:8px;left:8px;right:8px;width:auto;z-index:400;height:42px;padding:0 12px;border-color:#4648d4;margin:0;}
         .oh-search__modal{position:fixed;top:58px;left:8px;right:8px;width:auto;max-height:70vh;}
       }

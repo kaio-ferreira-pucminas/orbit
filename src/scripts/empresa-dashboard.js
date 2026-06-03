@@ -147,9 +147,7 @@
     $('#btn-novo-job').addEventListener('click', () => {
       toast('A criação de vagas estará disponível em breve.', 'info');
     });
-    $('#emp-notif-btn').addEventListener('click', () => {
-      toast('Central de notificações em breve.', 'info');
-    });
+    // O sino de notificações é controlado pelo notifications.js (markup #orbit-notif).
   }
 
   /* ===== INIT ===== */

@@ -1,17 +1,21 @@
 // notifications.js — Orbit · Sistema de Notificações (#11 — Tiago)
-// Componente transversal: sino + dropdown, presente em qualquer tela que inclua
-// o markup #orbit-notif. Consome /api/notifications/me e /api/notifications/read.
-// JS puro, sem framework.
+// Componente transversal: sino + dropdown + TOAST em tempo real.
+// - O sino/badge/dropdown aparecem nas telas que incluem o markup #orbit-notif
+//   (botão #notif-btn + span #notif-badge).
+// - Os TOASTS de notificações novas funcionam em QUALQUER tela com sessão, MESMO
+//   sem o sino (ex.: dashboards) — assim o usuário é alertado em tempo real.
+// Consome /api/notifications/me e /api/notifications/read.
+// JS puro, sem framework, AUTOSSUFICIENTE (injeta o próprio CSS do dropdown).
 
 (function () {
   'use strict';
 
-  const root = document.getElementById('orbit-notif');
-  if (!root) return; // tela sem o componente
-
   const API_URL = window.ORBIT_API_URL || 'http://localhost:3001';
   const token = localStorage.getItem('orbit_token');
-  if (!token) return;
+  if (!token) return; // sem sessão → nada a notificar
+
+  // Markup do sino é OPCIONAL. Sem ele, mantemos só os toasts em tempo real.
+  const root = document.getElementById('orbit-notif');
 
   /* ===== HELPERS ===== */
   function escapeHtml(str) {
@@ -39,23 +43,41 @@
     return `<span class="orbit-notif__avatar">${escapeHtml(actor ? initials(actor.name) : '•')}</span>`;
   }
 
-  /* ── Injeta os estilos extras do dropdown (avatar + item clicável) uma vez ──
-     Mantém o componente robusto em qualquer tela, sem depender do CSS da página. */
+  /* ── CSS do componente (injetado uma vez, só quando há sino na tela) ──
+     Torna o sino/dropdown autossuficiente em QUALQUER tela (inclusive as
+     dashboards, que não carregam o header.js). */
   function ensureStyles() {
-    if (document.getElementById('orbit-notif-extra-style')) return;
+    if (document.getElementById('orbit-notif-style')) return;
     const css = `
-      .orbit-notif__item{align-items:center;}
-      .orbit-notif__avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--lighter-purple,#e2e7ff);color:var(--primary,#4648d4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;overflow:hidden;}
-      .orbit-notif__avatar img{width:100%;height:100%;object-fit:cover;}
+      .orbit-notif{position:relative;}
+      .orbit-notif__btn{position:relative;}
+      .orbit-notif__badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(239,68,68,.45);pointer-events:none;}
+      .orbit-notif__badge[hidden]{display:none;}
+      .orbit-notif__dropdown{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-height:420px;background:#fff;border:1px solid #e2e7ff;border-radius:12px;box-shadow:0 12px 32px rgba(19,27,46,.18);z-index:300;display:flex;flex-direction:column;overflow:hidden;}
+      .orbit-notif__header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #e2e7ff;}
+      .orbit-notif__title{font-family:'Manrope','Inter',sans-serif;font-weight:800;font-size:15px;color:#131b2e;}
+      .orbit-notif__mark{font-size:12px;font-weight:700;color:#4648d4;background:none;border:none;cursor:pointer;}
+      .orbit-notif__mark:hover{opacity:.75;}
+      .orbit-notif__list{overflow-y:auto;display:flex;flex-direction:column;}
+      .orbit-notif__item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #e2e7ff;align-items:center;}
+      .orbit-notif__item--unread{background:rgba(70,72,212,.04);}
       .orbit-notif__item--link{cursor:pointer;}
       .orbit-notif__item--link:hover{background:rgba(70,72,212,.06);}
+      .orbit-notif__avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:#e2e7ff;color:#4648d4;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;overflow:hidden;}
+      .orbit-notif__avatar img{width:100%;height:100%;object-fit:cover;}
+      .orbit-notif__body{flex:1;min-width:0;}
+      .orbit-notif__msg{font-size:13px;color:#131b2e;line-height:18px;margin:0;}
+      .orbit-notif__time{font-size:11px;color:#464554;margin:2px 0 0;}
+      .orbit-notif__empty{padding:24px 16px;text-align:center;font-size:13px;color:#464554;}
+      @media (max-width:680px){.orbit-notif__dropdown{position:fixed;top:60px;left:8px;right:8px;width:auto;max-height:72vh;}}
     `;
     const style = document.createElement('style');
-    style.id = 'orbit-notif-extra-style';
+    style.id = 'orbit-notif-style';
     style.textContent = css;
     document.head.appendChild(style);
   }
-  ensureStyles();
+  if (root) ensureStyles();
+
   async function api(path, options) {
     const res = await fetch(`${API_URL}${path}`, Object.assign({}, options, {
       headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, (options && options.headers) || {}),
@@ -64,7 +86,7 @@
     return res;
   }
 
-  /* ===== ELEMENTOS ===== */
+  /* ===== ELEMENTOS (podem não existir se a tela não tiver o sino) ===== */
   const btn   = document.getElementById('notif-btn');
   const badge = document.getElementById('notif-badge');
   let dropdown = null;
@@ -73,6 +95,7 @@
 
   /* ===== RENDER ===== */
   function renderBadge(unread) {
+    if (!badge) return;
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
       badge.hidden = false;
@@ -108,7 +131,7 @@
   }
 
   function openDropdown() {
-    if (open) return;
+    if (open || !root || !btn) return;
     root.insertAdjacentHTML('beforeend', buildDropdown());
     dropdown = document.getElementById('notif-dropdown');
     btn.setAttribute('aria-expanded', 'true');
@@ -123,7 +146,7 @@
     if (!open) return;
     if (dropdown) dropdown.remove();
     dropdown = null;
-    btn.setAttribute('aria-expanded', 'false');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
     open = false;
   }
 
@@ -135,7 +158,7 @@
       items = items.map(n => ({ ...n, read: true }));
       renderBadge(data.unreadCount != null ? data.unreadCount : 0);
       // re-renderiza o dropdown aberto para refletir o estado lido (sem o botão "marcar")
-      if (open && dropdown) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); }
+      if (open && dropdown && root) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); }
     } catch { /* silencioso */ }
   }
 
@@ -169,31 +192,33 @@
       items = list;
       renderBadge(data.unreadCount || 0);
       // se o dropdown estiver aberto, mantém atualizado
-      if (open && dropdown) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); const m = document.getElementById('notif-mark'); if (m) m.addEventListener('click', markAllRead); }
+      if (open && dropdown && root) { dropdown.remove(); root.insertAdjacentHTML('beforeend', buildDropdown()); dropdown = document.getElementById('notif-dropdown'); const m = document.getElementById('notif-mark'); if (m) m.addEventListener('click', markAllRead); }
     } catch { /* silencioso (ex: token expirado) */ }
   }
 
-  /* ===== EVENTOS ===== */
-  btn.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    if (open) closeDropdown(); else openDropdown();
-  });
-  document.addEventListener('click', (ev) => {
-    if (open && !root.contains(ev.target)) closeDropdown();
-  });
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDropdown(); });
-
-  // Clique/Enter em um item com destino navega (perfil do seguidor ou conversa)
+  /* ===== EVENTOS (só com o sino presente) ===== */
   function followItemLink(ev) {
     const item = ev.target.closest('[data-link]');
-    if (!item || !root.contains(item)) return;
+    if (!item || !root || !root.contains(item)) return;
     if (ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
     if (ev.type === 'keydown') ev.preventDefault();
     const link = item.getAttribute('data-link');
     if (link) window.location.href = link;
   }
-  root.addEventListener('click', followItemLink);
-  root.addEventListener('keydown', followItemLink);
+
+  if (btn) {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (open) closeDropdown(); else openDropdown();
+    });
+  }
+  if (root) {
+    document.addEventListener('click', (ev) => { if (open && !root.contains(ev.target)) closeDropdown(); });
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeDropdown(); });
+    // Clique/Enter em um item com destino navega (perfil do seguidor ou conversa)
+    root.addEventListener('click', followItemLink);
+    root.addEventListener('keydown', followItemLink);
+  }
 
   // rotina: atualiza a cada 1s — detecta novas notificações quase em tempo real
   load();

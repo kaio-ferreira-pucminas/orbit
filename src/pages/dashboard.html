@@ -33,13 +33,23 @@
           Sua jornada para o próximo nível na tech continua hoje. Aqui está o resumo da sua órbita.
         </p>
       </div>
-      <div class="dash-welcome__chip" id="welcome-chip">
-        <div class="dash-welcome__chip-avatar" id="chip-avatar">
-          <span id="chip-initials">?</span>
+      <div class="dash-welcome__actions">
+        <div class="orbit-notif" id="orbit-notif">
+          <button class="dash-welcome__notif orbit-notif__btn" id="notif-btn" aria-label="Notificações" title="Notificações" aria-haspopup="true" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span class="orbit-notif__badge" id="notif-badge" hidden>0</span>
+          </button>
         </div>
-        <div class="dash-welcome__chip-info">
-          <span class="dash-welcome__chip-name" id="chip-name">—</span>
-          <span class="dash-welcome__chip-role" id="chip-role">—</span>
+        <div class="dash-welcome__chip" id="welcome-chip">
+          <div class="dash-welcome__chip-avatar" id="chip-avatar">
+            <span id="chip-initials">?</span>
+          </div>
+          <div class="dash-welcome__chip-info">
+            <span class="dash-welcome__chip-name" id="chip-name">—</span>
+            <span class="dash-welcome__chip-role" id="chip-role">—</span>
+          </div>
         </div>
       </div>
     </header>
@@ -213,6 +223,7 @@
 
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
+  <script src="../scripts/notifications.js"></script>
   <script src="../scripts/sidebar.js"></script>
   <script src="../scripts/dashboard.js"></script>
 </body>

@@ -84,3 +84,65 @@
   beat();
   setInterval(function () { if (document.visibilityState !== 'hidden') beat(); }, 30000);
 })();
+
+// ============================================================
+// Badge de mensagens não lidas no item "Mensagens" da sidebar (dev e empresa).
+// Conta quantas CONVERSAS têm mensagens ainda não vistas; some quando é zero,
+// para não poluir. Transversal: decora qualquer link de sidebar para mensagens.
+// ============================================================
+(function () {
+  'use strict';
+  const token = localStorage.getItem('orbit_token');
+  if (!token) return;
+
+  function ensureStyle() {
+    if (document.getElementById('orbit-msg-badge-style')) return;
+    const st = document.createElement('style');
+    st.id = 'orbit-msg-badge-style';
+    st.textContent =
+      '.orbit-has-msg-badge{position:relative;}' +
+      '.orbit-msg-badge{position:absolute;top:50%;right:12px;transform:translateY(-50%);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(239,68,68,.4);pointer-events:none;}' +
+      '@media (max-width:900px){.orbit-msg-badge{top:6px;right:6px;transform:none;min-width:16px;height:16px;font-size:10px;}}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function setBadge(count) {
+    const links = document.querySelectorAll('a.dash-nav__link[href*="mensagens"], a.emp-nav__link[href*="mensagens"]');
+    links.forEach(function (link) {
+      let badge = link.querySelector('.orbit-msg-badge');
+      if (count > 0) {
+        if (!badge) {
+          link.classList.add('orbit-has-msg-badge');
+          badge = document.createElement('span');
+          badge.className = 'orbit-msg-badge';
+          badge.setAttribute('aria-label', 'mensagens não lidas');
+          link.appendChild(badge);
+        }
+        badge.textContent = count > 9 ? '9+' : String(count);
+      } else if (badge) {
+        badge.remove();
+        link.classList.remove('orbit-has-msg-badge');
+      }
+    });
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch((window.ORBIT_API_URL || '') + '/api/conversations/me', {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      if (!res.ok) return;
+      const list = await res.json();
+      const count = Array.isArray(list) ? list.filter(function (c) { return (c.unreadCount || 0) > 0; }).length : 0;
+      setBadge(count);
+    } catch (e) { /* silencioso */ }
+  }
+
+  function start() {
+    ensureStyle();
+    poll();
+    setInterval(function () { if (document.visibilityState !== 'hidden') poll(); }, 12000);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
