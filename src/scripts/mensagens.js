@@ -83,6 +83,7 @@
   let lastSig      = '';                          // assinatura (qtd + recibos + não lidas) p/ re-render
   let openUnread   = { beforeId: null, count: 0 };// divisória "X não lidas" (congelada na abertura)
   let unseenBelow  = 0;                           // contador do botão "ir para recentes"
+  let lastConvSig  = '';                          // assinatura da lista (evita re-render desnecessário no polling)
   let chatSettings = Object.assign({ showStatus: true, readReceipts: true }, currentUser.chatSettings || {});
 
   function myReceipts() { return chatSettings.readReceipts !== false; }
@@ -169,9 +170,18 @@
       </li>`;
   }
 
-  function renderConvList() {
+  function renderConvList(force) {
     const list = $('#conv-list');
     const term = ($('#conv-search').value || '').toLowerCase().trim();
+
+    // Só re-renderiza quando algo mudou (dados, conversa ativa ou busca). Antes a lista
+    // era recriada a cada 500ms (polling), o que fazia o TOQUE se perder no mobile —
+    // por isso não dava para abrir outra conversa depois de voltar para a lista.
+    const sig = conversations.map(c =>
+      c.id + '~' + (c.lastMessage ? c.lastMessage.createdAt + (c.lastMessage.content || '') : '') + '~' + (c.unreadCount || 0)
+    ).join('|') + '#' + (activeConvId || '') + '#' + term;
+    if (force !== true && sig === lastConvSig) return;
+    lastConvSig = sig;
 
     const filtered = conversations.filter(c => {
       if (!term) return true;
@@ -224,8 +234,8 @@
     const conv = conversations.find(c => c.id === convId);
     if (!conv) return;
 
-    // Marca item ativo
-    renderConvList();
+    // Marca item ativo (force: garante o highlight imediato)
+    renderConvList(true);
 
     // Header
     const other = conv.other || {};
@@ -258,16 +268,28 @@
       lastMsgCount = msgs.length;
       lastSig = sigOf(msgs);
       hideScrollBtn();
-      history.scrollTop = history.scrollHeight;
-      // Divisória "não lidas": só faz sentido se a mensagem nova estiver FORA da área visível.
-      // Abrimos no fim do histórico; se a divisória estiver visível, removemos (o usuário já vê a mensagem).
+      // Posicionamento ao abrir:
+      // - com não lidas: leva a divisória "X não lidas" ao topo do histórico (você vê onde
+      //   parou) e mostra o botão para descer até elas; marca lidas só ao chegar ao fim;
+      // - conversa curta (tudo já cabe na tela): vai ao fim, remove a divisória e marca lidas;
+      // - sem não lidas: vai direto ao fim.
       const divider = history.querySelector('.msg-unread-divider');
-      if (divider) {
-        const dRect = divider.getBoundingClientRect();
-        const hRect = history.getBoundingClientRect();
-        if (dRect.bottom > hRect.top && dRect.top < hRect.bottom) clearUnreadDivider();
+      if (openUnread.count > 0 && divider) {
+        const dTop = divider.getBoundingClientRect().top;
+        const hTop = history.getBoundingClientRect().top;
+        history.scrollTop += (dTop - hTop) - 8;         // divisória ~no topo da área visível
+        const atBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 40;
+        if (atBottom) {
+          history.scrollTop = history.scrollHeight;
+          clearUnreadDivider();
+        } else {
+          unseenBelow = openUnread.count;               // há não lidas abaixo → botão "descer"
+          showScrollBtn(unseenBelow);
+        }
+      } else {
+        history.scrollTop = history.scrollHeight;
       }
-      markRead(convId); // marca recebidas como lidas (zera contador; recibo se confirmação ativa)
+      markRead(convId); // marca recebidas como lidas (badge da lista some; divisória/botão locais permanecem)
     } catch (err) {
       if (err.message !== 'Token expirado') {
         history.innerHTML = `<div class="msg-loading">Não foi possível carregar as mensagens.</div>`;
@@ -287,6 +309,7 @@
       const history = $('#chat-history');
       if (!history) return;
       const nearBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 80;
+      const prevTop = history.scrollTop;
       const grew = msgs.length - lastMsgCount;
       const hasIncomingUnread = msgs.some(m => m.receiverId === currentUser.id && !m.read);
       history.innerHTML = renderMessages(msgs);
@@ -297,9 +320,12 @@
         hideScrollBtn();
         clearUnreadDivider();                          // estou no fim → mensagens visíveis → sem divisória
         if (hasIncomingUnread) markRead(activeConvId); // li (estou no fim) → marca lida
-      } else if (grew > 0) {
-        unseenBelow += grew;                            // chegou msg e estou rolado pra cima
-        showScrollBtn(unseenBelow);
+      } else {
+        history.scrollTop = prevTop;                    // mantém a posição de leitura (não pula pro topo)
+        if (grew > 0) {
+          unseenBelow += grew;                          // chegou msg e estou rolado pra cima
+          showScrollBtn(unseenBelow);
+        }
       }
     } catch (err) {
       /* silencioso (ex.: token expirado já trata redirect) */
