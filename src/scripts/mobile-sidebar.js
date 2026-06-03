@@ -16,7 +16,8 @@
       const brandLogo = document.querySelector('.emp-sidebar__logo-icon');
       if (u && u.avatarUrl && brandLogo) {
         brandLogo.style.overflow = 'hidden';
-        brandLogo.innerHTML = '<img src="' + String(u.avatarUrl).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" />';
+        const safeName = String(u.name || 'Empresa').replace(/"/g, '&quot;');
+        brandLogo.innerHTML = '<img src="' + String(u.avatarUrl).replace(/"/g, '&quot;') + '" alt="' + safeName + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" />';
       }
     } catch (e) { /* ignora */ }
 
