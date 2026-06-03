@@ -97,6 +97,7 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 @media (max-width:600px){
   .cand-head{flex-direction:column;}
   .cand-card{flex-direction:column;}
-  .cand-card__actions{flex-direction:row;width:100%;min-width:0;}
+  .cand-card__actions{flex-direction:column;width:100%;min-width:0;}
+  .cand-card__actions > *{width:100%;justify-content:center;}
   .cand-status{align-self:flex-start;}
 }
