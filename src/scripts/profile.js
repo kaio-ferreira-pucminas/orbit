@@ -820,6 +820,7 @@
       payload.resumeFileName = pendingResumeName;
     }
 
+    const prevGithub = currentUser.github || null;
     saveBtn.disabled = true;
     saveBtn.textContent = 'Salvando...';
 
@@ -845,6 +846,10 @@
       await loadProfile();
 
       window.showToast('Perfil atualizado com sucesso!', 'success');
+      // GitHub informado/alterado → o backend importa os repos como rascunho automaticamente
+      if (payload.github && payload.github !== prevGithub) {
+        window.showToast('Importando seus projetos do GitHub… aparecerão como rascunho em "Meus Projetos".', 'info');
+      }
       closeEditModal();
     } catch {
       window.showToast('Erro de conexão. Tente novamente.', 'error');

@@ -2048,6 +2048,14 @@ server.delete('/api/projects/:id', requireAuth, (req, res) => {
   saveDb(db);
   res.json({ ok: true });
 });
+// GET /api/projects — lê do ARQUIVO (consistente com o CRUD acima). O json-server tem
+// uma cópia em memória que NÃO reflete as gravações destes endpoints, então tratamos aqui.
+server.get('/api/projects', requireAuth, (req, res) => {
+  const db = getDb();
+  let list = db.projects || [];
+  if (req.query.userId) list = list.filter(p => p.userId === req.query.userId);
+  res.json(list);
+});
 
 // ── AVALIAÇÕES DE PROJETO (recrutadores e devs podem avaliar) ──
 function recomputeProjectRating(db, projectId) {
