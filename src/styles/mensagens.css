@@ -31,11 +31,8 @@ body {
   background: var(--dash-bg);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--text-dark);
-  /* Trava a tela no topo do viewport: o teclado do mobile não empurra mais o conteúdo
-     (e o topo da lista/header fica sempre acessível). A altura segue a VisualViewport. */
-  position: fixed; top: 0; left: 0; right: 0;
   height: 100vh;
-  height: var(--app-height, 100dvh);
+  height: var(--app-height, 100dvh); /* altura real da viewport (VisualViewport, via JS) */
   overflow: hidden;
 }
 
@@ -321,6 +318,9 @@ ul, ol { list-style: none; }
   .dash-sidebar__brand { padding: 0 0 32px; justify-content: center; }
   .dash-nav__link { justify-content: center; padding: 12px; }
   .msg-main { margin-left: 64px; grid-template-columns: 280px 1fr; }
+  /* Fixa a área do chat ao viewport VISÍVEL e acompanha o deslocamento do teclado (iOS),
+     evitando o vão branco quando o teclado abre. */
+  .msg-main { position: fixed; top: var(--app-top, 0px); left: 0; right: 0; }
 }
 
 @media (max-width: 680px) {

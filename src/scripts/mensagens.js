@@ -27,6 +27,8 @@
       const vv = window.visualViewport;
       const h = (vv && vv.height) ? vv.height : window.innerHeight;
       if (h) root.style.setProperty('--app-height', Math.round(h) + 'px');
+      // Acompanha o deslocamento do viewport visível quando o teclado empurra a tela (iOS).
+      root.style.setProperty('--app-top', (vv ? Math.round(vv.offsetTop) : 0) + 'px');
     }
     set();
     if (window.visualViewport) {
@@ -238,7 +240,9 @@
     // Header
     const other = conv.other || {};
     $('#chat-name').textContent   = other.name || 'Usuário';
-    $('#chat-initials').textContent = initials(other.name);
+    // (não mexer em #chat-initials: ele fica DENTRO de #chat-avatar e é destruído pelo
+    //  innerHTML abaixo — na 2ª abertura seria null e quebrava o openConversation,
+    //  impedindo abrir outra conversa. O avatar já renderiza as iniciais no else.)
     const avatarEl = $('#chat-avatar');
     if (other.avatarUrl) {
       avatarEl.innerHTML = `<img src="${escapeHtml(other.avatarUrl)}" alt="${escapeHtml(other.name)}" />`;
