@@ -761,6 +761,7 @@
   width: 100%;
   max-width: 720px;
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px); /* dvh = altura visível real no mobile (desconta a barra do navegador) */
   display: flex;
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -810,6 +811,8 @@
 .edit-modal__body {
   padding: 24px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -820,8 +823,10 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)); /* respeita o home indicator no iOS */
   border-top: 1px solid var(--feed-border, #e2e7ff);
   flex-shrink: 0;
+  background: #fff;
 }
 
 .edit-modal__btn {
@@ -1079,7 +1084,9 @@
   .edit-modal-overlay { padding: 0; }
   .edit-modal {
     max-height: 100vh;
+    max-height: 100dvh;
     height: 100vh;
+    height: 100dvh;
     border-radius: 0;
   }
   .edit-form__row { grid-template-columns: 1fr; }
