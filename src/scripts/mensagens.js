@@ -27,6 +27,8 @@
       const vv = window.visualViewport;
       const h = (vv && vv.height) ? vv.height : window.innerHeight;
       if (h) root.style.setProperty('--app-height', Math.round(h) + 'px');
+      // Acompanha o deslocamento do viewport visível quando o teclado empurra a tela (iOS).
+      root.style.setProperty('--app-top', (vv ? Math.round(vv.offsetTop) : 0) + 'px');
     }
     set();
     if (window.visualViewport) {

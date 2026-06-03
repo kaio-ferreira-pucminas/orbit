@@ -318,6 +318,9 @@ ul, ol { list-style: none; }
   .dash-sidebar__brand { padding: 0 0 32px; justify-content: center; }
   .dash-nav__link { justify-content: center; padding: 12px; }
   .msg-main { margin-left: 64px; grid-template-columns: 280px 1fr; }
+  /* Fixa a área do chat ao viewport VISÍVEL e acompanha o deslocamento do teclado
+     (iOS empurra a tela ao focar o input). Evita o vão branco com o teclado aberto. */
+  .msg-main { position: fixed; top: var(--app-top, 0px); left: 0; right: 0; }
 }
 
 @media (max-width: 680px) {
