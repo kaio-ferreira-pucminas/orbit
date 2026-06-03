@@ -24,6 +24,8 @@
       .osel-panel__option--selected:hover{background:#4648d4;color:#fff;}
       .osel-panel__option[data-disabled]{color:#b8b8c4;cursor:default;}
       .osel-panel__option[data-disabled]:hover{background:transparent;color:#b8b8c4;}
+      /* Suprime o picker NATIVO (iOS/Android): o toque é capturado pelo listener global */
+      select[data-osel-done]{pointer-events:none;}
     `;
     const style = document.createElement('style');
     style.id = 'orbit-select-style';
@@ -82,8 +84,28 @@
   }
 
   /* ===== Listeners globais ===== */
+  const enhanced = [];
+  function selectUnderPoint(x, y) {
+    for (const s of enhanced) {
+      if (s.disabled || s.offsetParent === null) continue; // ignora selects ocultos/desabilitados
+      const r = s.getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return s;
+    }
+    return null;
+  }
+  // Abre o painel ao tocar/clicar sobre um select. Como o <select> tem pointer-events:none,
+  // o picker NATIVO (iOS/Android) nunca abre — detectamos o select pela coordenada do toque.
+  document.addEventListener('pointerdown', (e) => {
+    const sel = selectUnderPoint(e.clientX, e.clientY);
+    if (sel) { e.preventDefault(); openPanel(sel); }
+  }, true);
+  // Fecha ao clicar fora do painel E fora do select ativo
   document.addEventListener('click', (e) => {
-    if (activeSelect && e.target !== activeSelect && panelEl && !panelEl.contains(e.target)) closePanel();
+    if (!activeSelect || !panelEl || panelEl.hidden) return;
+    if (panelEl.contains(e.target)) return;
+    const r = activeSelect.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+    closePanel();
   });
   window.addEventListener('scroll', position, true);
   window.addEventListener('resize', position);
@@ -92,9 +114,9 @@
   function enhance(select) {
     if (select.dataset.oselDone || select.hasAttribute('data-no-orbit-select') || select.multiple) return;
     select.dataset.oselDone = '1';
-
-    // Suprime a lista nativa no clique e abre o painel padronizado
-    select.addEventListener('mousedown', (e) => { e.preventDefault(); select.focus(); openPanel(select); });
+    enhanced.push(select);
+    // A abertura do painel é tratada pelo listener global de pointerdown (por coordenada);
+    // o picker nativo fica suprimido via CSS (pointer-events:none em [data-osel-done]).
 
     // Teclado: abre/navega/seleciona pelo painel
     select.addEventListener('keydown', (e) => {
