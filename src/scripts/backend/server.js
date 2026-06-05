@@ -1978,9 +1978,26 @@ server.get('/api/github/contributions', requireAuth, async (req, res) => {
     const r = await fetch('https://github.com/users/' + encodeURIComponent(u) + '/contributions', { headers: { 'User-Agent': 'orbit-app', 'X-Requested-With': 'XMLHttpRequest' } });
     if (!r.ok) throw new Error('html ' + r.status);
     const html = await r.text();
-    const days = []; const re = /data-date="(\d{4}-\d{2}-\d{2})"[^>]*?data-level="(\d)"/g; let m;
-    while ((m = re.exec(html))) days.push({ date: m[1], count: null, level: +m[2] });
-    return res.json({ totalLastYear: null, days, source: 'html', note: days.length ? undefined : 'indisponível' });
+    // A contagem por dia vem nos <tool-tip for="<id do td>">N contributions on ...</tool-tip>
+    const counts = {};
+    const ttre = /<tool-tip\b[^>]*\bfor="([^"]+)"[^>]*>([^<]*)<\/tool-tip>/g; let tm;
+    while ((tm = ttre.exec(html))) {
+      const mc = tm[2].trim().match(/^([\d,]+)\s+contribution/i);
+      counts[tm[1]] = mc ? parseInt(mc[1].replace(/,/g, ''), 10) : 0; // "No contributions" -> 0
+    }
+    const days = [];
+    const tdre = /<td\b[^>]*ContributionCalendar-day[^>]*>/g; let dm;
+    while ((dm = tdre.exec(html))) {
+      const tag = dm[0];
+      const date = (tag.match(/data-date="(\d{4}-\d{2}-\d{2})"/) || [])[1];
+      if (!date) continue;
+      const level = +((tag.match(/data-level="(\d+)"/) || [])[1] || 0);
+      const id = (tag.match(/\bid="([^"]+)"/) || [])[1];
+      days.push({ date, level, count: (id && counts[id] != null) ? counts[id] : null });
+    }
+    days.sort((a, b) => (a.date < b.date ? -1 : 1));
+    const total = days.reduce((a, d) => a + (d.count || 0), 0);
+    return res.json({ totalLastYear: total || null, days, source: 'html', note: days.length ? undefined : 'indisponível' });
   } catch (e) { res.status(502).json({ error: 'Contribuições indisponíveis.', days: [] }); }
 });
 // GET /api/github/projects?username= — repos mapeados p/ o nosso formato (preview)

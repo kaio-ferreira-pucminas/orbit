@@ -36,6 +36,12 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c])); }
 
+  const MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  function fmtDate(iso) {
+    const d = new Date(iso + 'T00:00:00Z');
+    if (isNaN(d.getTime())) return iso;
+    return d.getUTCDate() + ' de ' + MES[d.getUTCMonth()] + ' de ' + d.getUTCFullYear();
+  }
   function cellsHtml(days) {
     if (!days || !days.length) return '';
     const first = new Date(days[0].date + 'T00:00:00Z');
@@ -43,7 +49,10 @@
     let html = '';
     for (let i = 0; i < pad; i++) html += '<span class="gc__cell gc__cell--pad"></span>';
     days.forEach(d => {
-      const tip = (d.count != null ? d.count + (d.count === 1 ? ' contribuição' : ' contribuições') : 'Atividade') + ' em ' + d.date;
+      const n = d.count;
+      const qtd = (n == null) ? 'Atividade'
+        : (n === 0 ? 'Nenhuma contribuição' : (n + (n === 1 ? ' contribuição' : ' contribuições')));
+      const tip = qtd + ' no dia ' + fmtDate(d.date);
       html += `<span class="gc__cell" data-level="${d.level || 0}" title="${esc(tip)}"></span>`;
     });
     return html;
