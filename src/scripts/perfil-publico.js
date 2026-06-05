@@ -155,6 +155,12 @@
         }).join('')
       : '<p class="pp-projects__empty">Nenhum projeto em destaque.</p>';
 
+    // Contribuições do GitHub (somente devs que informaram o github)
+    if (user.type === 'dev' && user.github && window.OrbitContrib) {
+      const sec = $('#pp-contrib-section'); if (sec) sec.hidden = false;
+      window.OrbitContrib.mount($('#gc-pub'), user.github);
+    }
+
     // Botão seguir: esconde se for o próprio perfil
     if (targetId === currentUser.id) {
       $('#btn-follow').style.display = 'none';

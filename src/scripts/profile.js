@@ -345,6 +345,11 @@
         renderSkills(data.user);
         renderProjects(data.projects);
         renderReviews(data.reviews);
+        // Contribuições do GitHub (conta dev com github informado)
+        if (data.user.github && window.OrbitContrib) {
+          const sec = $('#profile-contrib-section'); if (sec) sec.hidden = false;
+          window.OrbitContrib.mount($('#gc-own'), data.user.github);
+        }
       }
 
     } catch {
