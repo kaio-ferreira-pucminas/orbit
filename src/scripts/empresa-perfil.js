@@ -38,6 +38,14 @@
 
   const companyId = new URLSearchParams(window.location.search).get('id');
 
+  // Critérios da avaliação dev → empresa (Bloco B)
+  const COMPANY_CRITERIA = [
+    { key: 'ambiente',       label: 'Ambiente profissional' },
+    { key: 'infraestrutura', label: 'Infraestrutura' },
+    { key: 'organizacao',    label: 'Organização' },
+    { key: 'compromisso',    label: 'Compromisso' },
+  ];
+
   /* ===== RENDER: galeria de cultura ===== */
   function cultureImg(url) {
     return `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`;
@@ -76,7 +84,7 @@
   }
 
   /* ===== RENDER principal ===== */
-  function render(c, jobs, stats) {
+  function render(c, jobs, stats, reviews) {
     // Capa: imagem (se houver) com gradiente como fallback; senão só gradiente
     const grad = c.coverGradient || 'linear-gradient(135deg,#131b2e 0%,#4648d4 100%)';
     $('#emp-cover').style.background = c.coverUrl
@@ -131,12 +139,15 @@
       ? jobs.map(renderJobCard).join('')
       : '<p class="emp-jobs__empty">Nenhuma vaga publicada no momento.</p>';
 
-    // Depoimentos
-    const ts = Array.isArray(c.testimonials) ? c.testimonials : [];
+    // Depoimentos: avaliações reais de profissionais (Bloco B) + seeds
+    const realTs = (reviews || []).map(r => ({ quote: r.comment || 'Avaliação registrada.', authorName: r.authorName, authorRole: 'Profissional contratado', rating: r.rating }));
+    const seedTs = Array.isArray(c.testimonials) ? c.testimonials : [];
+    const ts = realTs.concat(seedTs);
     if (ts.length) {
       $('#emp-testimonials').innerHTML = ts.map(t => `
         <div class="emp-testimonial">
           <span class="emp-testimonial__badge">99</span>
+          ${t.rating ? `<div class="emp-testimonial__stars">${'★'.repeat(Math.round(t.rating))}<span class="emp-testimonial__rating">${t.rating}</span></div>` : ''}
           <p class="emp-testimonial__quote">${escapeHtml(t.quote || '')}</p>
           <div class="emp-testimonial__author">
             <div class="emp-testimonial__avatar">${escapeHtml(initials(t.authorName))}</div>
@@ -172,6 +183,60 @@
     });
   }
 
+  /* ===== AVALIAR EMPRESA (dev com vínculo contratado/finalizado) ===== */
+  async function setupDevReview(company) {
+    if (!company || !companyId) return;
+    if (currentUser && currentUser.type && currentUser.type !== 'dev') return;
+    let apps = [];
+    try { const r = await api('/api/applications/me'); if (r.ok) apps = await r.json(); } catch (e) { return; }
+    const eng = (apps || []).find(a => a.company && a.company.id === companyId && a.canReview);
+    if (!eng) return;
+    const sec = $('#emp-testimonials-section'); if (sec) sec.hidden = false;
+    const my = eng.myReview;
+    const host = document.createElement('div');
+    host.className = 'emp-review-panel';
+    host.innerHTML = `
+      <div class="emp-review-panel__head">
+        <div>
+          <h3 class="emp-review-panel__title">Sua experiência nesta empresa</h3>
+          <p class="emp-review-panel__sub">${my ? 'Você já avaliou esta empresa — pode atualizar quando quiser.' : 'Você prestou serviço aqui. Avalie ambiente, infraestrutura, organização e compromisso.'}</p>
+        </div>
+        <button type="button" class="emp-review-panel__toggle" data-toggle>${my ? 'Editar avaliação (★ ' + my.overall + ')' : 'Avaliar empresa'}</button>
+      </div>
+      <form class="emp-review-form" data-form hidden>
+        <div class="emp-review-form__grid">
+          ${COMPANY_CRITERIA.map(cr => `
+            <label class="emp-review-form__field">${cr.label}
+              <select data-crit="${cr.key}">${[1, 2, 3, 4, 5].map(n => `<option value="${n}" ${my && Number(my.criteria && my.criteria[cr.key]) === n ? 'selected' : ''}>${n}</option>`).join('')}</select>
+            </label>`).join('')}
+        </div>
+        <textarea class="emp-review-form__comment" data-comment placeholder="Comente sua experiência (opcional)" maxlength="800">${escapeHtml((my && my.comment) || '')}</textarea>
+        <div class="emp-review-form__actions">
+          <button type="button" class="emp-review-panel__toggle" data-cancel>Cancelar</button>
+          <button type="submit" class="emp-review-form__submit">${my ? 'Atualizar avaliação' : 'Enviar avaliação'}</button>
+        </div>
+      </form>`;
+    const anchor = $('#emp-testimonials');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(host, anchor);
+    const form = host.querySelector('[data-form]');
+    host.querySelector('[data-toggle]').addEventListener('click', () => { form.hidden = !form.hidden; });
+    host.querySelector('[data-cancel]').addEventListener('click', () => { form.hidden = true; });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const criteria = {};
+      COMPANY_CRITERIA.forEach(cr => { criteria[cr.key] = parseInt(host.querySelector('[data-crit="' + cr.key + '"]').value, 10); });
+      const comment = host.querySelector('[data-comment]').value.trim();
+      const submit = form.querySelector('[type="submit"]'); submit.disabled = true;
+      try {
+        const res = await api('/api/applications/' + eng.id + '/review', { method: 'POST', body: JSON.stringify({ criteria, comment }) });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) { toast(d.error || 'Não foi possível avaliar.', 'error'); submit.disabled = false; return; }
+        toast('Avaliação enviada!', 'success');
+        setTimeout(function () { window.location.reload(); }, 600);
+      } catch (err) { if (err.message !== '401') { toast('Erro de conexão.', 'error'); submit.disabled = false; } }
+    });
+  }
+
   /* ===== INIT ===== */
   (async function init() {
     if (!companyId) { $('#emp-loading').textContent = 'Empresa não informada.'; return; }
@@ -179,7 +244,8 @@
       const res = await api('/api/companies/' + encodeURIComponent(companyId));
       if (!res.ok) { $('#emp-loading').textContent = 'Empresa não encontrada.'; return; }
       const data = await res.json();
-      render(data.company, data.jobs || [], data.stats || {});
+      render(data.company, data.jobs || [], data.stats || {}, data.reviews || []);
+      setupDevReview(data.company);
     } catch (e) {
       if (e.message !== '401') $('#emp-loading').textContent = 'Não foi possível carregar a empresa.';
     }

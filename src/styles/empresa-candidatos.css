@@ -101,3 +101,26 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
   .cand-card__actions > *{width:100%;justify-content:center;}
   .cand-status{align-self:flex-start;}
 }
+
+/* ===== Bloco B: contratação + avaliação dev↔empresa ===== */
+.cand-status--contratado{background:var(--primary-light);color:var(--primary);}
+.cand-status--finalizado{background:var(--green-bg);color:var(--green);}
+.cand-status-select{padding:8px 10px;border:1px solid var(--border-purple);border-radius:var(--radius-sm);font:inherit;font-size:13px;font-weight:600;color:var(--text-dark);background:#fff;cursor:pointer;}
+.cand-btn-primary--sm{padding:8px 14px;font-size:13px;}
+.cand-link-btn{background:none;border:none;font:inherit;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:2px 4px;}
+.cand-link-btn:hover{text-decoration:underline;}
+.cand-link-btn--danger{color:#dc2626;}
+.cand-contract{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:8px 12px;background:var(--light-purple);border-radius:var(--radius-sm);font-size:13px;}
+.cand-contract__type{font-weight:800;color:var(--primary);text-transform:uppercase;font-size:11px;letter-spacing:.4px;}
+.cand-contract__dates{color:var(--text-muted);font-weight:600;}
+.cand-contract__done{color:var(--green);font-weight:700;}
+.cand-review{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cand-review__done{font-size:13px;font-weight:700;color:var(--green);}
+.cand-inline{margin-top:12px;padding:14px;border:1px solid var(--border-purple);border-radius:var(--radius-sm);background:#fff;}
+.cand-inline__title{font-family:'Manrope',sans-serif;font-weight:800;font-size:14px;color:var(--text-dark);margin:0 0 10px;}
+.cand-inline__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.cand-inline__field{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;}
+.cand-inline__field select,.cand-inline__field input{padding:8px 10px;border:1px solid var(--border-purple);border-radius:var(--radius-sm);font:inherit;font-size:14px;color:var(--text-dark);font-weight:500;}
+.cand-inline__comment{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border-purple);border-radius:var(--radius-sm);font:inherit;font-size:13px;resize:vertical;margin-bottom:10px;}
+.cand-inline__actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;}
+@media (max-width:560px){.cand-inline__grid{grid-template-columns:1fr;}}

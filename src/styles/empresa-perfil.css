@@ -109,3 +109,23 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;font-family:inherit
   .emp-id{flex-direction:column;align-items:flex-start;}
   .emp-id__logo{width:96px;height:96px;font-size:32px;}
 }
+
+/* ===== Bloco B: avaliação dev → empresa + estrelas nos depoimentos ===== */
+.emp-testimonial__stars{display:flex;align-items:center;gap:6px;color:#f59e0b;font-size:16px;margin-bottom:8px;letter-spacing:1px;}
+.emp-testimonial__rating{color:var(--primary,#4648d4);font-weight:800;font-size:13px;letter-spacing:0;}
+.emp-review-panel{background:var(--card,#fff);border:1px solid var(--border,#e2e7ff);border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:var(--shadow,0 4px 10px rgba(19,27,46,.04));}
+.emp-review-panel__head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.emp-review-panel__title{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:#131b2e;margin:0;}
+.emp-review-panel__sub{font-size:13px;color:#565e74;margin:4px 0 0;max-width:520px;}
+.emp-review-panel__toggle{background:none;border:1px solid var(--border,#e2e7ff);color:var(--primary,#4648d4);font:inherit;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+.emp-review-panel__toggle:hover{background:var(--bg,#faf8ff);}
+.emp-review-form{margin-top:16px;}
+.emp-review-form__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.emp-review-form__field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:#565e74;margin-bottom:12px;}
+.emp-review-form__field select{padding:9px 11px;border:1px solid var(--border,#e2e7ff);border-radius:8px;font:inherit;font-size:14px;color:#131b2e;font-weight:500;}
+.emp-review-form__comment{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border,#e2e7ff);border-radius:8px;font:inherit;font-size:14px;resize:vertical;min-height:64px;}
+.emp-review-form__actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;margin-top:12px;}
+.emp-review-form__submit{padding:10px 20px;border:none;border-radius:8px;background:var(--primary,#4648d4);color:#fff;font:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+.emp-review-form__submit:hover{background:#3a3cb8;}
+.emp-review-form__submit:disabled{opacity:.6;cursor:default;}
+@media (max-width:560px){.emp-review-form__grid{grid-template-columns:1fr;}}
