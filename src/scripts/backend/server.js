@@ -516,7 +516,7 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
   const rawReviews = (db.reviews || []).filter(r => (r.profileUserId || r.userId) === req.params.id);
 
   // enriquecе cada review com campos normalizados (suporta múltiplos formatos de seed)
-  const reviews = rawReviews.map(r => {
+  const legacyReviews = rawReviews.map(r => {
     const author = db.users.find(u => u.id === (r.authorCompanyId || r.authorId));
     return {
       ...r,
@@ -526,6 +526,23 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     };
   });
 
+  // Avaliações de empresas via vínculos concluídos/ativos (Bloco B): empresa → dev
+  const engDevReviews = (db.engagementReviews || [])
+    .filter(r => r.targetType === 'dev' && r.targetUserId === req.params.id)
+    .map(r => {
+      const job  = (db.jobs || []).find(j => j.id === r.jobId);
+      const comp = job ? (db.companies || []).find(c => c.id === job.companyId) : null;
+      return {
+        id: r.id, rating: r.overall, comment: r.comment || '',
+        authorName: comp ? comp.name : 'Empresa contratante',
+        authorRole: 'Empresa contratante',
+        companyName: comp ? comp.name : 'Empresa',
+        reviewerRole: 'Empresa contratante',
+        criteria: r.criteria, createdAt: r.createdAt, source: 'engagement',
+      };
+    });
+
+  const reviews = [...engDevReviews, ...legacyReviews];
   const ratingSum   = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
   const ratingAvg   = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
 
@@ -1168,7 +1185,16 @@ server.get('/api/applications/me', requireAuth, (req, res) => {
     .filter(a => a.userId === req.user.id)
     .map(a => {
       const job = (db.jobs || []).find(j => j.id === a.jobId) || null;
-      return { ...a, job };
+      const company = job ? (db.companies || []).find(c => c.id === job.companyId) : null;
+      const myReview      = (db.engagementReviews || []).find(r => r.applicationId === a.id && r.authorType === 'dev') || null;
+      const companyReview = (db.engagementReviews || []).find(r => r.applicationId === a.id && r.authorType === 'company') || null;
+      return {
+        ...a, job,
+        company: company ? { id: company.id, name: company.name, logoInitials: company.logoInitials, logoUrl: company.logoUrl } : null,
+        effectiveStatus: effectiveStatus(a),
+        canReview: engagementOpenForReview(a),
+        myReview, companyReview,
+      };
     })
     .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
   return res.status(200).json(list);
@@ -1184,18 +1210,223 @@ server.get('/api/jobs/:id/applications', requireAuth, (req, res) => {
     .filter(a => a.jobId === req.params.id)
     .map(a => {
       const user = db.users.find(u => u.id === a.userId);
-      return { ...a, candidate: user ? sanitizeUser(user) : null };
+      const myReview  = (db.engagementReviews || []).find(r => r.applicationId === a.id && r.authorType === 'company') || null;
+      const devReview = (db.engagementReviews || []).find(r => r.applicationId === a.id && r.authorType === 'dev') || null;
+      return { ...a, effectiveStatus: effectiveStatus(a), candidate: user ? sanitizeUser(user) : null, canReview: engagementOpenForReview(a), myReview, devReview };
     });
 
-  // Funil por status
+  // Funil por status (status efetivo p/ contratado/finalizado)
   const funnel = {
     total:      applicants.length,
     em_analise: applicants.filter(a => a.status === 'em_analise').length,
     entrevista: applicants.filter(a => a.status === 'entrevista').length,
     recusado:   applicants.filter(a => a.status === 'recusado').length,
+    contratado: applicants.filter(a => effectiveStatus(a) === 'contratado').length,
+    finalizado: applicants.filter(a => effectiveStatus(a) === 'finalizado').length,
   };
 
-  return res.status(200).json({ job, funnel, applicants });
+  const ownerCompany = (db.companies || []).find(c => c.id === job.companyId);
+  const isOwner = !!(ownerCompany && ownerCompany.userId === req.user.id);
+  return res.status(200).json({ job, funnel, applicants, isOwner });
+});
+
+// ── BLOCO B: CONTRATAÇÃO + AVALIAÇÃO MÚTUA DEV↔EMPRESA ───────────────────────
+const DEV_CRITERIA     = ['tecnica', 'comunicacao', 'comprometimento', 'prazos'];        // empresa → dev
+const COMPANY_CRITERIA = ['ambiente', 'infraestrutura', 'organizacao', 'compromisso'];   // dev → empresa
+
+// Status efetivo: freelance com data de fim vencida finaliza automaticamente (lazy, sem cron)
+function effectiveStatus(app) {
+  if (!app) return null;
+  if (app.status === 'contratado' && app.contractType === 'freelance' && app.contractEnd) {
+    if (new Date(app.contractEnd).getTime() <= Date.now()) return 'finalizado';
+  }
+  return app.status;
+}
+// Avaliação liberada? CLT durante o vínculo ativo; freelance só após finalizado
+function engagementOpenForReview(app) {
+  const eff = effectiveStatus(app);
+  if (eff === 'finalizado') return true;
+  if (eff === 'contratado' && app.contractType === 'clt') return true;
+  return false;
+}
+function companyOfApplication(db, app) {
+  const job = (db.jobs || []).find(j => j.id === app.jobId);
+  if (!job) return null;
+  return (db.companies || []).find(c => c.id === job.companyId) || null;
+}
+function recomputeCompanyRating(db, companyId) {
+  const rs  = (db.engagementReviews || []).filter(r => r.targetType === 'company' && r.targetCompanyId === companyId);
+  const idx = (db.companies || []).findIndex(c => c.id === companyId);
+  if (idx === -1) return;
+  db.companies[idx].rating       = rs.length ? +(rs.reduce((a, r) => a + (r.overall || 0), 0) / rs.length).toFixed(1) : null;
+  db.companies[idx].reviewsCount = rs.length;
+}
+// Valida {chave:1-5} contra o conjunto esperado → {ok, criteria, overall} ou {error}
+function validateCriteria(input, keys) {
+  const out = {};
+  for (const k of keys) {
+    const v = parseInt(input && input[k], 10);
+    if (!Number.isInteger(v) || v < 1 || v > 5) return { error: `Dê uma nota de 1 a 5 para "${k}".` };
+    out[k] = v;
+  }
+  const overall = +(keys.reduce((a, k) => a + out[k], 0) / keys.length).toFixed(1);
+  return { ok: true, criteria: out, overall };
+}
+
+// PATCH /api/applications/:id — empresa dona atualiza o status do funil
+server.patch('/api/applications/:id', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company = companyOfApplication(db, app);
+  if (!company || company.userId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa dona da vaga pode alterar a candidatura.' });
+  const ALLOWED = ['enviada', 'em_analise', 'entrevista', 'recusado'];
+  const status = req.body && req.body.status;
+  if (!ALLOWED.includes(status)) return res.status(400).json({ error: 'Status inválido.' });
+  app.status = status; app.updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json(app);
+});
+
+// POST /api/applications/:id/hire — empresa contrata o candidato (CLT ou freelance)
+server.post('/api/applications/:id/hire', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company = companyOfApplication(db, app);
+  if (!company || company.userId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa dona da vaga pode contratar.' });
+  const contractType = (req.body && req.body.contractType === 'freelance') ? 'freelance' : ((req.body && req.body.contractType === 'clt') ? 'clt' : null);
+  if (!contractType) return res.status(400).json({ error: 'Informe o tipo de contrato (clt ou freelance).' });
+  const now = new Date().toISOString();
+  let contractEnd = null;
+  if (contractType === 'freelance') {
+    if (!req.body.contractEnd) return res.status(400).json({ error: 'Freelance exige a data de fim do contrato.' });
+    const end = new Date(req.body.contractEnd);
+    if (isNaN(end.getTime())) return res.status(400).json({ error: 'Data de fim inválida.' });
+    contractEnd = end.toISOString();
+  }
+  app.status        = 'contratado';
+  app.contractType  = contractType;
+  app.contractStart = (req.body.contractStart && !isNaN(new Date(req.body.contractStart).getTime())) ? new Date(req.body.contractStart).toISOString() : now;
+  app.contractEnd   = contractEnd;
+  app.hiredAt       = now;
+  app.updatedAt     = now;
+  db.notifications = db.notifications || [];
+  db.notifications.push({ id: generateId(), userId: app.userId, type: 'hired', actorId: req.user.id, refId: app.id, message: `${company.name || 'Uma empresa'} contratou você (${contractType === 'clt' ? 'CLT' : 'freelance'}).`, read: false, createdAt: now });
+  saveDb(db);
+  return res.status(200).json({ ...app, effectiveStatus: effectiveStatus(app) });
+});
+
+// POST /api/applications/:id/renew — renova/estende o contrato freelance
+server.post('/api/applications/:id/renew', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company = companyOfApplication(db, app);
+  if (!company || company.userId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa dona da vaga pode renovar.' });
+  if (app.contractType !== 'freelance') return res.status(400).json({ error: 'Apenas contratos freelance são renováveis por data.' });
+  const end = new Date(req.body && req.body.contractEnd);
+  if (isNaN(end.getTime())) return res.status(400).json({ error: 'Data de fim inválida.' });
+  const now = new Date().toISOString();
+  app.contractEnd = end.toISOString();
+  app.status      = 'contratado'; // reabre se havia finalizado por data
+  app.renewedAt   = now;
+  app.updatedAt   = now;
+  db.notifications = db.notifications || [];
+  db.notifications.push({ id: generateId(), userId: app.userId, type: 'contract_renewed', actorId: req.user.id, refId: app.id, message: `${company.name || 'A empresa'} renovou seu contrato.`, read: false, createdAt: now });
+  saveDb(db);
+  return res.status(200).json({ ...app, effectiveStatus: effectiveStatus(app) });
+});
+
+// POST /api/applications/:id/finish — encerra o vínculo (CLT ou freelance antecipado)
+server.post('/api/applications/:id/finish', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company = companyOfApplication(db, app);
+  if (!company || company.userId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa dona da vaga pode encerrar.' });
+  if (app.status !== 'contratado') return res.status(400).json({ error: 'Só é possível encerrar um vínculo ativo (contratado).' });
+  const now = new Date().toISOString();
+  app.status      = 'finalizado';
+  app.contractEnd = app.contractEnd || now;
+  app.finishedAt  = now;
+  app.updatedAt   = now;
+  db.notifications = db.notifications || [];
+  db.notifications.push({ id: generateId(), userId: app.userId, type: 'contract_finished', actorId: req.user.id, refId: app.id, message: `${company.name || 'A empresa'} encerrou o contrato. Você já pode avaliar a experiência.`, read: false, createdAt: now });
+  saveDb(db);
+  return res.status(200).json({ ...app, effectiveStatus: effectiveStatus(app) });
+});
+
+// GET /api/applications/:id/reviews — avaliações dos dois lados (dev↔empresa)
+server.get('/api/applications/:id/reviews', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company = companyOfApplication(db, app);
+  const isDev     = req.user.id === app.userId;
+  const isCompany = company && company.userId === req.user.id;
+  if (!isDev && !isCompany) return res.status(403).json({ error: 'Sem acesso a estas avaliações.' });
+  const rs = (db.engagementReviews || []).filter(r => r.applicationId === app.id);
+  return res.status(200).json({
+    open:            engagementOpenForReview(app),
+    effectiveStatus: effectiveStatus(app),
+    contractType:    app.contractType || null,
+    devReview:       rs.find(r => r.authorType === 'dev')     || null, // dev → empresa
+    companyReview:   rs.find(r => r.authorType === 'company') || null, // empresa → dev
+    devCriteria:     DEV_CRITERIA,
+    companyCriteria: COMPANY_CRITERIA,
+  });
+});
+
+// POST /api/applications/:id/review — avaliação mútua por critérios (1-5)
+server.post('/api/applications/:id/review', requireAuth, (req, res) => {
+  const db  = getDb();
+  const app = (db.applications || []).find(a => a.id === req.params.id);
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const company   = companyOfApplication(db, app);
+  const isDev     = req.user.id === app.userId;
+  const isCompany = company && company.userId === req.user.id;
+  if (!isDev && !isCompany) return res.status(403).json({ error: 'Você não participa deste vínculo.' });
+  if (!engagementOpenForReview(app)) return res.status(400).json({ error: 'A avaliação fica disponível durante o vínculo CLT ou após o término do contrato.' });
+
+  const authorType = isDev ? 'dev' : 'company';
+  const keys       = isDev ? COMPANY_CRITERIA : DEV_CRITERIA;
+  const v = validateCriteria(req.body && req.body.criteria, keys);
+  if (v.error) return res.status(400).json({ error: v.error });
+  const comment = ((req.body && req.body.comment) || '').trim();
+  const now = new Date().toISOString();
+
+  db.engagementReviews = db.engagementReviews || [];
+  const existing = db.engagementReviews.find(r => r.applicationId === app.id && r.authorType === authorType);
+  const base = {
+    applicationId:   app.id,
+    jobId:           app.jobId,
+    authorId:        req.user.id,
+    authorType,
+    targetType:      isDev ? 'company' : 'dev',
+    targetCompanyId: isDev ? (company ? company.id : null) : null,
+    targetUserId:    isDev ? null : app.userId,
+    criteria:        v.criteria,
+    overall:         v.overall,
+    comment,
+    updatedAt:       now,
+  };
+  if (existing) Object.assign(existing, base);
+  else db.engagementReviews.push(Object.assign({ id: generateId(), createdAt: now }, base));
+
+  // dev→empresa recalcula o rating da empresa; empresa→dev é agregado no perfil do dev
+  if (isDev && company) recomputeCompanyRating(db, company.id);
+
+  if (!existing) {
+    const targetUserId = isDev ? (company ? company.userId : null) : app.userId;
+    if (targetUserId) {
+      const me = db.users.find(u => u.id === req.user.id);
+      db.notifications = db.notifications || [];
+      db.notifications.push({ id: generateId(), userId: targetUserId, type: 'engagement_review', actorId: req.user.id, refId: app.id, message: `${me ? me.name : 'Alguém'} avaliou sua ${isDev ? 'empresa' : 'atuação'} (${v.overall}★).`, read: false, createdAt: now });
+    }
+  }
+  saveDb(db);
+  return res.status(201).json({ ok: true, overall: v.overall, criteria: v.criteria, authorType });
 });
 
 // ── SAVED JOBS (#2/#3 salvar vaga, #12 histórico) ────────────────────────────
@@ -2065,7 +2296,12 @@ server.get('/api/companies/:id', requireAuth, (req, res) => {
     countries:    company.countries != null ? company.countries : null,
   };
 
-  return res.status(200).json({ company, jobs, stats });
+  const reviews = (db.engagementReviews || [])
+    .filter(r => r.targetType === 'company' && r.targetCompanyId === company.id)
+    .map(r => { const a = db.users.find(u => u.id === r.authorId); return { id: r.id, rating: r.overall, comment: r.comment || '', criteria: r.criteria, authorName: a ? a.name : 'Desenvolvedor(a)', authorAvatar: a ? a.avatarUrl : null, createdAt: r.createdAt }; })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return res.status(200).json({ company, jobs, stats, reviews });
 });
 
 // ── Frontend estático + uploads (servidos pelo MESMO serviço) ────────────────
@@ -2324,7 +2560,7 @@ server.post('/api/projects/:id/reviews', requireAuth, (req, res) => {
 // leitura. Toda escrita passa pelos endpoints customizados acima (com validação,
 // ownership e anti-auto-ação). As rotas customizadas são registradas antes daqui,
 // então têm precedência; isto só captura acessos diretos às coleções.
-['/api/answers', '/api/answerRatings', '/api/answerHelpful'].forEach((p) => {
+['/api/answers', '/api/answerRatings', '/api/answerHelpful', '/api/engagementReviews'].forEach((p) => {
   server.use(p, requireAuth, (req, res, next) => {
     if (req.method === 'GET') return next();
     return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
