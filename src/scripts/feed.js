@@ -324,6 +324,8 @@
   const composerTextarea  = $('#composer-textarea');
   const composerPreview   = $('#composer-preview');
   const previewToggle     = $('#composer-preview-toggle');
+  const composerTitle     = $('#composer-title');
+  let   composerType      = 'post';
 
   function expandComposer() {
     composerCollapsed.style.display = 'none';
@@ -338,7 +340,25 @@
     composerPreview.innerHTML = '';
     composerPreview.classList.add('composer__preview--hidden');
     previewToggle.textContent = 'Pré-visualizar';
+    setComposerType('post');
   }
+
+  // Alterna entre Publicação e Dúvida (mostra/oculta o campo de título)
+  function setComposerType(type) {
+    composerType = type === 'duvida' ? 'duvida' : 'post';
+    $$('.composer__type-btn').forEach(b => b.classList.toggle('is-active', b.dataset.ctype === composerType));
+    if (composerType === 'duvida') {
+      composerTitle.classList.remove('composer__title-input--hidden');
+      composerTextarea.placeholder = 'Descreva sua dúvida com detalhes. Outros devs poderão responder e você avalia as respostas.';
+      composerSubmit.textContent = 'Publicar dúvida';
+    } else {
+      composerTitle.classList.add('composer__title-input--hidden');
+      composerTitle.value = '';
+      composerTextarea.placeholder = 'Compartilhe algo com a comunidade...';
+      composerSubmit.textContent = 'Publicar';
+    }
+  }
+  $$('.composer__type-btn').forEach(b => b.addEventListener('click', () => setComposerType(b.dataset.ctype)));
 
   composerTrigger.addEventListener('click', expandComposer);
   composerCancel.addEventListener('click',  collapseComposer);
@@ -404,8 +424,14 @@
   // Submit do post
   composerSubmit.addEventListener('click', async () => {
     const content = composerTextarea.value.trim();
+    const title   = composerTitle.value.trim();
     if (!content) {
       window.showToast('Escreva algo antes de publicar.', 'error');
+      return;
+    }
+    if (composerType === 'duvida' && !title) {
+      window.showToast('Dê um título para a sua dúvida.', 'error');
+      composerTitle.focus();
       return;
     }
 
@@ -413,9 +439,12 @@
     composerSubmit.textContent = 'Publicando...';
 
     try {
+      const payload = composerType === 'duvida'
+        ? { content, type: 'duvida', title }
+        : { content };
       const res = await api('/api/posts', {
         method: 'POST',
-        body:   JSON.stringify({ content }),
+        body:   JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -424,7 +453,7 @@
         return;
       }
 
-      window.showToast('Publicação criada!', 'success');
+      window.showToast(composerType === 'duvida' ? 'Dúvida publicada!' : 'Publicação criada!', 'success');
       collapseComposer();
       // Post recém-criado pelo próprio usuário: fixa no topo do MEU feed (até dar F5)
       // e aparece na hora (otimista), sem esperar novo fetch.
@@ -437,7 +466,7 @@
       window.showToast('Erro de conexão. Verifique se o backend está rodando.', 'error');
     } finally {
       composerSubmit.disabled  = false;
-      composerSubmit.textContent = 'Publicar';
+      composerSubmit.textContent = composerType === 'duvida' ? 'Publicar dúvida' : 'Publicar';
     }
   });
 
@@ -449,9 +478,20 @@
     const isOwn       = author.id === currentUser.id;
     const likedClass  = post.likedByMe ? 'post__action-btn--liked' : '';
     const likeFill    = post.likedByMe ? 'currentColor' : 'none';
+    const isDuvida    = post.type === 'duvida';
+    const status      = post.status === 'resolvida' ? 'resolvida' : 'aberta';
+    const qaHead = isDuvida ? `
+          <div class="post__qa-head">
+            <span class="post__badge post__badge--duvida">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Dúvida
+            </span>
+            <span class="post__status post__status--${status}">${status === 'resolvida' ? 'Resolvida' : 'Aberta'}</span>
+          </div>
+          ${post.title ? `<h3 class="post__qa-title">${escapeHtml(post.title)}</h3>` : ''}` : '';
 
     return `
-      <article class="post" data-post-id="${post.id}">
+      <article class="post${isDuvida ? ' post--duvida' : ''}" data-post-id="${post.id}" data-post-type="${isDuvida ? 'duvida' : 'post'}">
         <div class="post__body">
           <div class="post__header">
             <div class="post__author post__author--link" data-profile-id="${escapeHtml(author.id || '')}" role="link" tabindex="0" title="Ver perfil de ${escapeHtml(author.name || '')}">
@@ -477,6 +517,7 @@
             }
           </div>
 
+          ${qaHead}
           <div class="post__content">${parseMarkdown(post.content)}</div>
         </div>
 
@@ -496,6 +537,11 @@
             </svg>
             <span><span data-comments-count>${post.commentsCount}</span> Comentar</span>
           </button>
+
+          ${isDuvida ? `<button class="post__action-btn" data-action="answers">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"/><line x1="7" y1="22" x2="7" y2="11"/></svg>
+            <span><span data-answers-count>${post.answersCount || 0}</span> Respostas</span>
+          </button>` : ''}
 
           <button class="post__action-btn" data-action="share">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -529,6 +575,17 @@
           </form>
           <div class="comment-list" data-comment-list></div>
         </div>
+        ${isDuvida ? `
+        <div class="post__answers post__answers--hidden" data-answers-section>
+          <form class="answer-form" data-answer-form>
+            <div class="answer-form__avatar">${avatarInner(currentUser)}</div>
+            <div class="answer-form__main">
+              <textarea class="answer-form__input" placeholder="Escreva uma resposta para ajudar..." maxlength="5000" rows="2" required></textarea>
+              <button type="submit" class="answer-form__submit">Publicar resposta</button>
+            </div>
+          </form>
+          <div class="answer-list" data-answer-list></div>
+        </div>` : ''}
       </article>
     `;
   }
@@ -568,6 +625,8 @@
     article.querySelector('[data-action="comment"]').addEventListener('click', async () => {
       const wasHidden = commentsSection.classList.contains('post__comments--hidden');
       commentsSection.classList.toggle('post__comments--hidden');
+      const ansSec = article.querySelector('[data-answers-section]');
+      if (wasHidden && ansSec) ansSec.classList.add('post__answers--hidden'); // comporta como aba
 
       if (wasHidden && !commentsLoaded) {
         try {
@@ -645,6 +704,9 @@
         }
       });
     }
+
+    // Respostas (Q&A) — só age em posts do tipo dúvida (no-op se não houver seção)
+    setupAnswers(article, postId);
   }
 
   function renderComment(c) {
@@ -661,6 +723,188 @@
         </div>
       </div>
     `;
+  }
+
+  /* =========================================================
+     RESPOSTAS (Q&A) — render + interações
+  ========================================================= */
+  function answerStars(myRating) {
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+      s += `<button type="button" class="answer-rate__star${i <= myRating ? ' is-on' : ''}" data-star="${i}" aria-label="${i} estrela${i > 1 ? 's' : ''}">★</button>`;
+    }
+    return `<span class="answer-rate__stars" data-stars data-selected="${myRating || 0}">${s}</span>`;
+  }
+
+  function renderAnswer(a, isAsker) {
+    const author = a.author || { name: 'Usuário' };
+    const isOwn  = a.isOwn;
+    const ratingLabel = a.ratingCount ? `★ ${a.ratingAvg} · ${a.ratingCount} avaliaç${a.ratingCount > 1 ? 'ões' : 'ão'}` : 'Sem avaliações';
+    const rateBlock = isOwn ? '' : `
+          <div class="answer-rate" data-answer-rate>
+            <span class="answer-rate__title">${a.myRating ? 'Sua avaliação' : 'Avalie esta resposta'}</span>
+            ${answerStars(a.myRating)}
+            <input type="text" class="answer-rate__comment" data-rate-comment maxlength="500" placeholder="Observação (opcional) — o que faltou?" value="${escapeHtml(a.myComment || '')}" />
+            <button type="button" class="answer-rate__submit" data-rate-submit>${a.myRating ? 'Atualizar' : 'Enviar'}</button>
+          </div>`;
+    return `
+      <div class="answer${a.isBest ? ' answer--best' : ''}" data-answer-id="${escapeHtml(a.id)}">
+        <div class="answer__avatar">${avatarInner(author)}</div>
+        <div class="answer__main">
+          <div class="answer__head">
+            <span class="answer__author post__author--link" data-profile-id="${escapeHtml(author.id || '')}" role="link" tabindex="0">${escapeHtml(author.name)}</span>
+            <span class="answer__time">• ${timeAgo(a.createdAt)}</span>
+            ${a.isBest ? '<span class="answer__best-badge">🏅 Melhor resposta</span>' : ''}
+            <span class="answer__rating" data-answer-rating>${ratingLabel}</span>
+          </div>
+          <div class="answer__content">${parseMarkdown(a.content)}</div>
+          <div class="answer__foot">
+            <button type="button" class="answer__util${a.helpfulByMe ? ' is-on' : ''}" data-util${isOwn ? ' disabled title="Você não pode marcar a própria resposta"' : ''}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+              Útil <span data-util-count>${a.helpfulCount}</span>
+            </button>
+            ${isAsker ? `<button type="button" class="answer__best-btn${a.isBest ? ' is-on' : ''}" data-best>${a.isBest ? 'Desmarcar melhor' : 'Marcar como melhor'}</button>` : ''}
+            ${isOwn ? '<button type="button" class="answer__delete" data-answer-delete>Excluir</button>' : ''}
+          </div>
+          ${rateBlock}
+        </div>
+      </div>`;
+  }
+
+  function updatePostStatus(article, status) {
+    const el = article.querySelector('.post__status');
+    if (!el) return;
+    const resolved = status === 'resolvida';
+    el.classList.toggle('post__status--resolvida', resolved);
+    el.classList.toggle('post__status--aberta', !resolved);
+    el.textContent = resolved ? 'Resolvida' : 'Aberta';
+  }
+
+  function setupAnswers(article, postId) {
+    const section = article.querySelector('[data-answers-section]');
+    if (!section) return;
+    const list = section.querySelector('[data-answer-list]');
+    const btn  = article.querySelector('[data-action="answers"]');
+    let loaded = false;
+    let isAsker = false;
+
+    async function loadAnswers() {
+      try {
+        const res = await api(`/api/posts/${postId}/answers`);
+        const data = await res.json();
+        if (!res.ok) return;
+        isAsker = !!data.isAsker;
+        updatePostStatus(article, data.postStatus);
+        list.innerHTML = data.answers.length
+          ? data.answers.map(a => renderAnswer(a, isAsker)).join('')
+          : '<p class="answer-list__empty">Ainda não há respostas. Seja o primeiro a ajudar!</p>';
+      } catch { /* silencioso */ }
+    }
+
+    if (btn) btn.addEventListener('click', async () => {
+      const wasHidden = section.classList.contains('post__answers--hidden');
+      section.classList.toggle('post__answers--hidden');
+      const cs = article.querySelector('[data-comments-section]');
+      if (wasHidden && cs) cs.classList.add('post__comments--hidden'); // comporta como aba
+      if (wasHidden && !loaded) { await loadAnswers(); loaded = true; }
+    });
+
+    section.querySelector('[data-answer-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const ta = e.currentTarget.querySelector('textarea');
+      const submit = e.currentTarget.querySelector('button[type="submit"]');
+      const content = ta.value.trim();
+      if (!content) return;
+      submit.disabled = true;
+      try {
+        const res = await api(`/api/posts/${postId}/answers`, { method: 'POST', body: JSON.stringify({ content }) });
+        const data = await res.json();
+        if (!res.ok) { window.showToast(data.error || 'Erro ao responder.', 'error'); return; }
+        const empty = list.querySelector('.answer-list__empty'); if (empty) empty.remove();
+        list.insertAdjacentHTML('beforeend', renderAnswer(data, isAsker));
+        ta.value = '';
+        const countEl = article.querySelector('[data-answers-count]');
+        if (countEl) countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
+        window.showToast('Resposta publicada!', 'success');
+      } catch { window.showToast('Erro de conexão.', 'error'); }
+      finally { submit.disabled = false; }
+    });
+
+    list.addEventListener('click', async (e) => {
+      const answerEl = e.target.closest('[data-answer-id]');
+      if (!answerEl) return;
+      const answerId = answerEl.dataset.answerId;
+
+      const star = e.target.closest('[data-star]');
+      if (star) {
+        const stars = star.closest('[data-stars]');
+        const val = parseInt(star.dataset.star, 10);
+        stars.dataset.selected = String(val);
+        [...stars.querySelectorAll('[data-star]')].forEach(s => s.classList.toggle('is-on', parseInt(s.dataset.star, 10) <= val));
+        return;
+      }
+
+      const rateSubmit = e.target.closest('[data-rate-submit]');
+      if (rateSubmit) {
+        const box = answerEl.querySelector('[data-answer-rate]');
+        const sel = parseInt(box.querySelector('[data-stars]').dataset.selected, 10) || 0;
+        const comment = box.querySelector('[data-rate-comment]').value.trim();
+        if (!sel) { window.showToast('Escolha de 1 a 5 estrelas.', 'error'); return; }
+        rateSubmit.disabled = true;
+        try {
+          const res = await api(`/api/answers/${answerId}/rating`, { method: 'POST', body: JSON.stringify({ rating: sel, comment }) });
+          const data = await res.json();
+          if (!res.ok) { window.showToast(data.error || 'Erro ao avaliar.', 'error'); return; }
+          answerEl.querySelector('[data-answer-rating]').textContent = `★ ${data.ratingAvg} · ${data.ratingCount} avaliaç${data.ratingCount > 1 ? 'ões' : 'ão'}`;
+          box.querySelector('.answer-rate__title').textContent = 'Sua avaliação';
+          rateSubmit.textContent = 'Atualizar';
+          window.showToast('Avaliação registrada!', 'success');
+        } catch { window.showToast('Erro de conexão.', 'error'); }
+        finally { rateSubmit.disabled = false; }
+        return;
+      }
+
+      const util = e.target.closest('[data-util]');
+      if (util) {
+        if (util.hasAttribute('disabled')) return;
+        try {
+          const res = await api(`/api/answers/${answerId}/helpful`, { method: 'POST' });
+          const data = await res.json();
+          if (!res.ok) { window.showToast(data.error || 'Erro.', 'error'); return; }
+          util.classList.toggle('is-on', data.helpful);
+          util.querySelector('[data-util-count]').textContent = data.helpfulCount;
+        } catch { window.showToast('Erro de conexão.', 'error'); }
+        return;
+      }
+
+      const best = e.target.closest('[data-best]');
+      if (best) {
+        best.disabled = true;
+        try {
+          const res = await api(`/api/answers/${answerId}/best`, { method: 'POST' });
+          const data = await res.json();
+          if (!res.ok) { window.showToast(data.error || 'Erro.', 'error'); best.disabled = false; return; }
+          await loadAnswers();
+          window.showToast(data.isBest ? 'Marcada como melhor resposta! 🏅' : 'Marcação removida.', 'success');
+        } catch { window.showToast('Erro de conexão.', 'error'); best.disabled = false; }
+        return;
+      }
+
+      const del = e.target.closest('[data-answer-delete]');
+      if (del) {
+        if (!confirm('Excluir esta resposta?')) return;
+        try {
+          const res = await api(`/api/answers/${answerId}`, { method: 'DELETE' });
+          if (!res.ok) { window.showToast('Erro ao excluir.', 'error'); return; }
+          answerEl.remove();
+          const countEl = article.querySelector('[data-answers-count]');
+          if (countEl) countEl.textContent = Math.max(0, parseInt(countEl.textContent || '0', 10) - 1);
+          if (!list.querySelector('[data-answer-id]')) list.innerHTML = '<p class="answer-list__empty">Ainda não há respostas. Seja o primeiro a ajudar!</p>';
+          window.showToast('Resposta excluída.', 'success');
+        } catch { window.showToast('Erro de conexão.', 'error'); }
+        return;
+      }
+    });
   }
 
   /* =========================================================

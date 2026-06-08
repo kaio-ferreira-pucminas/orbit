@@ -321,6 +321,20 @@
     `).join('');
   }
 
+  // Card "Reputação em respostas" (Q&A) — injetado antes da seção de depoimentos
+  function renderQaReputation(qa) {
+    const reviews = $('#profile-reviews');
+    if (!reviews || !window.OrbitQaRep) return;
+    const anchor = reviews.closest('section') || reviews;
+    let mount = document.getElementById('qa-rep-mount');
+    if (!mount) {
+      mount = document.createElement('div');
+      mount.id = 'qa-rep-mount';
+      anchor.parentNode.insertBefore(mount, anchor);
+    }
+    window.OrbitQaRep.render(mount, qa);
+  }
+
   /* =========================================================
      LOAD PROFILE
   ========================================================= */
@@ -348,6 +362,7 @@
         renderSkills(data.user);
         renderProjects(data.projects);
         renderReviews(data.reviews);
+        renderQaReputation(data.qa);
         // Contribuições do GitHub (conta dev com github informado)
         if (data.user.github && window.OrbitContrib) {
           const sec = $('#profile-contrib-section'); if (sec) sec.hidden = false;

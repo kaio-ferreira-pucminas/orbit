@@ -543,6 +543,7 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
       reviewsCount:  reviews.length,
       projectsCount: projects.length,
     },
+    qa: computeQaStats(db, req.params.id),
   });
 });
 
@@ -623,6 +624,7 @@ server.get('/api/posts', requireAuth, (req, res) => {
     const author        = db.users.find(u => u.id === post.userId);
     const likesCount    = db.likes.filter(l => l.postId === post.id).length;
     const commentsCount = db.comments.filter(c => c.postId === post.id).length;
+    const answersCount  = (db.answers || []).filter(a => a.postId === post.id).length;
     const likedByMe     = !!db.likes.find(
       l => l.postId === post.id && l.userId === req.user.id
     );
@@ -632,6 +634,7 @@ server.get('/api/posts', requireAuth, (req, res) => {
       author: author ? sanitizeUser(author) : null,
       likesCount,
       commentsCount,
+      answersCount,
       likedByMe,
     };
   });
@@ -642,6 +645,8 @@ server.get('/api/posts', requireAuth, (req, res) => {
 // POST /api/posts — cria novo post
 server.post('/api/posts', requireAuth, (req, res) => {
   const { content } = req.body;
+  const type  = req.body.type === 'duvida' ? 'duvida' : 'post';
+  const title = (req.body.title || '').trim();
 
   if (!content || !content.trim()) {
     return res.status(400).json({ error: 'O conteúdo do post não pode ser vazio.' });
@@ -650,6 +655,12 @@ server.post('/api/posts', requireAuth, (req, res) => {
   if (content.length > 5000) {
     return res.status(400).json({ error: 'O conteúdo do post excede 5000 caracteres.' });
   }
+  if (type === 'duvida' && !title) {
+    return res.status(400).json({ error: 'O título da dúvida é obrigatório.' });
+  }
+  if (title.length > 160) {
+    return res.status(400).json({ error: 'O título da dúvida excede 160 caracteres.' });
+  }
 
   const db = getDb();
   const now = new Date().toISOString();
@@ -657,10 +668,15 @@ server.post('/api/posts', requireAuth, (req, res) => {
   const newPost = {
     id:        generateId(),
     userId:    req.user.id,
+    type,
     content:   content.trim(),
     createdAt: now,
     updatedAt: now,
   };
+  if (type === 'duvida') {
+    newPost.title  = title;
+    newPost.status = 'aberta';
+  }
 
   db.posts.push(newPost);
   saveDb(db);
@@ -672,6 +688,7 @@ server.post('/api/posts', requireAuth, (req, res) => {
     author: author ? sanitizeUser(author) : null,
     likesCount: 0,
     commentsCount: 0,
+    answersCount: 0,
     likedByMe: false,
   });
 });
@@ -689,9 +706,14 @@ server.delete('/api/posts/:id', requireAuth, (req, res) => {
     return res.status(403).json({ error: 'Você não pode deletar posts de outros usuários.' });
   }
 
-  db.posts    = db.posts.filter(p => p.id !== req.params.id);
-  db.comments = db.comments.filter(c => c.postId !== req.params.id);
-  db.likes    = db.likes.filter(l => l.postId !== req.params.id);
+  // Cascata: respostas da dúvida + suas avaliações e marcações "útil"
+  const answerIds = new Set((db.answers || []).filter(a => a.postId === req.params.id).map(a => a.id));
+  db.posts         = db.posts.filter(p => p.id !== req.params.id);
+  db.comments      = db.comments.filter(c => c.postId !== req.params.id);
+  db.likes         = db.likes.filter(l => l.postId !== req.params.id);
+  db.answers       = (db.answers || []).filter(a => a.postId !== req.params.id);
+  db.answerRatings = (db.answerRatings || []).filter(r => !answerIds.has(r.answerId));
+  db.answerHelpful = (db.answerHelpful || []).filter(h => !answerIds.has(h.answerId));
   saveDb(db);
 
   return res.status(204).send();
@@ -818,6 +840,185 @@ server.post('/api/posts/:id/comments', requireAuth, (req, res) => {
     ...newComment,
     author: author ? sanitizeUser(author) : null,
   });
+});
+
+// ── RESPOSTAS / Q&A (posts do tipo dúvida) ───────────────────────────────────
+
+// Recalcula média/contagem de estrelas de uma resposta (denormalizado, como projetos)
+function recomputeAnswerRating(db, answerId) {
+  const rs  = (db.answerRatings || []).filter(r => r.answerId === answerId);
+  const idx = (db.answers || []).findIndex(a => a.id === answerId);
+  if (idx === -1) return;
+  db.answers[idx].ratingAvg   = rs.length ? +(rs.reduce((a, r) => a + (r.rating || 0), 0) / rs.length).toFixed(1) : 0;
+  db.answers[idx].ratingCount = rs.length;
+}
+
+// Reputação Q&A do dev: nota = média das estrelas recebidas nas respostas + contadores
+function computeQaStats(db, userId) {
+  const myAnswers = (db.answers || []).filter(a => a.authorId === userId);
+  const ids       = new Set(myAnswers.map(a => a.id));
+  const ratings   = (db.answerRatings || []).filter(r => ids.has(r.answerId));
+  const ratingSum = ratings.reduce((s, r) => s + (r.rating || 0), 0);
+  return {
+    answersCount:     myAnswers.length,
+    bestAnswersCount: myAnswers.filter(a => a.isBest).length,
+    helpfulReceived:  (db.answerHelpful || []).filter(h => ids.has(h.answerId)).length,
+    ratingsCount:     ratings.length,
+    ratingAvg:        ratings.length ? +(ratingSum / ratings.length).toFixed(1) : 0,
+  };
+}
+
+// Enriquece uma resposta com autor, contadores e estado do usuário atual
+function enrichAnswer(db, a, meId) {
+  const author    = db.users.find(u => u.id === a.authorId);
+  const helpful   = (db.answerHelpful || []).filter(h => h.answerId === a.id);
+  const myRating  = (db.answerRatings || []).find(r => r.answerId === a.id && r.authorId === meId);
+  return {
+    ...a,
+    author:       author ? sanitizeUser(author) : null,
+    ratingAvg:    a.ratingAvg || 0,
+    ratingCount:  a.ratingCount || 0,
+    helpfulCount: helpful.length,
+    helpfulByMe:  helpful.some(h => h.userId === meId),
+    myRating:     myRating ? myRating.rating : 0,
+    myComment:    myRating ? (myRating.comment || '') : '',
+    isOwn:        a.authorId === meId,
+  };
+}
+
+// GET /api/posts/:id/answers — lista respostas (ordem: melhor → mais úteis → mais estrelas → mais antiga)
+server.get('/api/posts/:id/answers', requireAuth, (req, res) => {
+  const db   = getDb();
+  const post = (db.posts || []).find(p => p.id === req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post não encontrado.' });
+  if (post.type !== 'duvida') return res.status(400).json({ error: 'Apenas dúvidas possuem respostas.' });
+  const answers = (db.answers || [])
+    .filter(a => a.postId === req.params.id)
+    .map(a => enrichAnswer(db, a, req.user.id))
+    .sort((x, y) =>
+      (Number(y.isBest) - Number(x.isBest)) ||
+      (y.helpfulCount - x.helpfulCount) ||
+      (y.ratingAvg - x.ratingAvg) ||
+      (new Date(x.createdAt) - new Date(y.createdAt))
+    );
+  return res.status(200).json({
+    isAsker:    post.userId === req.user.id,
+    postStatus: post.status || 'aberta',
+    answers,
+  });
+});
+
+// POST /api/posts/:id/answers — publica uma resposta
+server.post('/api/posts/:id/answers', requireAuth, (req, res) => {
+  const content = ((req.body && req.body.content) || '').trim();
+  if (!content) return res.status(400).json({ error: 'A resposta não pode ser vazia.' });
+  if (content.length > 5000) return res.status(400).json({ error: 'A resposta excede 5000 caracteres.' });
+  const db   = getDb();
+  const post = (db.posts || []).find(p => p.id === req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post não encontrado.' });
+  if (post.type !== 'duvida') return res.status(400).json({ error: 'Apenas dúvidas podem receber respostas.' });
+  const now    = new Date().toISOString();
+  const answer = { id: generateId(), postId: post.id, authorId: req.user.id, content, isBest: false, ratingAvg: 0, ratingCount: 0, createdAt: now, updatedAt: now };
+  db.answers = db.answers || [];
+  db.answers.push(answer);
+  if (post.userId && post.userId !== req.user.id) {
+    const me = db.users.find(u => u.id === req.user.id);
+    db.notifications = db.notifications || [];
+    db.notifications.push({ id: generateId(), userId: post.userId, type: 'new_answer', actorId: req.user.id, postId: post.id, message: `${me ? me.name : 'Alguém'} respondeu sua dúvida.`, read: false, createdAt: now });
+  }
+  saveDb(db);
+  return res.status(201).json(enrichAnswer(db, answer, req.user.id));
+});
+
+// DELETE /api/answers/:id — remove a própria resposta (cascata em ratings/helpful)
+server.delete('/api/answers/:id', requireAuth, (req, res) => {
+  const db     = getDb();
+  const answer = (db.answers || []).find(a => a.id === req.params.id);
+  if (!answer) return res.status(404).json({ error: 'Resposta não encontrada.' });
+  if (answer.authorId !== req.user.id) return res.status(403).json({ error: 'Você não pode remover respostas de outros usuários.' });
+  db.answers       = db.answers.filter(a => a.id !== req.params.id);
+  db.answerRatings = (db.answerRatings || []).filter(r => r.answerId !== req.params.id);
+  db.answerHelpful = (db.answerHelpful || []).filter(h => h.answerId !== req.params.id);
+  const post = (db.posts || []).find(p => p.id === answer.postId);
+  if (post && answer.isBest) { post.status = 'aberta'; post.updatedAt = new Date().toISOString(); }
+  saveDb(db);
+  return res.status(204).send();
+});
+
+// POST /api/answers/:id/rating — avalia uma resposta (1-5 + comentário); qualquer dev, menos o autor
+server.post('/api/answers/:id/rating', requireAuth, (req, res) => {
+  const db     = getDb();
+  const answer = (db.answers || []).find(a => a.id === req.params.id);
+  if (!answer) return res.status(404).json({ error: 'Resposta não encontrada.' });
+  if (answer.authorId === req.user.id) return res.status(400).json({ error: 'Você não pode avaliar a própria resposta.' });
+  const rating = parseInt(req.body && req.body.rating, 10);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error: 'A nota deve ser um número inteiro de 1 a 5.' });
+  const comment = ((req.body && req.body.comment) || '').trim();
+  const now     = new Date().toISOString();
+  db.answerRatings = db.answerRatings || [];
+  const existing = db.answerRatings.find(r => r.answerId === answer.id && r.authorId === req.user.id);
+  if (existing) { existing.rating = rating; existing.comment = comment; existing.updatedAt = now; }
+  else db.answerRatings.push({ id: generateId(), answerId: answer.id, authorId: req.user.id, rating, comment, createdAt: now, updatedAt: now });
+  recomputeAnswerRating(db, answer.id);
+  // Notifica o autor da resposta apenas na PRIMEIRA avaliação (evita spam em reavaliações)
+  if (!existing) {
+    const me = db.users.find(u => u.id === req.user.id);
+    db.notifications = db.notifications || [];
+    db.notifications.push({ id: generateId(), userId: answer.authorId, type: 'answer_rated', actorId: req.user.id, postId: answer.postId, message: `${me ? me.name : 'Alguém'} avaliou sua resposta com ${rating}★.`, read: false, createdAt: now });
+  }
+  saveDb(db);
+  const updated = db.answers.find(a => a.id === answer.id);
+  return res.status(201).json({ ok: true, ratingAvg: updated.ratingAvg, ratingCount: updated.ratingCount, myRating: rating });
+});
+
+// POST /api/answers/:id/helpful — marca/desmarca "útil" (toggle); qualquer dev, menos o autor
+server.post('/api/answers/:id/helpful', requireAuth, (req, res) => {
+  const db     = getDb();
+  const answer = (db.answers || []).find(a => a.id === req.params.id);
+  if (!answer) return res.status(404).json({ error: 'Resposta não encontrada.' });
+  if (answer.authorId === req.user.id) return res.status(400).json({ error: 'Você não pode marcar a própria resposta como útil.' });
+  db.answerHelpful = db.answerHelpful || [];
+  const existing = db.answerHelpful.find(h => h.answerId === answer.id && h.userId === req.user.id);
+  const now = new Date().toISOString();
+  let helpful;
+  if (existing) { db.answerHelpful = db.answerHelpful.filter(h => h.id !== existing.id); helpful = false; }
+  else {
+    db.answerHelpful.push({ id: generateId(), answerId: answer.id, userId: req.user.id, createdAt: now });
+    helpful = true;
+    const me = db.users.find(u => u.id === req.user.id);
+    db.notifications = db.notifications || [];
+    db.notifications.push({ id: generateId(), userId: answer.authorId, type: 'answer_helpful', actorId: req.user.id, postId: answer.postId, message: `${me ? me.name : 'Alguém'} achou sua resposta útil.`, read: false, createdAt: now });
+  }
+  saveDb(db);
+  const helpfulCount = db.answerHelpful.filter(h => h.answerId === answer.id).length;
+  return res.status(200).json({ helpful, helpfulCount });
+});
+
+// POST /api/answers/:id/best — marca/desmarca "Melhor resposta" (só o autor da dúvida)
+server.post('/api/answers/:id/best', requireAuth, (req, res) => {
+  const db     = getDb();
+  const answer = (db.answers || []).find(a => a.id === req.params.id);
+  if (!answer) return res.status(404).json({ error: 'Resposta não encontrada.' });
+  const post = (db.posts || []).find(p => p.id === answer.postId);
+  if (!post) return res.status(404).json({ error: 'Post não encontrado.' });
+  if (post.userId !== req.user.id) return res.status(403).json({ error: 'Só o autor da dúvida pode marcar a melhor resposta.' });
+  const now     = new Date().toISOString();
+  const wasBest = !!answer.isBest;
+  (db.answers || []).forEach(a => { if (a.postId === post.id) a.isBest = false; });
+  if (!wasBest) {
+    answer.isBest = true;
+    post.status   = 'resolvida';
+    if (answer.authorId !== req.user.id) {
+      const me = db.users.find(u => u.id === req.user.id);
+      db.notifications = db.notifications || [];
+      db.notifications.push({ id: generateId(), userId: answer.authorId, type: 'answer_best', actorId: req.user.id, postId: post.id, message: `${me ? me.name : 'Alguém'} marcou sua resposta como a melhor! 🏅`, read: false, createdAt: now });
+    }
+  } else {
+    post.status = 'aberta';
+  }
+  post.updatedAt = now;
+  saveDb(db);
+  return res.status(200).json({ isBest: !wasBest, postStatus: post.status });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1519,6 +1720,7 @@ server.get('/api/feed/me', requireAuth, (req, res) => {
     const author   = db.users.find(u => u.id === post.userId);
     const likes    = (db.likes || []).filter(l => l.postId === post.id);
     const comments = (db.comments || []).filter(c => c.postId === post.id);
+    const answers  = (db.answers || []).filter(a => a.postId === post.id);
     const isOwn    = post.userId === me;
     const follows  = myFollowing.has(post.userId) ? 1 : 0;
     // só considera 2º grau se ainda não segue diretamente
@@ -1539,6 +1741,7 @@ server.get('/api/feed/me', requireAuth, (req, res) => {
       author:        author ? sanitizeUser(author) : null,
       likesCount:    likes.length,
       commentsCount: comments.length,
+      answersCount:  answers.length,
       likedByMe:     likes.some(l => l.userId === me),
       _score:        +score.toFixed(3),
     };
@@ -2115,6 +2318,17 @@ server.post('/api/projects/:id/reviews', requireAuth, (req, res) => {
   saveDb(db);
   const updated = db.projects.find(p => p.id === proj.id);
   res.status(201).json({ ok: true, ratingAvg: updated.ratingAvg, ratingCount: updated.ratingCount });
+});
+
+// Protege as coleções de Q&A do CRUD cru do JSON Server: exige auth e só permite
+// leitura. Toda escrita passa pelos endpoints customizados acima (com validação,
+// ownership e anti-auto-ação). As rotas customizadas são registradas antes daqui,
+// então têm precedência; isto só captura acessos diretos às coleções.
+['/api/answers', '/api/answerRatings', '/api/answerHelpful'].forEach((p) => {
+  server.use(p, requireAuth, (req, res, next) => {
+    if (req.method === 'GET') return next();
+    return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
+  });
 });
 
 // ── Rewriter e roteador do JSON Server ───────────────────────────────────────

@@ -132,6 +132,14 @@
           </div>`).join('')
       : '<p class="pp-reviews__empty">Este usuário ainda não recebeu depoimentos.</p>';
 
+    // Reputação em respostas (Q&A) — somente devs
+    if (user.type === 'dev' && window.OrbitQaRep) {
+      const anchor = rv.closest('section') || rv;
+      let mount = document.getElementById('pp-qa-rep-mount');
+      if (!mount) { mount = document.createElement('div'); mount.id = 'pp-qa-rep-mount'; anchor.parentNode.insertBefore(mount, anchor); }
+      window.OrbitQaRep.render(mount, data.qa);
+    }
+
     // Projetos (clicáveis → modal com a aplicação rodando + avaliações)
     projectsCache = projects;
     const pj = $('#pp-projects');

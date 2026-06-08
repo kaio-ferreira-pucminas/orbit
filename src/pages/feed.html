@@ -84,6 +84,20 @@
 
           <!-- Estado expandido (editor completo) -->
           <div class="composer__expanded composer__expanded--hidden" id="composer-expanded">
+            <div class="composer__type" role="tablist" aria-label="Tipo de publicação">
+              <button type="button" class="composer__type-btn is-active" data-ctype="post" role="tab">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Publicação
+              </button>
+              <button type="button" class="composer__type-btn" data-ctype="duvida" role="tab">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Dúvida
+              </button>
+            </div>
+
+            <input type="text" id="composer-title" class="composer__title-input composer__title-input--hidden"
+              placeholder="Título da sua dúvida (ex.: Como centralizar uma div com flexbox?)" maxlength="160" />
+
             <div class="composer__toolbar" role="toolbar" aria-label="Formatação">
               <button type="button" class="composer__btn" data-format="bold"
                 title="Negrito (envolve em **)" aria-label="Negrito">
