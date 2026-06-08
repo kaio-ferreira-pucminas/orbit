@@ -139,9 +139,12 @@
       ? projects.slice(0, 6).map(p => {
           const tags = techArray(p).slice(0, 3).map(t => `<span class="pp-proj-tag">${escapeHtml(t)}</span>`).join('');
           const rating = p.ratingCount ? `<span class="pp-proj-card__rating">★ ${p.ratingAvg || 0} (${p.ratingCount})</span>` : '';
+          const coverBg = p.coverImage
+            ? `linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.4)),url('${escapeHtml(p.coverImage)}') center/cover`
+            : (p.coverGradient || gradFor(p.id));
           return `
             <article class="pp-proj-card pp-proj-card--clickable" data-proj-id="${escapeHtml(p.id)}" role="button" tabindex="0" title="Ver projeto">
-              <div class="pp-proj-card__cover" style="background:${p.coverGradient || gradFor(p.id)}">
+              <div class="pp-proj-card__cover" style="background:${coverBg}">
                 <span class="pp-proj-card__cover-text">${escapeHtml(p.title || 'Projeto')}</span>
                 ${p.liveUrl ? '<span class="pp-proj-card__live">● ao vivo</span>' : ''}
               </div>

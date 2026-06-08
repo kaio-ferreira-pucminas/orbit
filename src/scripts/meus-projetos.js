@@ -38,6 +38,37 @@
 
   /* ===== ESTADO ===== */
   let projects = [];
+  let pendingCover = undefined; // undefined = não mexeu | string(dataUrl) = nova capa | null = remover
+
+  // Redimensiona a imagem no cliente (evita payload gigante) → data URL webp/jpeg
+  function resizeImageToDataUrl(file, maxSize = 1280, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > maxSize || h > maxSize) { const s = Math.min(maxSize / w, maxSize / h); w = Math.round(w * s); h = Math.round(h * s); }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          let out = canvas.toDataURL('image/webp', quality);
+          if (!out.startsWith('data:image/webp')) out = canvas.toDataURL('image/jpeg', quality);
+          resolve(out);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function setCoverPreview(url) {
+    const prev = $('#proj-cover-preview'); const rm = $('#proj-cover-remove');
+    if (!prev) return;
+    if (url) { prev.innerHTML = `<img src="${escapeHtml(url)}" alt="capa" />`; if (rm) rm.hidden = false; }
+    else { prev.innerHTML = '<span class="mp-cover__empty">Sem capa</span>'; if (rm) rm.hidden = true; }
+  }
 
   const GRADIENTS = [
     'linear-gradient(135deg, #131b2e 0%, #4648d4 100%)',
@@ -70,10 +101,14 @@
     const draft = statusOf(p) === 'rascunho';
     const repo = p.repoUrl || p.githubUrl;
     const live = p.liveUrl || null;
+    const cover = p.coverImage;
+    const thumbStyle = cover
+      ? `background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.4)),url('${escapeHtml(cover)}') center/cover`
+      : `background:${escapeHtml(grad)}`;
 
     return `
       <article class="mp-card ${draft ? 'mp-card--draft' : ''}" data-proj-id="${escapeHtml(p.id)}">
-        <div class="mp-card__thumb" style="background:${escapeHtml(grad)}">
+        <div class="mp-card__thumb" style="${thumbStyle}">
           <span class="mp-card__thumb-text">${escapeHtml(p.title || 'Projeto')}</span>
           ${p.source === 'github' ? '<span class="mp-card__src" title="Importado do GitHub">GitHub</span>' : ''}
         </div>
@@ -143,6 +178,9 @@
     $('#proj-repo').value  = proj ? (proj.repoUrl || proj.githubUrl || '') : '';
     $('#proj-demo').value  = proj ? (proj.liveUrl || proj.demoUrl || '') : '';
     $('#proj-public').checked = proj ? isPublic(proj) : true;
+    pendingCover = undefined;
+    setCoverPreview(proj ? (proj.coverImage || '') : '');
+    const ci = $('#proj-cover-input'); if (ci) ci.value = '';
     setTimeout(() => $('#proj-title').focus(), 50);
   }
   function closeModal() { $('#proj-modal').hidden = true; $('#proj-form').reset(); }
@@ -159,6 +197,7 @@
       liveUrl: $('#proj-demo').value.trim() || null,
       isPublic: $('#proj-public').checked,
     };
+    if (pendingCover !== undefined) payload.coverImage = pendingCover;
     if (!payload.title) { toast('Informe o título do projeto.', 'error'); return; }
 
     try {
@@ -225,6 +264,15 @@
     $('#proj-cancel').addEventListener('click', closeModal);
     const bNew = $('#btn-new-sidebar'); if (bNew) bNew.addEventListener('click', () => openModal(null));
     const bSync = $('#btn-sync-github'); if (bSync) bSync.addEventListener('click', syncGithub);
+    const coverBtn = $('#proj-cover-btn'); const coverInput = $('#proj-cover-input'); const coverRm = $('#proj-cover-remove');
+    if (coverBtn && coverInput) coverBtn.addEventListener('click', () => coverInput.click());
+    if (coverInput) coverInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0]; if (!file) return;
+      if (!file.type.startsWith('image/')) { toast('Selecione um arquivo de imagem.', 'error'); return; }
+      try { pendingCover = await resizeImageToDataUrl(file); setCoverPreview(pendingCover); }
+      catch { toast('Não foi possível carregar a imagem.', 'error'); }
+    });
+    if (coverRm) coverRm.addEventListener('click', () => { pendingCover = null; setCoverPreview(''); const ci = $('#proj-cover-input'); if (ci) ci.value = ''; });
     document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('#proj-modal').hidden) closeModal(); });
 
     $('#mp-grid').addEventListener('click', (ev) => {

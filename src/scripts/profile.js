@@ -250,10 +250,13 @@
         .map(t => `<span class="project-card__tech">${escapeHtml(t)}</span>`)
         .join('');
 
+      const coverBg = p.coverImage
+        ? `linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.4)),url('${escapeHtml(p.coverImage)}') center/cover`
+        : (p.coverGradient || 'linear-gradient(135deg, #131b2e 0%, #4648d4 100%)');
       return `
         <article class="project-card">
-          <div class="project-card__cover" style="background: ${p.coverGradient || 'linear-gradient(135deg, #131b2e 0%, #4648d4 100%)'};">
-            ${escapeHtml(p.title.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase())}
+          <div class="project-card__cover" style="background: ${coverBg};">
+            ${p.coverImage ? '' : escapeHtml(p.title.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase())}
           </div>
           <div class="project-card__body">
             <div class="project-card__meta">

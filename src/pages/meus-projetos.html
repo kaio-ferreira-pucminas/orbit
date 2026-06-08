@@ -69,6 +69,17 @@
           <span class="mp-field__label">Descrição</span>
           <textarea id="proj-desc" rows="3" placeholder="Descreva seu projeto..."></textarea>
         </label>
+        <div class="mp-field">
+          <span class="mp-field__label">Capa do projeto</span>
+          <input type="file" id="proj-cover-input" accept="image/*" hidden />
+          <div class="mp-cover">
+            <div class="mp-cover__preview" id="proj-cover-preview"><span class="mp-cover__empty">Sem capa</span></div>
+            <div class="mp-cover__actions">
+              <button type="button" class="mp-cover__btn" id="proj-cover-btn">Escolher imagem</button>
+              <button type="button" class="mp-cover__remove" id="proj-cover-remove" hidden>Remover</button>
+            </div>
+          </div>
+        </div>
         <label class="mp-field">
           <span class="mp-field__label">Tecnologias (separadas por vírgula)</span>
           <input type="text" id="proj-tech" placeholder="React, Node.js, TypeScript" />

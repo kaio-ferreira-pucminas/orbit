@@ -102,6 +102,16 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .mp-field input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer;}
 .mp-form__row{display:flex;gap:12px;}
 .mp-form__row .mp-field{flex:1;}
+/* Capa do projeto */
+.mp-cover{display:flex;align-items:center;gap:14px;}
+.mp-cover__preview{width:140px;height:84px;flex:0 0 auto;border:1px dashed var(--border-purple);border-radius:var(--radius-sm);background:var(--light-purple,#f3f1ff);overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.mp-cover__preview img{width:100%;height:100%;object-fit:cover;display:block;}
+.mp-cover__empty{font-size:12px;font-weight:600;color:var(--text-muted);}
+.mp-cover__actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+.mp-cover__btn{padding:8px 14px;border:1px solid var(--border-purple);border-radius:var(--radius-sm);background:var(--card-bg);font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;transition:background .15s,border-color .15s;}
+.mp-cover__btn:hover{background:var(--light-purple);border-color:var(--primary);}
+.mp-cover__remove{padding:6px 12px;border:none;border-radius:var(--radius-sm);background:transparent;font-size:12px;font-weight:700;color:#dc2626;cursor:pointer;transition:background .15s;}
+.mp-cover__remove:hover{background:#fee2e2;}
 .mp-form__actions{display:flex;justify-content:flex-end;gap:12px;margin-top:8px;}
 .mp-btn-text{padding:11px 20px;border-radius:var(--radius-sm);color:var(--text-muted);font-size:14px;font-weight:700;transition:background .15s;}
 .mp-btn-text:hover{background:var(--light-purple);}

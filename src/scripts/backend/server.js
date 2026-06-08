@@ -2031,12 +2031,18 @@ server.post('/api/projects', requireAuth, (req, res) => {
     repoUrl: b.repoUrl || b.demoUrl || null,
     liveUrl: b.liveUrl || null,
     coverGradient: b.coverGradient || PROJ_GRADS[0],
+    coverImage: null,
     status: b.status === 'rascunho' ? 'rascunho' : 'ativo',
     source: 'manual',
     isPublic: b.isPublic !== false,
     year: b.year || new Date().getFullYear(),
     createdAt: new Date().toISOString(),
   };
+  // Capa enviada como base64 → salva como arquivo e guarda só o caminho
+  if (typeof b.coverImage === 'string' && b.coverImage.startsWith('data:')) {
+    const saved = saveDataUrlImage(b.coverImage, 'covers', project.id);
+    if (saved) project.coverImage = saved + '?v=' + Date.now();
+  }
   db.projects = db.projects || [];
   db.projects.push(project);
   saveDb(db);
@@ -2047,10 +2053,15 @@ server.patch('/api/projects/:id', requireAuth, (req, res) => {
   const idx = (db.projects || []).findIndex(p => p.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Projeto não encontrado.' });
   if (db.projects[idx].userId !== req.user.id) return res.status(403).json({ error: 'Você só pode editar seus projetos.' });
-  const ALLOWED = ['title', 'description', 'technologies', 'repoUrl', 'liveUrl', 'demoUrl', 'coverGradient', 'status', 'year', 'category', 'isPublic'];
+  const ALLOWED = ['title', 'description', 'technologies', 'repoUrl', 'liveUrl', 'demoUrl', 'coverGradient', 'coverImage', 'status', 'year', 'category', 'isPublic'];
   const updates = {};
   for (const k of ALLOWED) if (k in (req.body || {})) updates[k] = req.body[k];
   if ('status' in updates && !['ativo', 'rascunho'].includes(updates.status)) delete updates.status;
+  // Capa nova em base64 → salva como arquivo e guarda só o caminho
+  if (typeof updates.coverImage === 'string' && updates.coverImage.startsWith('data:')) {
+    const saved = saveDataUrlImage(updates.coverImage, 'covers', req.params.id);
+    updates.coverImage = saved ? saved + '?v=' + Date.now() : db.projects[idx].coverImage;
+  }
   db.projects[idx] = { ...db.projects[idx], ...updates, updatedAt: new Date().toISOString() };
   saveDb(db);
   res.json(db.projects[idx]);
