@@ -242,8 +242,47 @@
     } catch (err) { if (err.message !== 'Token expirado') toast('Não foi possível publicar.', 'error'); }
   }
 
+  /* ===== MODAL — Conectar GitHub ===== */
+  // Aceita URL completa, @handle ou só o usuário; devolve apenas o login.
+  function normalizeGithubUser(input) {
+    let v = String(input || '').trim();
+    if (!v) return '';
+    v = v.replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '').replace(/^@/, '');
+    v = v.split(/[\/?#]/)[0];
+    return v.trim();
+  }
+  function openGithubModal() {
+    const m = $('#gh-modal'); if (!m) return;
+    m.hidden = false;
+    const inp = $('#gh-username'); if (inp) { inp.value = currentUser.github || ''; }
+    setTimeout(() => { if (inp) inp.focus(); }, 50);
+  }
+  function closeGithubModal() { const m = $('#gh-modal'); if (m) m.hidden = true; }
+
+  async function submitGithub(ev) {
+    ev.preventDefault();
+    const username = normalizeGithubUser($('#gh-username').value);
+    if (!username) { toast('Informe seu usuário do GitHub.', 'error'); return; }
+    const btn = $('#gh-submit');
+    if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+    try {
+      const res = await api(`/api/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify({ github: username }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'falha');
+      Object.assign(currentUser, data);
+      localStorage.setItem('orbit_user', JSON.stringify(currentUser));
+      closeGithubModal();
+      toast('GitHub conectado! Importando seus repositórios…', 'success');
+      await syncGithub();
+    } catch (err) {
+      if (err.message !== 'Token expirado') toast('Não foi possível salvar seu usuário do GitHub.', 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Salvar e sincronizar'; }
+    }
+  }
+
   async function syncGithub() {
-    if (!currentUser.github) { toast('Defina seu usuário do GitHub no perfil para importar os projetos.', 'info'); return; }
+    if (!currentUser.github) { openGithubModal(); return; }
     const btn = $('#btn-sync-github'); if (btn) btn.disabled = true;
     try {
       const res = await api('/api/github/sync', { method: 'POST', body: JSON.stringify({}) });
@@ -273,7 +312,15 @@
       catch { toast('Não foi possível carregar a imagem.', 'error'); }
     });
     if (coverRm) coverRm.addEventListener('click', () => { pendingCover = null; setCoverPreview(''); const ci = $('#proj-cover-input'); if (ci) ci.value = ''; });
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('#proj-modal').hidden) closeModal(); });
+    const ghForm = $('#gh-form'); if (ghForm) ghForm.addEventListener('submit', submitGithub);
+    const ghClose = $('#gh-modal-close'); if (ghClose) ghClose.addEventListener('click', closeGithubModal);
+    const ghOverlay = $('#gh-modal-overlay'); if (ghOverlay) ghOverlay.addEventListener('click', closeGithubModal);
+    const ghCancel = $('#gh-cancel'); if (ghCancel) ghCancel.addEventListener('click', closeGithubModal);
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Escape') return;
+      if (!$('#proj-modal').hidden) closeModal();
+      else if ($('#gh-modal') && !$('#gh-modal').hidden) closeGithubModal();
+    });
 
     $('#mp-grid').addEventListener('click', (ev) => {
       if (ev.target.closest('#card-new')) { openModal(null); return; }

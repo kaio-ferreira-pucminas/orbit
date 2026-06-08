@@ -107,6 +107,35 @@
     </div>
   </div>
 
+  <!-- =====================================================
+       MODAL — Conectar GitHub (dev sem usuário do GitHub informado)
+  ====================================================== -->
+  <div class="mp-modal" id="gh-modal" hidden role="dialog" aria-modal="true" aria-labelledby="gh-modal-title">
+    <div class="mp-modal__overlay" id="gh-modal-overlay"></div>
+    <div class="mp-modal__dialog mp-modal__dialog--sm">
+      <header class="mp-modal__header">
+        <h2 class="mp-modal__title" id="gh-modal-title">Conectar GitHub</h2>
+        <button type="button" class="mp-modal__close" id="gh-modal-close" aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+      <form class="mp-form" id="gh-form">
+        <p class="mp-modal__hint">Você ainda não informou seu usuário do GitHub. Informe-o para importar seus repositórios públicos como rascunho.</p>
+        <label class="mp-field">
+          <span class="mp-field__label">Usuário do GitHub *</span>
+          <div class="mp-gh-input">
+            <span class="mp-gh-input__prefix">github.com/</span>
+            <input type="text" id="gh-username" required placeholder="seu-usuario" autocomplete="off" spellcheck="false" />
+          </div>
+        </label>
+        <div class="mp-form__actions">
+          <button type="button" class="mp-btn-text" id="gh-cancel">Cancelar</button>
+          <button type="submit" class="mp-btn-primary" id="gh-submit">Salvar e sincronizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
   <script src="../scripts/sidebar.js"></script>
