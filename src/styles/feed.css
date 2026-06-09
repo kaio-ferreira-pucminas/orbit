@@ -1302,6 +1302,19 @@ body {
 .answer-form__submit { align-self: flex-end; padding: 8px 18px; border: none; border-radius: var(--feed-radius, 8px); background: var(--primary, #4648d4); color: #fff; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
 .answer-form__submit:hover { background: #3a3cb8; }
 .answer-form__submit:disabled { opacity: .6; cursor: default; }
+.answer-form__toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.answer-form__fmt { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 28px; padding: 0 7px; border: 1px solid var(--feed-border, #e2e7ff); border-radius: 6px; background: var(--feed-card-bg, #fff); font: inherit; font-size: 12px; font-weight: 700; color: var(--feed-text-body, #464554); cursor: pointer; transition: all .15s; }
+.answer-form__fmt:hover { border-color: var(--primary, #4648d4); color: var(--primary, #4648d4); background: rgba(70,72,212,0.06); }
+.answer-form__preview-toggle { margin-left: auto; padding: 0 10px; height: 28px; border: none; background: none; font: inherit; font-size: 12px; font-weight: 700; color: var(--primary, #4648d4); cursor: pointer; }
+.answer-form__preview-toggle:hover { text-decoration: underline; }
+.answer-form__preview { border: 1px solid var(--feed-border, #e2e7ff); border-radius: var(--feed-radius, 8px); padding: 10px 12px; background: var(--feed-bg, #faf8ff); font-size: 14px; color: var(--feed-text-body, #464554); line-height: 1.5; word-break: break-word; }
+.answer-form__preview--hidden { display: none; }
+.answer-form__preview p { margin: 0 0 6px; }
+.answer-form__preview p:last-child { margin-bottom: 0; }
+.answer-form__preview pre { background: #131b2e; color: #e6e6f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+.answer-form__preview code { background: rgba(70,72,212,0.1); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+.answer-form__preview pre code { background: none; padding: 0; }
+.answer-form__preview-empty { color: var(--feed-text-muted, #565e74); margin: 0; }
 
 .answer-list { display: flex; flex-direction: column; gap: 12px; }
 .answer-list__empty { font-size: 13px; color: var(--feed-text-muted, #565e74); text-align: center; padding: 8px; margin: 0; }

@@ -106,6 +106,30 @@
   }
 
   /* =========================================================
+     FORMATAÇÃO — envolve a seleção de um <textarea> com marcadores markdown
+     (compartilhado pelo composer de post e pela caixa de resposta)
+  ========================================================= */
+  function formatTextarea(ta, fmt) {
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    const sel   = ta.value.substring(start, end);
+    let wrapped, cursorOffset;
+    switch (fmt) {
+      case 'bold':      wrapped = `**${sel || 'texto em negrito'}**`; cursorOffset = sel ? wrapped.length : 2 + 'texto em negrito'.length; break;
+      case 'italic':    wrapped = `*${sel || 'texto em itálico'}*`;   cursorOffset = sel ? wrapped.length : 1 + 'texto em itálico'.length; break;
+      case 'code':      wrapped = `\`${sel || 'código'}\``;            cursorOffset = sel ? wrapped.length : 1 + 'código'.length; break;
+      case 'codeblock': wrapped = `\n\`\`\`\n${sel || 'seu código aqui'}\n\`\`\`\n`; cursorOffset = wrapped.length; break;
+      case 'link':      wrapped = `[${sel || 'texto'}](https://)`;     cursorOffset = sel ? wrapped.length : 1 + 'texto'.length; break;
+      default: return;
+    }
+    ta.value = ta.value.substring(0, start) + wrapped + ta.value.substring(end);
+    ta.focus();
+    const newPos = start + cursorOffset;
+    ta.setSelectionRange(newPos, newPos);
+  }
+
+  /* =========================================================
      FETCH WRAPPER — adiciona Bearer token e trata 401
   ========================================================= */
   async function api(path, options = {}) {
@@ -365,45 +389,7 @@
 
   // Toolbar — envolve seleção com marcadores markdown
   $$('.composer__btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const ta    = composerTextarea;
-      const start = ta.selectionStart;
-      const end   = ta.selectionEnd;
-      const sel   = ta.value.substring(start, end);
-      const fmt   = btn.dataset.format;
-
-      let wrapped, cursorOffset;
-
-      switch (fmt) {
-        case 'bold':
-          wrapped = `**${sel || 'texto em negrito'}**`;
-          cursorOffset = sel ? wrapped.length : 2 + 'texto em negrito'.length;
-          break;
-        case 'italic':
-          wrapped = `*${sel || 'texto em itálico'}*`;
-          cursorOffset = sel ? wrapped.length : 1 + 'texto em itálico'.length;
-          break;
-        case 'code':
-          wrapped = `\`${sel || 'código'}\``;
-          cursorOffset = sel ? wrapped.length : 1 + 'código'.length;
-          break;
-        case 'codeblock':
-          wrapped = `\n\`\`\`\n${sel || 'seu código aqui'}\n\`\`\`\n`;
-          cursorOffset = wrapped.length;
-          break;
-        case 'link':
-          wrapped = `[${sel || 'texto'}](https://)`;
-          cursorOffset = sel ? wrapped.length : 1 + 'texto'.length;
-          break;
-        default:
-          return;
-      }
-
-      ta.value = ta.value.substring(0, start) + wrapped + ta.value.substring(end);
-      ta.focus();
-      const newPos = start + cursorOffset;
-      ta.setSelectionRange(newPos, newPos);
-    });
+    btn.addEventListener('click', () => formatTextarea(composerTextarea, btn.dataset.format));
   });
 
   // Pré-visualização
@@ -580,7 +566,18 @@
           <form class="answer-form" data-answer-form>
             <div class="answer-form__avatar">${avatarInner(currentUser)}</div>
             <div class="answer-form__main">
-              <textarea class="answer-form__input" placeholder="Escreva uma resposta para ajudar..." maxlength="5000" rows="2" required></textarea>
+              <div class="answer-form__toolbar" role="toolbar" aria-label="Formatação">
+                <button type="button" class="answer-form__fmt" data-fmt="bold" title="Negrito" aria-label="Negrito"><strong>B</strong></button>
+                <button type="button" class="answer-form__fmt" data-fmt="italic" title="Itálico" aria-label="Itálico"><em>I</em></button>
+                <button type="button" class="answer-form__fmt" data-fmt="code" title="Código inline" aria-label="Código inline">&lt;/&gt;</button>
+                <button type="button" class="answer-form__fmt" data-fmt="codeblock" title="Bloco de código" aria-label="Bloco de código">{ }</button>
+                <button type="button" class="answer-form__fmt" data-fmt="link" title="Link" aria-label="Link">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                <button type="button" class="answer-form__preview-toggle" data-answer-preview-toggle>Pré-visualizar</button>
+              </div>
+              <textarea class="answer-form__input" data-answer-input placeholder="Escreva uma resposta para ajudar... (use a barra para formatar código)" maxlength="5000" rows="3" required></textarea>
+              <div class="answer-form__preview answer-form__preview--hidden" data-answer-preview aria-live="polite"></div>
               <button type="submit" class="answer-form__submit">Publicar resposta</button>
             </div>
           </form>
@@ -809,11 +806,36 @@
       if (wasHidden && !loaded) { await loadAnswers(); loaded = true; }
     });
 
-    section.querySelector('[data-answer-form]').addEventListener('submit', async (e) => {
+    const aForm    = section.querySelector('[data-answer-form]');
+    const aTa      = aForm.querySelector('[data-answer-input]');
+    const aPreview = aForm.querySelector('[data-answer-preview]');
+
+    // Barra de formatação (markdown) + pré-visualização da resposta
+    aForm.addEventListener('click', (e) => {
+      const fmtBtn = e.target.closest('[data-fmt]');
+      if (fmtBtn) {
+        formatTextarea(aTa, fmtBtn.dataset.fmt);
+        if (!aPreview.classList.contains('answer-form__preview--hidden')) aPreview.innerHTML = parseMarkdown(aTa.value);
+        return;
+      }
+      const pv = e.target.closest('[data-answer-preview-toggle]');
+      if (pv) {
+        const hidden = aPreview.classList.contains('answer-form__preview--hidden');
+        if (hidden) {
+          aPreview.innerHTML = parseMarkdown(aTa.value) || '<p class="answer-form__preview-empty">Nada para pré-visualizar.</p>';
+          aPreview.classList.remove('answer-form__preview--hidden');
+          pv.textContent = 'Editar';
+        } else {
+          aPreview.classList.add('answer-form__preview--hidden');
+          pv.textContent = 'Pré-visualizar';
+        }
+      }
+    });
+
+    aForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const ta = e.currentTarget.querySelector('textarea');
-      const submit = e.currentTarget.querySelector('button[type="submit"]');
-      const content = ta.value.trim();
+      const submit = aForm.querySelector('button[type="submit"]');
+      const content = aTa.value.trim();
       if (!content) return;
       submit.disabled = true;
       try {
@@ -822,7 +844,10 @@
         if (!res.ok) { window.showToast(data.error || 'Erro ao responder.', 'error'); return; }
         const empty = list.querySelector('.answer-list__empty'); if (empty) empty.remove();
         list.insertAdjacentHTML('beforeend', renderAnswer(data, isAsker));
-        ta.value = '';
+        aTa.value = '';
+        aPreview.classList.add('answer-form__preview--hidden');
+        aPreview.innerHTML = '';
+        const pvBtn = aForm.querySelector('[data-answer-preview-toggle]'); if (pvBtn) pvBtn.textContent = 'Pré-visualizar';
         const countEl = article.querySelector('[data-answers-count]');
         if (countEl) countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
         window.showToast('Resposta publicada!', 'success');
