@@ -543,8 +543,8 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     });
 
   const reviews = [...engDevReviews, ...legacyReviews];
-  const ratingSum   = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-  const ratingAvg   = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
+  // Estrelas do cabeçalho: inclui também as avaliações recebidas nas respostas Q&A
+  const devRating = computeDevRating(db, req.params.id);
 
   // contagem de conexões (follows), se a coleção existir
   const connectionsCount = (db.follows || []).filter(
@@ -556,8 +556,8 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     projects,
     reviews,
     stats: {
-      rating:        ratingAvg,
-      reviewsCount:  reviews.length,
+      rating:        devRating.rating,
+      reviewsCount:  devRating.reviewsCount,
       projectsCount: projects.length,
     },
     qa: computeQaStats(db, req.params.id),
@@ -881,8 +881,23 @@ function computeQaStats(db, userId) {
     bestAnswersCount: myAnswers.filter(a => a.isBest).length,
     helpfulReceived:  (db.answerHelpful || []).filter(h => ids.has(h.answerId)).length,
     ratingsCount:     ratings.length,
+    ratingSum,
     ratingAvg:        ratings.length ? +(ratingSum / ratings.length).toFixed(1) : 0,
   };
+}
+
+// Nota geral do dev (estrelas do perfil): depoimentos (seeds), avaliações de
+// vínculos (empresa → dev) e estrelas recebidas nas respostas Q&A contam juntas,
+// cada avaliação individual com peso 1.
+function computeDevRating(db, userId) {
+  const legacy = (db.reviews || []).filter(r => (r.profileUserId || r.userId) === userId);
+  const eng    = (db.engagementReviews || []).filter(r => r.targetType === 'dev' && r.targetUserId === userId);
+  const qa     = computeQaStats(db, userId);
+  const count  = legacy.length + eng.length + qa.ratingsCount;
+  const sum    = legacy.reduce((s, r) => s + (r.rating || 0), 0)
+               + eng.reduce((s, r) => s + (r.overall || 0), 0)
+               + qa.ratingSum;
+  return { rating: count ? +(sum / count).toFixed(1) : 0, reviewsCount: count };
 }
 
 // Enriquece uma resposta com autor, contadores e estado do usuário atual
@@ -1071,13 +1086,8 @@ server.get('/api/talents', requireAuth, (req, res) => {
     );
   }
 
-  // Enriquecе com rating médio (das reviews) e contagem
-  const enriched = devs.map(u => {
-    const reviews = (db.reviews || []).filter(r => r.profileUserId === u.id);
-    const ratingSum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    const rating = reviews.length ? +(ratingSum / reviews.length).toFixed(1) : 0;
-    return { ...sanitizeUser(u), rating, reviewsCount: reviews.length };
-  });
+  // Enriquecе com a nota geral (depoimentos + vínculos + respostas Q&A) e contagem
+  const enriched = devs.map(u => ({ ...sanitizeUser(u), ...computeDevRating(db, u.id) }));
 
   return res.status(200).json(enriched);
 });
