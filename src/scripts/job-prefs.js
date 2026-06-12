@@ -61,6 +61,7 @@
       '.ojp-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1.5px solid #e2e7ff;background:#fff;color:#565e74;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;}' +
       '.ojp-chip:hover{border-color:#4648d4;color:#4648d4;}' +
       '.ojp-chip--on{background:#4648d4;border-color:#4648d4;color:#fff;}' +
+      '.ojp-chip--on:hover{background:#3537b8;border-color:#3537b8;color:#fff;}' +
       '.ojp-input{width:100%;padding:11px 14px;background:#f2f3ff;border:1px solid transparent;border-radius:10px;font:inherit;font-size:14px;color:#131b2e;}' +
       '.ojp-input:focus{outline:none;border-color:#4648d4;background:#fff;box-shadow:0 0 0 3px rgba(70,72,212,.1);}' +
       '.ojp-skillchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
