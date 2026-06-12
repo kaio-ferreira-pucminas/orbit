@@ -123,6 +123,26 @@
     // Skills
     $('#vd-skills').innerHTML = (data.skills || []).map(s => `<span class="vd-tag">${escapeHtml(s)}</span>`).join('');
 
+    // Responsabilidades (some a seção se a vaga não informou nenhuma)
+    const resp = (data.responsibilities || []).filter(Boolean);
+    if (resp.length) {
+      $('#vd-responsibilities').innerHTML = resp.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+      $('#vd-responsibilities-section').hidden = false;
+    } else {
+      $('#vd-responsibilities-section').hidden = true;
+    }
+
+    // Benefícios (some a seção se a vaga não informou nenhum)
+    const benefits = (data.benefits || []).filter(b => b && (b.title || b.description));
+    if (benefits.length) {
+      $('#vd-benefits').innerHTML = benefits.map(b =>
+        `<div class="vd-benefit"><span class="vd-benefit__title">${escapeHtml(b.title || '')}</span><span class="vd-benefit__desc">${escapeHtml(b.description || '')}</span></div>`
+      ).join('');
+      $('#vd-benefits-section').hidden = false;
+    } else {
+      $('#vd-benefits-section').hidden = true;
+    }
+
     // Similares
     const sim = $('#vd-similar');
     if ((data.similar || []).length) {

@@ -890,6 +890,18 @@
       "contractType": "CLT",
       "location": "Remoto",
       "salaryRange": "R$ 3.500 - R$ 5.000",
+      "responsibilities": [
+        "Desenvolver novas funcionalidades voltadas para o usuário final.",
+        "Construir bibliotecas e componentes reutilizáveis para uso futuro.",
+        "Garantir a viabilidade técnica de designs de UI/UX.",
+        "Otimizar aplicações para velocidade máxima e escalabilidade."
+      ],
+      "benefits": [
+        { "title": "Remoto First", "description": "Trabalhe de onde preferir com flexibilidade de horários." },
+        { "title": "Saúde & Bem-estar", "description": "Plano de saúde e odontológico premium sem coparticipação." },
+        { "title": "Auxílio Educação", "description": "Orçamento anual para cursos, eventos e certificações." },
+        { "title": "Vale Refeição", "description": "Cartão multibenefícios com valor acima da média." }
+      ],
       "status": "active",
       "createdAt": "2026-05-15T09:00:00.000Z"
     },
@@ -906,9 +918,21 @@
       ],
       "modality": "Híbrido",
       "level": "Pleno",
-      "contractType": "PJ",
+      "contractType": "Freelance",
       "location": "Belo Horizonte, MG",
       "salaryRange": "R$ 9.000 - R$ 13.000",
+      "responsibilities": [
+        "Projetar e implementar APIs REST consumidas por times de produto.",
+        "Modelar e otimizar consultas em bancos de dados relacionais.",
+        "Integrar serviços de dados em escala com foco em confiabilidade.",
+        "Participar de revisões de código e decisões de arquitetura."
+      ],
+      "benefits": [
+        { "title": "Modelo Híbrido", "description": "Dois dias no escritório de BH, o restante remoto." },
+        { "title": "PLR Semestral", "description": "Participação nos lucros atrelada às metas do time." },
+        { "title": "Day Off no Aniversário", "description": "Folga garantida no seu dia, sem desconto." },
+        { "title": "Gympass", "description": "Acesso a academias e apps de bem-estar." }
+      ],
       "status": "active",
       "createdAt": "2026-05-16T11:30:00.000Z"
     },
@@ -928,6 +952,18 @@
       "contractType": "CLT",
       "location": "Remoto",
       "salaryRange": "R$ 8.000 - R$ 11.000",
+      "responsibilities": [
+        "Transformar protótipos do Figma em componentes acessíveis e fiéis.",
+        "Manter e evoluir o design system da empresa.",
+        "Colaborar com pessoas designers para garantir consistência visual.",
+        "Cuidar de acessibilidade (WCAG) e responsividade das interfaces."
+      ],
+      "benefits": [
+        { "title": "100% Remoto", "description": "Trabalhe de qualquer lugar do Brasil." },
+        { "title": "Setup Home Office", "description": "Auxílio para montar sua estação de trabalho." },
+        { "title": "Licença Criativa", "description": "Tempo dedicado para estudo e exploração de novas ferramentas." },
+        { "title": "Plano de Saúde", "description": "Cobertura médica e odontológica para você e dependentes." }
+      ],
       "status": "active",
       "createdAt": "2026-05-16T14:00:00.000Z"
     },
@@ -948,6 +984,18 @@
       "contractType": "CLT",
       "location": "São Paulo, SP",
       "salaryRange": "R$ 12.000 - R$ 16.000",
+      "responsibilities": [
+        "Desenhar a arquitetura de microsserviços de alto tráfego.",
+        "Garantir performance, observabilidade e resiliência das APIs.",
+        "Definir padrões de código e mentorar pessoas da equipe.",
+        "Conduzir decisões técnicas de escalabilidade e infraestrutura."
+      ],
+      "benefits": [
+        { "title": "Stock Options", "description": "Participação societária para pessoas em posição sênior." },
+        { "title": "Plano Premium", "description": "Saúde e odontológico de cobertura nacional sem coparticipação." },
+        { "title": "Vale Refeição", "description": "Cartão multibenefícios com valor acima da média." },
+        { "title": "Orçamento de Estudo", "description": "Verba anual para conferências, cursos e certificações." }
+      ],
       "status": "active",
       "createdAt": "2026-05-17T08:45:00.000Z"
     }

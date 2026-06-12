@@ -1226,6 +1226,17 @@ function validateJobPayload(b, { partial = false } = {}) {
   }
   if ('location' in (b || {}))    out.location    = String(b.location || '').trim().slice(0, 120);
   if ('salaryRange' in (b || {})) out.salaryRange = String(b.salaryRange || '').trim().slice(0, 60);
+  if (!partial || 'responsibilities' in b) {
+    const raw = Array.isArray(b && b.responsibilities) ? b.responsibilities : [];
+    out.responsibilities = raw.map(s => String(s).trim()).filter(Boolean).slice(0, 20).map(s => s.slice(0, 200));
+  }
+  if (!partial || 'benefits' in b) {
+    const raw = Array.isArray(b && b.benefits) ? b.benefits : [];
+    out.benefits = raw
+      .map(x => ({ title: String((x && x.title) || '').trim().slice(0, 60), description: String((x && x.description) || '').trim().slice(0, 200) }))
+      .filter(x => x.title) // título do benefício é obrigatório; sem ele, descarta
+      .slice(0, 12);
+  }
   return { data: out };
 }
 
@@ -1259,6 +1270,8 @@ server.post('/api/jobs', requireAuth, (req, res) => {
     contractType: ('contractType' in b) ? v.data.contractType : 'CLT',
     location:     ('location' in b) && v.data.location ? v.data.location : (v.data.modality === 'Remoto' ? 'Remoto' : (company.location || '')),
     salaryRange:  ('salaryRange' in b) ? v.data.salaryRange : '',
+    responsibilities: v.data.responsibilities || [],
+    benefits:         v.data.benefits || [],
     status,
     createdAt:    now,
     updatedAt:    now,

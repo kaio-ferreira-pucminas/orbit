@@ -68,6 +68,22 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .nv-check{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--text-muted);cursor:pointer;user-select:none;}
 .nv-check input{width:16px;height:16px;accent-color:var(--primary);cursor:pointer;}
 
+/* Listas dinâmicas: Responsabilidades (1 input) e Benefícios (título + descrição) */
+.nv-list{display:flex;flex-direction:column;gap:10px;}
+.nv-list-row,.nv-benefit-row{display:flex;align-items:center;gap:8px;}
+.nv-list-row .nv-input{flex:1;min-width:0;}
+.nv-benefit-row .nv-benefit-title{flex:0 0 32%;min-width:0;}
+.nv-benefit-row .nv-benefit-desc{flex:1;min-width:0;}
+.nv-row-remove{flex:0 0 auto;width:40px;height:40px;border-radius:10px;background:var(--input-bg);color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s;}
+.nv-row-remove:hover{background:var(--red-bg,#fee2e2);color:var(--red,#b91c1c);}
+.nv-add{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 0;font-size:13px;font-weight:700;color:var(--primary);background:none;cursor:pointer;transition:opacity .15s;}
+.nv-add:hover{opacity:.75;}
+@media (max-width:600px){
+  .nv-benefit-row{flex-wrap:wrap;}
+  .nv-benefit-row .nv-benefit-title{flex:1 1 100%;}
+  .nv-benefit-row .nv-benefit-desc{flex:1 1 calc(100% - 48px);}
+}
+
 /* Inputs (família visual do app: fundo lilás, borda transparente, ring no focus) */
 .nv-input{width:100%;padding:13px 16px;background:var(--input-bg);border:1px solid transparent;border-radius:10px;font:inherit;font-size:14px;color:var(--text-dark);transition:border-color .15s,box-shadow .15s,background .15s;}
 .nv-input::placeholder{color:#8a8fa8;}

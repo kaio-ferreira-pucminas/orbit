@@ -278,6 +278,8 @@
       contractType: $('#nv-contract').value,
       location:     modality === 'Remoto' ? 'Remoto' : $('#nv-location').value.trim(),
       salaryRange:  buildSalaryRange(),
+      responsibilities: collectResponsibilities(),
+      benefits:         collectBenefits(),
     };
   }
 
@@ -330,6 +332,50 @@
       if (valores[0]) $('#nv-salary-min').value = maskMoney(valores[0]);
       if (valores[1]) $('#nv-salary-max').value = maskMoney(valores[1]);
     }
+  }
+
+  /* ===== RESPONSABILIDADES (lista de linhas) ===== */
+  const MAX_RESP = 20, MAX_BENEFITS = 12;
+  const ICON_X = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  function addRespRow(value, focus) {
+    const list = $('#nv-resp-list');
+    if (list.children.length >= MAX_RESP) { toast(`Máximo de ${MAX_RESP} responsabilidades.`, 'info'); return; }
+    const row = document.createElement('div');
+    row.className = 'nv-list-row';
+    row.innerHTML =
+      '<input type="text" class="nv-input" maxlength="200" placeholder="Ex: Desenvolver novas funcionalidades voltadas para o usuário final." />' +
+      `<button type="button" class="nv-row-remove" aria-label="Remover responsabilidade">${ICON_X}</button>`;
+    row.querySelector('input').value = value || '';
+    list.appendChild(row);
+    if (focus) row.querySelector('input').focus();
+  }
+
+  /* ===== BENEFÍCIOS (título + descrição) ===== */
+  function addBenefitRow(title, desc, focus) {
+    const list = $('#nv-benefit-list');
+    if (list.children.length >= MAX_BENEFITS) { toast(`Máximo de ${MAX_BENEFITS} benefícios.`, 'info'); return; }
+    const row = document.createElement('div');
+    row.className = 'nv-benefit-row';
+    row.innerHTML =
+      '<input type="text" class="nv-input nv-benefit-title" maxlength="60" placeholder="Título (ex: Vale Refeição)" aria-label="Título do benefício" />' +
+      '<input type="text" class="nv-input nv-benefit-desc" maxlength="200" placeholder="Descrição (ex: Cartão multibenefícios com valor acima da média)" aria-label="Descrição do benefício" />' +
+      `<button type="button" class="nv-row-remove" aria-label="Remover benefício">${ICON_X}</button>`;
+    row.querySelector('.nv-benefit-title').value = title || '';
+    row.querySelector('.nv-benefit-desc').value  = desc || '';
+    list.appendChild(row);
+    if (focus) row.querySelector('input').focus();
+  }
+
+  // Lê as linhas (DOM como fonte da verdade) → arrays para o payload
+  function collectResponsibilities() {
+    return Array.prototype.map.call($('#nv-resp-list').querySelectorAll('input'), i => i.value.trim()).filter(Boolean);
+  }
+  function collectBenefits() {
+    return Array.prototype.map.call($('#nv-benefit-list').querySelectorAll('.nv-benefit-row'), row => ({
+      title:       row.querySelector('.nv-benefit-title').value.trim(),
+      description: row.querySelector('.nv-benefit-desc').value.trim(),
+    })).filter(b => b.title); // título obrigatório (espelha o backend)
   }
 
   function setSaving(on) {
@@ -439,6 +485,16 @@
       renderChips();
       renderSuggestions();
 
+      // Responsabilidades e benefícios (uma linha em branco se a vaga não tiver)
+      $('#nv-resp-list').innerHTML = '';
+      const resp = (data.responsibilities || []).filter(Boolean);
+      if (resp.length) resp.forEach(r => addRespRow(r));
+      else addRespRow();
+      $('#nv-benefit-list').innerHTML = '';
+      const benefits = (data.benefits || []).filter(b => b && (b.title || b.description));
+      if (benefits.length) benefits.forEach(b => addBenefitRow(b.title, b.description));
+      else addBenefitRow();
+
       // Botões conforme o status: rascunho mantém o par "Rascunho/Publicar";
       // vaga já publicada esconde o rascunho e o primário vira "Salvar alterações".
       if (editStatus !== 'draft') {
@@ -508,6 +564,23 @@
     wireMoneyInput($('#nv-salary-max'));
     $('#nv-salary-tbd').addEventListener('change', syncSalaryTbd);
 
+    // Responsabilidades: adicionar / remover linha (Enter no fim adiciona outra)
+    $('#nv-resp-add').addEventListener('click', () => addRespRow('', true));
+    $('#nv-resp-list').addEventListener('click', (ev) => {
+      const rm = ev.target.closest('.nv-row-remove');
+      if (rm) rm.closest('.nv-list-row').remove();
+    });
+    $('#nv-resp-list').addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') { ev.preventDefault(); addRespRow('', true); }
+    });
+
+    // Benefícios: adicionar / remover linha
+    $('#nv-benefit-add').addEventListener('click', () => addBenefitRow('', '', true));
+    $('#nv-benefit-list').addEventListener('click', (ev) => {
+      const rm = ev.target.closest('.nv-row-remove');
+      if (rm) rm.closest('.nv-benefit-row').remove();
+    });
+
     // Ações do rodapé
     $('#nv-draft').addEventListener('click', () => save('draft'));
     $('#nv-publish').addEventListener('click', () => save('publish'));
@@ -534,8 +607,14 @@
     renderChips();
     renderSuggestions();
     loadVisibility();
-    if (isEdit) loadJob();
-    else checkCompanyProfile();
+    if (isEdit) {
+      loadJob();
+    } else {
+      // criação: já mostra uma linha em branco de cada para guiar o preenchimento
+      addRespRow();
+      addBenefitRow();
+      checkCompanyProfile();
+    }
   }
   init();
 
