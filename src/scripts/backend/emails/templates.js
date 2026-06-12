@@ -257,6 +257,94 @@ function accountDeletedEmail({ name }) {
   };
 }
 
+/* =========================================================
+   5. Reminder email — disparado quando um lembrete da agenda vence
+========================================================= */
+function reminderEmail({ name, title, notes, whenStr, appUrl }) {
+  const body = `
+    <h1 style="margin:0 0 16px;color:${TOKENS.text};font-family:'Manrope',Helvetica,Arial,sans-serif;font-weight:800;font-size:24px;line-height:32px;letter-spacing:-0.5px;">
+      ⏰ Lembrete da sua agenda
+    </h1>
+    <p style="margin:0 0 16px;color:${TOKENS.body};font-size:15px;line-height:24px;">
+      Olá ${escapeHtml(name)}, você pediu pra Orbit te lembrar disto:
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;">
+      <tr>
+        <td style="background:${TOKENS.bgLight};border-left:3px solid ${TOKENS.primary};border-radius:8px;padding:18px 20px;">
+          <p style="margin:0 0 4px;color:${TOKENS.text};font-family:'Manrope',Helvetica,Arial,sans-serif;font-weight:800;font-size:17px;line-height:24px;">
+            ${escapeHtml(title)}
+          </p>
+          <p style="margin:0 0 ${notes ? '8px' : '0'};color:${TOKENS.muted};font-size:12px;line-height:18px;">
+            ${escapeHtml(whenStr)}
+          </p>
+          ${notes ? `<p style="margin:0;color:${TOKENS.body};font-size:14px;line-height:22px;">${escapeHtml(notes)}</p>` : ''}
+        </td>
+      </tr>
+    </table>
+
+    ${button('Abrir minha agenda', `${appUrl}/pages/agenda.html`)}
+    <p style="margin:24px 0 0;color:${TOKENS.muted};font-size:13px;line-height:20px;">
+      Você criou este lembrete na sua agenda da Orbit.
+    </p>
+  `;
+
+  return {
+    subject: `⏰ Lembrete: ${title}`,
+    html: baseLayout({
+      title: 'Lembrete da sua agenda',
+      preheader: `${title} — ${whenStr}`,
+      body,
+    }),
+  };
+}
+
+/* =========================================================
+   6. Interview email — entrevista agendada/remarcada (empresa → dev)
+========================================================= */
+function interviewEmail({ name, companyName, jobTitle, whenStr, modeLabel, locationOrLink, notes, appUrl, updated = false }) {
+  const heading = updated ? 'Sua entrevista foi remarcada 📅' : 'Você tem uma entrevista marcada! 🎯';
+  const intro = updated
+    ? `Olá ${escapeHtml(name)}, a <strong style="color:${TOKENS.text};">${escapeHtml(companyName)}</strong> atualizou os detalhes da sua entrevista para a vaga <strong style="color:${TOKENS.text};">${escapeHtml(jobTitle)}</strong>.`
+    : `Olá ${escapeHtml(name)}, a <strong style="color:${TOKENS.text};">${escapeHtml(companyName)}</strong> agendou uma entrevista com você para a vaga <strong style="color:${TOKENS.text};">${escapeHtml(jobTitle)}</strong>.`;
+  const body = `
+    <h1 style="margin:0 0 16px;color:${TOKENS.text};font-family:'Manrope',Helvetica,Arial,sans-serif;font-weight:800;font-size:24px;line-height:32px;letter-spacing:-0.5px;">
+      ${heading}
+    </h1>
+    <p style="margin:0 0 16px;color:${TOKENS.body};font-size:15px;line-height:24px;">
+      ${intro}
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0;background:${TOKENS.bgLight};border:1px solid ${TOKENS.border};border-radius:12px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="margin:0 0 10px;color:${TOKENS.muted};font-size:11px;line-height:16px;text-transform:uppercase;letter-spacing:1px;">Detalhes da entrevista</p>
+          <p style="margin:0 0 6px;color:${TOKENS.text};font-size:14px;line-height:22px;"><strong>📅 Quando:</strong> ${escapeHtml(whenStr)}</p>
+          <p style="margin:0 0 6px;color:${TOKENS.text};font-size:14px;line-height:22px;"><strong>🎥 Formato:</strong> ${escapeHtml(modeLabel)}</p>
+          ${locationOrLink ? `<p style="margin:0 0 6px;color:${TOKENS.text};font-size:14px;line-height:22px;"><strong>📍 Onde:</strong> ${escapeHtml(locationOrLink)}</p>` : ''}
+          ${notes ? `<p style="margin:10px 0 0;color:${TOKENS.body};font-size:13px;line-height:20px;">${escapeHtml(notes)}</p>` : ''}
+        </td>
+      </tr>
+    </table>
+
+    ${button('Ver minhas entrevistas', `${appUrl}/pages/entrevistas.html`)}
+    <p style="margin:24px 0 0;color:${TOKENS.muted};font-size:13px;line-height:20px;">
+      Precisa remarcar? Acesse a tela de entrevistas e solicite a remarcação — a empresa será avisada.
+    </p>
+  `;
+
+  return {
+    subject: updated
+      ? `📅 Entrevista remarcada — ${jobTitle} (${companyName})`
+      : `🎯 Entrevista agendada — ${jobTitle} (${companyName})`,
+    html: baseLayout({
+      title: updated ? 'Entrevista remarcada' : 'Entrevista agendada',
+      preheader: `${jobTitle} · ${whenStr}`,
+      body,
+    }),
+  };
+}
+
 /* ─── Helper para escape ─── */
 function escapeHtml(text) {
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -268,4 +356,6 @@ module.exports = {
   resetPasswordEmail,
   deactivationCodeEmail,
   accountDeletedEmail,
+  reminderEmail,
+  interviewEmail,
 };

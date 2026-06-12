@@ -133,9 +133,12 @@
   const DASH_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`;
   const DASH_HREF = (currentUser.type === 'company') ? '/pages/empresa-dashboard.html' : '/pages/dashboard.html';
   const LOGOUT_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
+  const AGENDA_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  const ITV_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
 
-  // NAV adapta por tipo de conta — empresa espelha o menu do sidebar do
-  // dashboard de empresa (mesmos itens/destinos do emp-sidebar e do sidebar.js)
+  // NAV adapta por tipo de conta — empresa usa os destinos principais do
+  // sidebar de empresa. Agenda e Entrevistas não entram aqui (o nav inline não
+  // comporta 7 itens — ver NAV_BP); ficam no dropdown do avatar para ambos os papéis.
   const isCompany = currentUser.type === 'company';
   // Abaixo desta largura o nav colapsa no hambúrguer (empresa precisa de mais espaço)
   const NAV_BP = isCompany ? 1100 : 680;
@@ -204,6 +207,8 @@
                 <div class="oh-usermenu__divider"></div>
                 <a href="${DASH_HREF}" class="oh-usermenu__item" role="menuitem">${DASH_SVG}<span>Ir para o dashboard</span></a>
                 <a href="/pages/profile.html" class="oh-usermenu__item" role="menuitem">${USER_SVG}<span>Ir para o perfil</span></a>
+                <a href="/pages/agenda.html" class="oh-usermenu__item" role="menuitem">${AGENDA_SVG}<span>Minha agenda</span></a>
+                <a href="/pages/entrevistas.html" class="oh-usermenu__item" role="menuitem">${ITV_SVG}<span>Entrevistas</span></a>
                 <button type="button" class="oh-usermenu__item oh-usermenu__item--danger" id="oh-logout" role="menuitem">${LOGOUT_SVG}<span>Sair</span></button>
               </div>
             </div>

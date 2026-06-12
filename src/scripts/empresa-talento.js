@@ -193,7 +193,9 @@
   /* ===== EVENTOS ===== */
   function setupEvents() {
     $('#btn-contact').addEventListener('click', startConversationAndGo);
-    $('#btn-interview').addEventListener('click', () => toast('Agendamento de entrevista estará disponível em breve. Use "Entrar em Contato" para conversar com o talento.', 'info'));
+    $('#btn-interview').addEventListener('click', () => {
+      window.location.href = `/pages/entrevistas.html?dev=${encodeURIComponent(targetId)}`;
+    });
     const novo = $('#btn-novo-job'); if (novo) novo.addEventListener('click', () => toast('A criação de vagas estará disponível em breve.', 'info'));
     $('#btn-logout').addEventListener('click', () => {
       localStorage.removeItem('orbit_token');

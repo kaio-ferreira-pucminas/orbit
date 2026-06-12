@@ -40,6 +40,8 @@ const {
   resetPasswordEmail,
   deactivationCodeEmail,
   accountDeletedEmail,
+  reminderEmail,
+  interviewEmail,
 } = require('./emails/templates');
 
 // ── Configurações ────────────────────────────────────────────────────────────
@@ -1623,19 +1625,26 @@ server.post('/api/conversations', requireAuth, (req, res) => {
   const target = db.users.find(u => u.id === targetUserId);
   if (!target) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-  // Regra de follow — exceção: contas do tipo empresa podem iniciar conversa
-  // diretamente (ex.: recrutador entrando em contato com um talento).
-  const isCompany = req.user.type === 'company';
-  if (!isCompany && !hasConnection(db, req.user.id, targetUserId)) {
-    return res.status(403).json({ error: 'Você só pode iniciar conversa com usuários que segue ou que seguem você.' });
-  }
-
-  // Idempotente: reaproveita conversa existente entre os dois
+  // Idempotente: conversa já existente entre os dois é sempre reaproveitada,
+  // independente da regra de follow (ex.: conversa aberta por um pedido de
+  // remarcação de entrevista).
   db.conversations = db.conversations || [];
   let conv = db.conversations.find(c =>
     (c.participantIds || []).includes(req.user.id) &&
     (c.participantIds || []).includes(targetUserId)
   );
+
+  // Regra de follow para conversas NOVAS — exceções: contas do tipo empresa
+  // (recrutador contatando talento) e pares com entrevista marcada entre si
+  // (o dev precisa poder falar com a empresa da entrevista).
+  const isCompany = req.user.type === 'company';
+  const hasInterviewTogether = (db.interviews || []).some(i =>
+    (i.devUserId === req.user.id && i.companyUserId === targetUserId) ||
+    (i.devUserId === targetUserId && i.companyUserId === req.user.id)
+  );
+  if (!conv && !isCompany && !hasInterviewTogether && !hasConnection(db, req.user.id, targetUserId)) {
+    return res.status(403).json({ error: 'Você só pode iniciar conversa com usuários que segue ou que seguem você.' });
+  }
 
   let created = false;
   if (!conv) {
@@ -1829,6 +1838,15 @@ function enrichNotification(db, n, meId) {
       message: name ? `${name} ${frase}` : n.message,
       link:    '/pages/feed.html',
     };
+  }
+
+  if (n.type === 'reminder') {
+    return { ...n, actor: null, link: '/pages/agenda.html' };
+  }
+
+  if (['interview_scheduled', 'interview_updated', 'interview_canceled', 'interview_reschedule_request'].includes(n.type)) {
+    const actor = n.actorId ? db.users.find(u => u.id === n.actorId) : null;
+    return { ...n, actor: mini(actor), link: '/pages/entrevistas.html' };
   }
 
   return { ...n, actor: null, link: null };
@@ -2566,6 +2584,431 @@ server.post('/api/projects/:id/reviews', requireAuth, (req, res) => {
   res.status(201).json({ ok: true, ratingAvg: updated.ratingAvg, ratingCount: updated.ratingCount });
 });
 
+// ══════════════════════════════════════════════════════════════════════════════
+// AGENDA & ENTREVISTAS — tasks pessoais, lembretes (email + notificação) e
+// entrevistas empresa↔dev. Tudo que acontece em entrevistas aparece na agenda
+// (a agenda agrega as três coleções do usuário logado).
+// ══════════════════════════════════════════════════════════════════════════════
+
+const TASK_PRIORITIES = ['alta', 'media', 'baixa'];
+const INTERVIEW_MODES = { video: 'Vídeo chamada', presencial: 'Presencial', telefone: 'Telefone' };
+
+// Data/hora amigável em pt-BR para emails e mensagens de notificação.
+// O fuso é fixo em Brasília e explicitado no texto: o servidor não sabe o fuso
+// do navegador do usuário (que exibe a agenda em hora local).
+function fmtDateTimePtBr(iso) {
+  try {
+    const txt = new Date(iso).toLocaleString('pt-BR', {
+      weekday: 'long', day: '2-digit', month: 'long',
+      hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo',
+    });
+    return `${txt} (horário de Brasília)`;
+  } catch (e) { return iso; }
+}
+
+function parseDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// ── TASKS ────────────────────────────────────────────────────────────────────
+
+// GET /api/tasks/me — tarefas do usuário (com prazo primeiro, por data)
+server.get('/api/tasks/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const tasks = (db.tasks || [])
+    .filter(t => t.userId === req.user.id)
+    .sort((a, b) => {
+      if (a.dueAt && b.dueAt) return new Date(a.dueAt) - new Date(b.dueAt);
+      if (a.dueAt) return -1;
+      if (b.dueAt) return 1;
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
+  return res.status(200).json(tasks);
+});
+
+// POST /api/tasks — cria tarefa
+server.post('/api/tasks', requireAuth, (req, res) => {
+  const title = ((req.body && req.body.title) || '').trim();
+  if (!title) return res.status(400).json({ error: 'Dê um título para a tarefa.' });
+  if (title.length > 140) return res.status(400).json({ error: 'O título excede 140 caracteres.' });
+  const description = ((req.body && req.body.description) || '').trim().slice(0, 1000);
+  const priority = TASK_PRIORITIES.includes(req.body && req.body.priority) ? req.body.priority : 'media';
+  let dueAt = null;
+  if (req.body && req.body.dueAt) {
+    const d = parseDate(req.body.dueAt);
+    if (!d) return res.status(400).json({ error: 'Data da tarefa inválida.' });
+    dueAt = d.toISOString();
+  }
+  const db  = getDb();
+  const now = new Date().toISOString();
+  const task = { id: generateId(), userId: req.user.id, title, description, dueAt, priority, status: 'pendente', completedAt: null, createdAt: now, updatedAt: now };
+  db.tasks = db.tasks || [];
+  db.tasks.push(task);
+  saveDb(db);
+  return res.status(201).json(task);
+});
+
+// PATCH /api/tasks/:id — edita/conclui a própria tarefa
+server.patch('/api/tasks/:id', requireAuth, (req, res) => {
+  const db  = getDb();
+  const idx = (db.tasks || []).findIndex(t => t.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Tarefa não encontrada.' });
+  if (db.tasks[idx].userId !== req.user.id) return res.status(403).json({ error: 'Você só pode editar as próprias tarefas.' });
+  const t = db.tasks[idx];
+  const b = req.body || {};
+  if (typeof b.title === 'string') {
+    const title = b.title.trim();
+    if (!title) return res.status(400).json({ error: 'Dê um título para a tarefa.' });
+    if (title.length > 140) return res.status(400).json({ error: 'O título excede 140 caracteres.' });
+    t.title = title;
+  }
+  if (typeof b.description === 'string') t.description = b.description.trim().slice(0, 1000);
+  if ('dueAt' in b) {
+    if (!b.dueAt) t.dueAt = null;
+    else {
+      const d = parseDate(b.dueAt);
+      if (!d) return res.status(400).json({ error: 'Data da tarefa inválida.' });
+      t.dueAt = d.toISOString();
+    }
+  }
+  if (typeof b.priority === 'string') {
+    if (!TASK_PRIORITIES.includes(b.priority)) return res.status(400).json({ error: 'Prioridade inválida.' });
+    t.priority = b.priority;
+  }
+  if (typeof b.status === 'string') {
+    if (!['pendente', 'concluida'].includes(b.status)) return res.status(400).json({ error: 'Status inválido.' });
+    t.status = b.status;
+    t.completedAt = b.status === 'concluida' ? new Date().toISOString() : null;
+  }
+  t.updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json(t);
+});
+
+// DELETE /api/tasks/:id — remove a própria tarefa
+server.delete('/api/tasks/:id', requireAuth, (req, res) => {
+  const db   = getDb();
+  const task = (db.tasks || []).find(t => t.id === req.params.id);
+  if (!task) return res.status(404).json({ error: 'Tarefa não encontrada.' });
+  if (task.userId !== req.user.id) return res.status(403).json({ error: 'Você só pode excluir as próprias tarefas.' });
+  db.tasks = db.tasks.filter(t => t.id !== req.params.id);
+  saveDb(db);
+  return res.status(200).json({ ok: true });
+});
+
+// ── LEMBRETES (email + notificação quando vencem) ────────────────────────────
+
+// GET /api/reminders/me
+server.get('/api/reminders/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const reminders = (db.reminders || [])
+    .filter(r => r.userId === req.user.id)
+    .sort((a, b) => new Date(a.remindAt) - new Date(b.remindAt));
+  return res.status(200).json(reminders);
+});
+
+// POST /api/reminders — cria lembrete (dispara email+notificação na hora marcada)
+server.post('/api/reminders', requireAuth, (req, res) => {
+  const title = ((req.body && req.body.title) || '').trim();
+  if (!title) return res.status(400).json({ error: 'Dê um título para o lembrete.' });
+  if (title.length > 140) return res.status(400).json({ error: 'O título excede 140 caracteres.' });
+  const notes = ((req.body && req.body.notes) || '').trim().slice(0, 500);
+  const d = parseDate(req.body && req.body.remindAt);
+  if (!d) return res.status(400).json({ error: 'Data do lembrete inválida.' });
+  if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'O lembrete deve ser em uma data futura.' });
+  const db  = getDb();
+  const now = new Date().toISOString();
+  const reminder = { id: generateId(), userId: req.user.id, title, notes, remindAt: d.toISOString(), dispatchedAt: null, createdAt: now, updatedAt: now };
+  db.reminders = db.reminders || [];
+  db.reminders.push(reminder);
+  saveDb(db);
+  return res.status(201).json(reminder);
+});
+
+// PATCH /api/reminders/:id — edita; mudar a data para o futuro rearma o disparo
+server.patch('/api/reminders/:id', requireAuth, (req, res) => {
+  const db  = getDb();
+  const idx = (db.reminders || []).findIndex(r => r.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lembrete não encontrado.' });
+  if (db.reminders[idx].userId !== req.user.id) return res.status(403).json({ error: 'Você só pode editar os próprios lembretes.' });
+  const r = db.reminders[idx];
+  const b = req.body || {};
+  if (typeof b.title === 'string') {
+    const title = b.title.trim();
+    if (!title) return res.status(400).json({ error: 'Dê um título para o lembrete.' });
+    if (title.length > 140) return res.status(400).json({ error: 'O título excede 140 caracteres.' });
+    r.title = title;
+  }
+  if (typeof b.notes === 'string') r.notes = b.notes.trim().slice(0, 500);
+  if (b.remindAt) {
+    const d = parseDate(b.remindAt);
+    if (!d) return res.status(400).json({ error: 'Data do lembrete inválida.' });
+    if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'O lembrete deve ser em uma data futura.' });
+    r.remindAt = d.toISOString();
+    r.dispatchedAt = null; // rearma
+  }
+  r.updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json(r);
+});
+
+// DELETE /api/reminders/:id
+server.delete('/api/reminders/:id', requireAuth, (req, res) => {
+  const db = getDb();
+  const reminder = (db.reminders || []).find(r => r.id === req.params.id);
+  if (!reminder) return res.status(404).json({ error: 'Lembrete não encontrado.' });
+  if (reminder.userId !== req.user.id) return res.status(403).json({ error: 'Você só pode excluir os próprios lembretes.' });
+  db.reminders = db.reminders.filter(r => r.id !== req.params.id);
+  saveDb(db);
+  return res.status(200).json({ ok: true });
+});
+
+// Dispatcher: roda a cada 1min (e no boot) — lembretes vencidos viram
+// notificação no app + email para o usuário, e são marcados como disparados.
+let remindersDispatchRunning = false;
+async function dispatchDueReminders() {
+  if (remindersDispatchRunning) return;
+  remindersDispatchRunning = true;
+  try {
+    const db  = getDb();
+    const now = Date.now();
+    const due = (db.reminders || []).filter(r => !r.dispatchedAt && new Date(r.remindAt).getTime() <= now);
+    if (!due.length) return;
+    for (const r of due) {
+      r.dispatchedAt = new Date().toISOString();
+      const user = db.users.find(u => u.id === r.userId);
+      if (!user || user.disabledAt) continue;
+      db.notifications = db.notifications || [];
+      db.notifications.push({ id: generateId(), userId: user.id, type: 'reminder', refId: r.id, message: `⏰ Lembrete: ${r.title}`, read: false, createdAt: new Date().toISOString() });
+      const tpl = reminderEmail({ name: user.name, title: r.title, notes: r.notes || '', whenStr: fmtDateTimePtBr(r.remindAt), appUrl: APP_URL });
+      await sendEmail(db, { to: user.email, subject: tpl.subject, html: tpl.html, type: 'reminder', userId: user.id });
+    }
+    saveDb(db);
+    console.log(`⏰ ${due.length} lembrete(s) disparado(s).`);
+  } catch (e) {
+    console.error('Erro ao disparar lembretes:', e.message);
+  } finally {
+    remindersDispatchRunning = false;
+  }
+}
+
+// ── ENTREVISTAS ──────────────────────────────────────────────────────────────
+
+// Enriquece a entrevista com vaga, candidato, empresa e status da candidatura
+function enrichInterview(db, itv) {
+  const job     = (db.jobs || []).find(j => j.id === itv.jobId) || null;
+  const dev     = db.users.find(u => u.id === itv.devUserId) || null;
+  const company = (db.companies || []).find(c => c.id === itv.companyId) || null;
+  const app     = (db.applications || []).find(a => a.id === itv.applicationId) || null;
+  return {
+    ...itv,
+    modeLabel: INTERVIEW_MODES[itv.mode] || itv.mode,
+    job:       job ? { id: job.id, title: job.title, modality: job.modality, level: job.level } : null,
+    candidate: dev ? { id: dev.id, name: dev.name, title: dev.title || dev.headline || '', avatarUrl: dev.avatarUrl || null } : null,
+    company:   company ? { id: company.id, name: company.name, logoInitials: company.logoInitials || null, logoUrl: company.logoUrl || null, userId: company.userId || null } : null,
+    applicationStatus: app ? app.status : null,
+  };
+}
+
+// GET /api/interviews/me — entrevistas do usuário (dev: como candidato; empresa: das suas vagas)
+server.get('/api/interviews/me', requireAuth, (req, res) => {
+  const db = getDb();
+  const mine = (db.interviews || [])
+    .filter(i => i.devUserId === req.user.id || i.companyUserId === req.user.id)
+    .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt))
+    .map(i => enrichInterview(db, i));
+  return res.status(200).json({ role: req.user.type === 'company' ? 'company' : 'dev', interviews: mine });
+});
+
+// POST /api/interviews — empresa agenda entrevista com candidato de vaga dela
+server.post('/api/interviews', requireAuth, async (req, res) => {
+  if (req.user.type !== 'company') return res.status(403).json({ error: 'Apenas empresas podem agendar entrevistas.' });
+  const db      = getDb();
+  const company = (db.companies || []).find(c => c.userId === req.user.id);
+  if (!company) return res.status(403).json({ error: 'Complete o perfil da empresa antes de agendar entrevistas.' });
+
+  const app = (db.applications || []).find(a => a.id === (req.body && req.body.applicationId));
+  if (!app) return res.status(404).json({ error: 'Candidatura não encontrada.' });
+  const job = (db.jobs || []).find(j => j.id === app.jobId);
+  if (!job || job.companyId !== company.id) return res.status(403).json({ error: 'Você só pode agendar entrevistas para vagas da sua empresa.' });
+  if (['recusado'].includes(app.status)) return res.status(400).json({ error: 'Esta candidatura foi recusada.' });
+
+  const candidate = db.users.find(u => u.id === app.userId);
+  if (!candidate || candidate.disabledAt) return res.status(404).json({ error: 'Candidato não encontrado.' });
+
+  const d = parseDate(req.body && req.body.scheduledAt);
+  if (!d) return res.status(400).json({ error: 'Data da entrevista inválida.' });
+  if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'A entrevista deve ser em uma data futura.' });
+
+  db.interviews = db.interviews || [];
+  const active = db.interviews.find(i => i.applicationId === app.id && ['agendada', 'remarcacao_solicitada'].includes(i.status));
+  if (active) return res.status(409).json({ error: 'Já existe uma entrevista ativa para esta candidatura. Remarque ou cancele a existente.' });
+
+  const durationMin = Math.max(15, Math.min(240, parseInt(req.body && req.body.durationMin, 10) || 60));
+  const mode = Object.keys(INTERVIEW_MODES).includes(req.body && req.body.mode) ? req.body.mode : 'video';
+  const locationOrLink = ((req.body && req.body.locationOrLink) || '').trim().slice(0, 300);
+  const notes = ((req.body && req.body.notes) || '').trim().slice(0, 1000);
+
+  const now = new Date().toISOString();
+  const itv = {
+    id: generateId(), applicationId: app.id, jobId: job.id,
+    companyId: company.id, companyUserId: req.user.id, devUserId: app.userId,
+    scheduledAt: d.toISOString(), durationMin, mode, locationOrLink, notes,
+    status: 'agendada', rescheduleReason: null, createdAt: now, updatedAt: now,
+  };
+  db.interviews.push(itv);
+
+  // Sincroniza o funil da candidatura
+  if (['enviada', 'em_analise'].includes(app.status)) { app.status = 'entrevista'; app.updatedAt = now; }
+
+  // Notificação + email para o dev
+  db.notifications = db.notifications || [];
+  db.notifications.push({ id: generateId(), userId: candidate.id, type: 'interview_scheduled', actorId: req.user.id, refId: itv.id, message: `${company.name} agendou uma entrevista com você para a vaga "${job.title}".`, read: false, createdAt: now });
+  const tpl = interviewEmail({ name: candidate.name, companyName: company.name, jobTitle: job.title, whenStr: fmtDateTimePtBr(itv.scheduledAt), modeLabel: INTERVIEW_MODES[mode], locationOrLink, notes, appUrl: APP_URL, updated: false });
+  await sendEmail(db, { to: candidate.email, subject: tpl.subject, html: tpl.html, type: 'interview', userId: candidate.id });
+  saveDb(db);
+
+  return res.status(201).json(enrichInterview(db, itv));
+});
+
+// PATCH /api/interviews/:id — empresa remarca/edita (limpa solicitação de remarcação)
+server.patch('/api/interviews/:id', requireAuth, async (req, res) => {
+  const db  = getDb();
+  const itv = (db.interviews || []).find(i => i.id === req.params.id);
+  if (!itv) return res.status(404).json({ error: 'Entrevista não encontrada.' });
+  if (itv.companyUserId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa que agendou pode editar a entrevista.' });
+  if (['cancelada', 'realizada'].includes(itv.status)) return res.status(400).json({ error: 'Esta entrevista não pode mais ser editada.' });
+
+  const b = req.body || {};
+  let dateChanged = false;
+  if (b.scheduledAt) {
+    const d = parseDate(b.scheduledAt);
+    if (!d) return res.status(400).json({ error: 'Data da entrevista inválida.' });
+    if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'A entrevista deve ser em uma data futura.' });
+    dateChanged = d.toISOString() !== itv.scheduledAt;
+    itv.scheduledAt = d.toISOString();
+  }
+  if (b.durationMin) itv.durationMin = Math.max(15, Math.min(240, parseInt(b.durationMin, 10) || itv.durationMin));
+  if (typeof b.mode === 'string' && Object.keys(INTERVIEW_MODES).includes(b.mode)) itv.mode = b.mode;
+  if (typeof b.locationOrLink === 'string') itv.locationOrLink = b.locationOrLink.trim().slice(0, 300);
+  if (typeof b.notes === 'string') itv.notes = b.notes.trim().slice(0, 1000);
+
+  const wasRescheduleRequest = itv.status === 'remarcacao_solicitada';
+  itv.status = 'agendada';
+  itv.rescheduleReason = null;
+  itv.updatedAt = new Date().toISOString();
+
+  const job       = (db.jobs || []).find(j => j.id === itv.jobId);
+  const company   = (db.companies || []).find(c => c.id === itv.companyId);
+  const candidate = db.users.find(u => u.id === itv.devUserId);
+  if ((dateChanged || wasRescheduleRequest) && candidate && job && company) {
+    db.notifications = db.notifications || [];
+    db.notifications.push({ id: generateId(), userId: candidate.id, type: 'interview_updated', actorId: req.user.id, refId: itv.id, message: `${company.name} remarcou a entrevista da vaga "${job.title}" para ${fmtDateTimePtBr(itv.scheduledAt)}.`, read: false, createdAt: itv.updatedAt });
+    const tpl = interviewEmail({ name: candidate.name, companyName: company.name, jobTitle: job.title, whenStr: fmtDateTimePtBr(itv.scheduledAt), modeLabel: INTERVIEW_MODES[itv.mode], locationOrLink: itv.locationOrLink, notes: itv.notes, appUrl: APP_URL, updated: true });
+    await sendEmail(db, { to: candidate.email, subject: tpl.subject, html: tpl.html, type: 'interview', userId: candidate.id });
+  }
+  saveDb(db);
+  return res.status(200).json(enrichInterview(db, itv));
+});
+
+// POST /api/interviews/:id/cancel — empresa cancela
+server.post('/api/interviews/:id/cancel', requireAuth, (req, res) => {
+  const db  = getDb();
+  const itv = (db.interviews || []).find(i => i.id === req.params.id);
+  if (!itv) return res.status(404).json({ error: 'Entrevista não encontrada.' });
+  if (itv.companyUserId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa que agendou pode cancelar a entrevista.' });
+  if (itv.status === 'realizada') return res.status(400).json({ error: 'Esta entrevista já foi realizada.' });
+  if (itv.status === 'cancelada') return res.status(400).json({ error: 'Esta entrevista já foi cancelada.' });
+
+  itv.status = 'cancelada';
+  itv.updatedAt = new Date().toISOString();
+
+  const job     = (db.jobs || []).find(j => j.id === itv.jobId);
+  const company = (db.companies || []).find(c => c.id === itv.companyId);
+  if (job && company) {
+    db.notifications = db.notifications || [];
+    db.notifications.push({ id: generateId(), userId: itv.devUserId, type: 'interview_canceled', actorId: req.user.id, refId: itv.id, message: `${company.name} cancelou a entrevista da vaga "${job.title}".`, read: false, createdAt: itv.updatedAt });
+  }
+  saveDb(db);
+  return res.status(200).json(enrichInterview(db, itv));
+});
+
+// POST /api/interviews/:id/complete — empresa marca como realizada
+server.post('/api/interviews/:id/complete', requireAuth, (req, res) => {
+  const db  = getDb();
+  const itv = (db.interviews || []).find(i => i.id === req.params.id);
+  if (!itv) return res.status(404).json({ error: 'Entrevista não encontrada.' });
+  if (itv.companyUserId !== req.user.id) return res.status(403).json({ error: 'Apenas a empresa que agendou pode concluir a entrevista.' });
+  if (!['agendada', 'remarcacao_solicitada'].includes(itv.status)) return res.status(400).json({ error: 'Esta entrevista não está mais ativa.' });
+
+  itv.status = 'realizada';
+  itv.rescheduleReason = null;
+  itv.updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json(enrichInterview(db, itv));
+});
+
+// POST /api/interviews/:id/reschedule-request — dev pede remarcação (notifica a
+// empresa e abre conversa com a mensagem do pedido, para combinarem o novo horário)
+server.post('/api/interviews/:id/reschedule-request', requireAuth, (req, res) => {
+  const db  = getDb();
+  const itv = (db.interviews || []).find(i => i.id === req.params.id);
+  if (!itv) return res.status(404).json({ error: 'Entrevista não encontrada.' });
+  if (itv.devUserId !== req.user.id) return res.status(403).json({ error: 'Apenas o candidato da entrevista pode solicitar remarcação.' });
+  if (itv.status === 'remarcacao_solicitada') return res.status(409).json({ error: 'Você já solicitou a remarcação desta entrevista.' });
+  if (itv.status !== 'agendada') return res.status(400).json({ error: 'Esta entrevista não está mais ativa.' });
+
+  const reason = ((req.body && req.body.reason) || '').trim().slice(0, 500);
+  const now    = new Date().toISOString();
+  itv.status = 'remarcacao_solicitada';
+  itv.rescheduleReason = reason || null;
+  itv.updatedAt = now;
+
+  const job     = (db.jobs || []).find(j => j.id === itv.jobId);
+  const company = (db.companies || []).find(c => c.id === itv.companyId);
+  const dev     = db.users.find(u => u.id === itv.devUserId);
+
+  // Notifica a empresa
+  db.notifications = db.notifications || [];
+  db.notifications.push({ id: generateId(), userId: itv.companyUserId, type: 'interview_reschedule_request', actorId: req.user.id, refId: itv.id, message: `${dev ? dev.name : 'Um candidato'} solicitou a remarcação da entrevista da vaga "${job ? job.title : ''}".`, read: false, createdAt: now });
+
+  // Abre (ou reusa) a conversa dev↔empresa com a mensagem do pedido
+  let conversationId = null;
+  if (itv.companyUserId) {
+    db.conversations = db.conversations || [];
+    let conv = db.conversations.find(c => (c.participantIds || []).includes(req.user.id) && (c.participantIds || []).includes(itv.companyUserId));
+    if (!conv) {
+      conv = { id: generateId(), participantIds: [req.user.id, itv.companyUserId], lastMessageAt: now, createdAt: now };
+      db.conversations.push(conv);
+    }
+    const texto = `Olá! Gostaria de remarcar a entrevista da vaga "${job ? job.title : ''}" agendada para ${fmtDateTimePtBr(itv.scheduledAt)}.${reason ? ` Motivo: ${reason}` : ''}`;
+    db.messages = db.messages || [];
+    db.messages.push({ id: generateId(), conversationId: conv.id, senderId: req.user.id, receiverId: itv.companyUserId, content: texto, createdAt: now, read: false });
+    conv.lastMessageAt = now;
+    db.notifications.push({ id: generateId(), userId: itv.companyUserId, type: 'new_message', refId: conv.id, message: `Você recebeu uma nova mensagem de ${dev ? dev.name : 'um candidato'}.`, read: false, createdAt: now });
+    conversationId = conv.id;
+  }
+
+  saveDb(db);
+  return res.status(200).json({ ok: true, conversationId, interview: enrichInterview(db, itv) });
+});
+
+// ── AGENDA AGREGADA ──────────────────────────────────────────────────────────
+
+// GET /api/agenda/me — tasks + lembretes + entrevistas do usuário em uma chamada
+server.get('/api/agenda/me', requireAuth, (req, res) => {
+  const db   = getDb();
+  const meId = req.user.id;
+  const tasks = (db.tasks || []).filter(t => t.userId === meId);
+  const reminders = (db.reminders || []).filter(r => r.userId === meId);
+  const interviews = (db.interviews || [])
+    .filter(i => i.devUserId === meId || i.companyUserId === meId)
+    .map(i => enrichInterview(db, i));
+  return res.status(200).json({ role: req.user.type === 'company' ? 'company' : 'dev', tasks, reminders, interviews });
+});
+
 // Protege as coleções de Q&A do CRUD cru do JSON Server: exige auth e só permite
 // leitura. Toda escrita passa pelos endpoints customizados acima (com validação,
 // ownership e anti-auto-ação). As rotas customizadas são registradas antes daqui,
@@ -2573,6 +3016,14 @@ server.post('/api/projects/:id/reviews', requireAuth, (req, res) => {
 ['/api/answers', '/api/answerRatings', '/api/answerHelpful', '/api/engagementReviews'].forEach((p) => {
   server.use(p, requireAuth, (req, res, next) => {
     if (req.method === 'GET') return next();
+    return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
+  });
+});
+
+// Agenda: dados pessoais — bloqueia QUALQUER acesso direto às coleções
+// (leitura/escrita só pelos endpoints custom /me acima, que filtram por dono)
+['/api/tasks', '/api/reminders', '/api/interviews'].forEach((p) => {
+  server.use(p, requireAuth, (req, res) => {
     return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
   });
 });
@@ -2599,5 +3050,9 @@ server.listen(PORT, async () => {
   // Roda cleanup uma vez ao iniciar e depois a cada 1h
   await cleanupExpiredAccounts();
   setInterval(cleanupExpiredAccounts, 60 * 60 * 1000);
+
+  // Lembretes da agenda: verifica vencidos no boot e a cada 1min
+  await dispatchDueReminders();
+  setInterval(dispatchDueReminders, 60 * 1000);
   console.log('');
 });

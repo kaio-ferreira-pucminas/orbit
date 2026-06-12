@@ -78,7 +78,7 @@
     toast.className = `toast toast--${type}`;
     toast.innerHTML = `
       <span class="toast__icon">${ICONS[type]}</span>
-      <span class="toast__message">${message}</span>
+      <span class="toast__message"></span>
       <button class="toast__close" aria-label="Fechar notificação">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
           fill="none" stroke="currentColor" stroke-width="2.5"
@@ -88,6 +88,9 @@
         </svg>
       </button>
     `;
+    // textContent (e não innerHTML): a mensagem pode conter dados de outros
+    // usuários (nomes, títulos) — nunca interpretar como HTML
+    toast.querySelector('.toast__message').textContent = message;
 
     // Fecha ao clicar no X
     toast.querySelector('.toast__close').addEventListener('click', () => dismiss(toast));

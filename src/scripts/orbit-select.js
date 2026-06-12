@@ -107,6 +107,13 @@
     if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
     closePanel();
   });
+  // Esc fecha o painel mesmo quando o select não tem foco (abertura por mouse/touch
+  // não foca o select — o pointerdown global usa preventDefault). Como este script
+  // carrega por último, handlers de Esc das páginas rodam antes e podem checar
+  // '.osel-panel:not([hidden])' para não fechar o modal junto.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panelEl && !panelEl.hidden) closePanel();
+  });
   window.addEventListener('scroll', position, true);
   window.addEventListener('resize', position);
 
@@ -132,6 +139,9 @@
         e.preventDefault();
         open ? closePanel() : openPanel(select);
       } else if (e.key === 'Escape') {
+        // não deixa o Esc borbulhar: senão o handler de modal da página fecharia
+        // o modal junto com o painel
+        e.stopPropagation();
         closePanel();
       }
     });

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrevistas — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/entrevistas.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR ESQUERDA (SideNavBar — injetada pelo sidebar.js)
+  ====================================================== -->
+  <div id="orbit-sidebar"></div>
+
+  <!-- =====================================================
+       CONTEÚDO — central de entrevistas (dev + empresa)
+  ====================================================== -->
+  <main class="itv-main">
+
+    <!-- Header da página -->
+    <header class="itv-header">
+      <div class="itv-header__text">
+        <span class="itv-header__eyebrow">GESTÃO</span>
+        <h1 class="itv-header__title">Entrevistas</h1>
+        <p class="itv-header__subtitle" id="itv-subtitle">Carregando…</p>
+      </div>
+      <div class="itv-header__actions">
+        <a class="itv-agenda-chip" href="/pages/agenda.html" title="Abrir a Agenda">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Sincronizado com a sua Agenda</span>
+        </a>
+        <button type="button" class="itv-btn itv-btn--primary" id="btn-new-interview" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agendar entrevista
+        </button>
+      </div>
+    </header>
+
+    <!-- Loading inicial (skeleton) -->
+    <div class="itv-loading" id="itv-loading" aria-label="Carregando entrevistas">
+      <div class="itv-skel itv-skel--summary"></div>
+      <div class="itv-skel itv-skel--card"></div>
+      <div class="itv-skel itv-skel--card"></div>
+      <div class="itv-skel itv-skel--card"></div>
+    </div>
+
+    <div id="itv-content" hidden>
+
+      <!-- Faixa de resumo (estilo funil) -->
+      <section class="itv-summary" id="itv-summary" aria-label="Resumo das entrevistas">
+        <div class="itv-summary__card">
+          <span class="itv-summary__label">Agendadas</span>
+          <span class="itv-summary__value itv-summary__value--accent" id="sum-agendadas">0</span>
+        </div>
+        <div class="itv-summary__card" id="sum-remarcacao-card">
+          <span class="itv-summary__label">Remarcação solicitada</span>
+          <span class="itv-summary__value itv-summary__value--accent" id="sum-remarcacao">0</span>
+        </div>
+        <div class="itv-summary__card">
+          <span class="itv-summary__label">Realizadas</span>
+          <span class="itv-summary__value itv-summary__value--accent" id="sum-realizadas">0</span>
+        </div>
+        <div class="itv-summary__card">
+          <span class="itv-summary__label">Canceladas</span>
+          <span class="itv-summary__value itv-summary__value--accent" id="sum-canceladas">0</span>
+        </div>
+      </section>
+
+      <!-- Filtros (vaga + status + busca) -->
+      <section class="itv-filters" id="itv-filters" aria-label="Filtros de entrevistas">
+        <div class="itv-search">
+          <svg class="itv-search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="filter-search" class="itv-search__input" placeholder="Buscar..." aria-label="Buscar entrevistas" />
+        </div>
+        <select id="filter-job" class="itv-select" aria-label="Filtrar por vaga">
+          <option value="">Todas as vagas</option>
+        </select>
+        <select id="filter-status" class="itv-select" aria-label="Filtrar por status">
+          <option value="">Todos os status</option>
+          <option value="agendada">Agendadas</option>
+          <option value="remarcacao_solicitada">Remarcação solicitada</option>
+          <option value="realizada">Realizadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
+      </section>
+
+      <!-- Empty state global (preenchido pelo JS conforme o papel) -->
+      <div class="itv-empty" id="itv-empty" hidden></div>
+
+      <!-- Empty state de filtro -->
+      <div class="itv-empty" id="itv-filter-empty" hidden>
+        <svg class="itv-empty__icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <p class="itv-empty__title">Nenhuma entrevista para este filtro.</p>
+        <p class="itv-empty__text">Ajuste a vaga, o status ou a busca para ver outras entrevistas.</p>
+      </div>
+
+      <!-- Próximas entrevistas -->
+      <section class="itv-section" id="itv-upcoming-section" hidden>
+        <h2 class="itv-section__title">Próximas <span class="itv-section__count" id="upcoming-count">0</span></h2>
+        <div class="itv-list" id="itv-upcoming" aria-label="Próximas entrevistas"></div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="itv-section" id="itv-history-section" hidden>
+        <h2 class="itv-section__title">Histórico <span class="itv-section__count" id="history-count">0</span></h2>
+        <div class="itv-list" id="itv-history" aria-label="Histórico de entrevistas"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- =====================================================
+       MODAL — Agendar / Remarcar entrevista (empresa)
+  ====================================================== -->
+  <div class="itv-modal" id="itv-modal" hidden role="dialog" aria-modal="true" aria-labelledby="itv-modal-title">
+    <div class="itv-modal__overlay" data-modal-close></div>
+    <div class="itv-modal__dialog">
+      <header class="itv-modal__header">
+        <h2 class="itv-modal__title" id="itv-modal-title">Agendar entrevista</h2>
+        <button type="button" class="itv-modal__close" data-modal-close aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+
+      <p class="itv-modal__hint" id="itv-modal-hint">O candidato é notificado no app e por email com todos os detalhes.</p>
+
+      <form id="itv-form">
+        <!-- Passo 1: vaga + candidato (apenas no modo agendamento) -->
+        <div id="itv-form-pick">
+          <!-- sem required: no modo edição este passo fica hidden e um control
+               required oculto bloquearia o submit nativo do form (o JS valida) -->
+          <label class="itv-field" for="itv-f-job">Vaga
+            <select id="itv-f-job">
+              <option value="">Selecione a vaga</option>
+            </select>
+          </label>
+          <label class="itv-field" for="itv-f-candidate">Candidato
+            <select id="itv-f-candidate" disabled>
+              <option value="">Escolha a vaga primeiro</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Modo edição: vaga + candidato como texto fixo -->
+        <div class="itv-modal__fixed" id="itv-form-fixed" hidden></div>
+
+        <!-- Passo 2: detalhes -->
+        <div class="itv-field-row">
+          <label class="itv-field" for="itv-f-datetime">Data e hora
+            <input type="datetime-local" id="itv-f-datetime" required />
+          </label>
+          <label class="itv-field" for="itv-f-duration">Duração
+            <select id="itv-f-duration">
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60" selected>60 min</option>
+              <option value="90">90 min</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="itv-field-row">
+          <label class="itv-field" for="itv-f-mode">Modo
+            <select id="itv-f-mode">
+              <option value="video" selected>Vídeo chamada</option>
+              <option value="presencial">Presencial</option>
+              <option value="telefone">Telefone</option>
+            </select>
+          </label>
+          <label class="itv-field" for="itv-f-location">Local ou link
+            <input type="text" id="itv-f-location" maxlength="300" placeholder="https://meet.google.com/... ou endereço" />
+          </label>
+        </div>
+
+        <label class="itv-field" for="itv-f-notes">Observações
+          <textarea id="itv-f-notes" maxlength="1000" rows="3" placeholder="Orientações para o candidato (opcional)"></textarea>
+        </label>
+
+        <div class="itv-modal__actions">
+          <button type="button" class="itv-btn itv-btn--ghost" data-modal-close>Cancelar</button>
+          <button type="submit" class="itv-btn itv-btn--primary" id="itv-f-submit">Agendar entrevista</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =====================================================
+       MODAL — Solicitar remarcação (dev)
+  ====================================================== -->
+  <div class="itv-modal" id="itv-resched-modal" hidden role="dialog" aria-modal="true" aria-labelledby="itv-resched-title">
+    <div class="itv-modal__overlay" data-modal-close></div>
+    <div class="itv-modal__dialog">
+      <header class="itv-modal__header">
+        <h2 class="itv-modal__title" id="itv-resched-title">Solicitar remarcação</h2>
+        <button type="button" class="itv-modal__close" data-modal-close aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+
+      <p class="itv-modal__hint">A empresa será notificada e uma conversa será aberta para vocês combinarem o novo horário.</p>
+
+      <form id="itv-resched-form">
+        <label class="itv-field" for="itv-resched-reason">Motivo (opcional)
+          <textarea id="itv-resched-reason" maxlength="500" rows="4" placeholder="Ex.: tenho um compromisso nesse horário, podemos remarcar para o período da tarde?"></textarea>
+        </label>
+        <div class="itv-modal__actions">
+          <button type="button" class="itv-btn itv-btn--ghost" data-modal-close>Voltar</button>
+          <button type="submit" class="itv-btn itv-btn--primary" id="itv-resched-submit">Enviar pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/notifications.js"></script>
+  <script src="../scripts/sidebar.js"></script>
+  <script src="../scripts/entrevistas.js"></script>
+  <script src="../scripts/orbit-select.js"></script>
+</body>
+</html>

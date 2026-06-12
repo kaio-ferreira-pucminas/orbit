@@ -13,6 +13,8 @@
     { "source": "/reset-password",  "destination": "/pages/reset-password.html" },
     { "source": "/dashboard",       "destination": "/pages/dashboard.html" },
     { "source": "/mensagens",       "destination": "/pages/mensagens.html" },
+    { "source": "/agenda",          "destination": "/pages/agenda.html" },
+    { "source": "/entrevistas",     "destination": "/pages/entrevistas.html" },
     { "source": "/empresa",         "destination": "/pages/empresa-dashboard.html" },
     { "source": "/vagas",           "destination": "/pages/vagas.html" },
     { "source": "/talentos",        "destination": "/pages/empresa-talentos.html" },
