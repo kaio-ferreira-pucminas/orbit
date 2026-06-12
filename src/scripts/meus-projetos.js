@@ -357,7 +357,12 @@
     }
   }
 
-  function init() { setupEvents(); load(); }
+  function init() {
+    setupEvents();
+    load();
+    // deep-link ?new (ex.: "Adicionar meu primeiro projeto" no dashboard) → abre o cadastro
+    if (new URLSearchParams(window.location.search).get('new') !== null) openModal(null);
+  }
   init();
 
 })();

@@ -597,6 +597,29 @@ ul, ol { list-style: none; }
   color: var(--green);
 }
 
+/* Badge de compatibilidade (% match) do algoritmo de recomendação */
+.dash-job-card__match {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--lighter-purple);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* Estado vazio das recomendações */
+.dash-jobs-empty {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 22px;
+  padding: 20px;
+  background: var(--card-bg, #fff);
+  border: 1px dashed var(--border-light, rgba(199,196,215,0.4));
+  border-radius: var(--radius);
+  text-align: center;
+}
+.dash-jobs-empty strong { color: var(--primary); }
+
 .dash-job-card__actions {
   display: flex;
   align-items: center;
@@ -720,6 +743,14 @@ ul, ol { list-style: none; }
   padding: 0 8px;
 }
 
+/* Cabeçalho do widget de Agenda (título + link "Ver agenda") */
+.dash-widget__head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 8px; }
+.dash-widget__head .dash-widget__title { padding: 0; }
+.dash-widget__link { font-size: 13px; font-weight: 700; color: var(--primary); }
+.dash-widget__link:hover { opacity: 0.75; }
+.dash-agenda-empty { font-size: 13px; color: var(--text-muted); line-height: 20px; padding: 0 8px; }
+.dash-agenda-empty a { color: var(--primary); font-weight: 700; }
+
 /* Events */
 .dash-events-list { display: flex; flex-direction: column; gap: 24px; }
 
@@ -748,6 +779,12 @@ ul, ol { list-style: none; }
   color: var(--primary);
   line-height: 12px;
 }
+
+/* Cor do chip por tipo de item da agenda */
+.dash-event__date--interview { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); }
+.dash-event__date--interview .dash-event__month { color: #0f9d6b; }
+.dash-event__date--reminder { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); }
+.dash-event__date--reminder .dash-event__month { color: #b45309; }
 
 .dash-event__day {
   font-size: 20px;
@@ -851,6 +888,12 @@ ul, ol { list-style: none; }
 
 .dash-fab:hover { background: var(--primary-hover); transform: scale(1.05); }
 .dash-fab:active { transform: scale(0.97); }
+
+/* Bug 4 — sobre um card de cor próxima (roxo), o FAB fica claro com borda
+   para não "sumir" e parecer parte do card. O "+" vira roxo. */
+.dash-fab--on-dark { background: #fff; border: 1.5px solid rgba(70, 72, 212, 0.25); box-shadow: 0 12px 28px -8px rgba(19, 27, 46, 0.45); }
+.dash-fab--on-dark:hover { background: #f2f3ff; }
+.dash-fab--on-dark svg { stroke: var(--primary); }
 
 /* ============================================================
    RESPONSIVO — colapso suave abaixo de 1024px

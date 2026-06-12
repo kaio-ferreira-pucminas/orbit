@@ -99,9 +99,10 @@ function saveDataUrlImage(dataUrl, subdir, baseName) {
   return `/uploads/${subdir}/${fileName}`;
 }
 
-// Remove passwordHash antes de retornar o usuário ao front
+// Remove campos privados antes de retornar o usuário ao front.
+// jobPreferences (filtros de vaga) são pessoais — lidos só via /api/preferences/me.
 function sanitizeUser(user) {
-  const { passwordHash, ...publicUser } = user;
+  const { passwordHash, jobPreferences, ...publicUser } = user;
   return publicUser;
 }
 
@@ -1671,45 +1672,202 @@ server.get('/api/saved-jobs/me', requireAuth, (req, res) => {
 
 // ── RECOMMENDATIONS (#6 Oportunidades Recomendadas) ──────────────────────────
 
-// GET /api/recommendations/me — vagas recomendadas para mim, ordenadas por match
-server.get('/api/recommendations/me', requireAuth, (req, res) => {
-  const db = getDb();
+// ── PREFERÊNCIAS DE VAGA (filtros avançados persistentes do dev) ─────────────
+const PREF_MODALITIES = ['Remoto', 'Híbrido', 'Presencial'];
+const PREF_LEVELS     = ['Júnior', 'Pleno', 'Sênior'];
+const PREF_CONTRACTS  = ['CLT', 'Freelance'];
 
-  // Só vagas ATIVAS entram em recomendação (rascunho/pausada/encerrada não)
+function normalizeJobPrefs(raw) {
+  const r = raw || {};
+  const pick = (arr, allowed) => Array.isArray(arr)
+    ? [...new Set(arr.map(x => String(x).trim()).filter(s => allowed.includes(s)))]
+    : [];
+  const skills = Array.isArray(r.skills)
+    ? [...new Set(r.skills.map(s => String(s).trim()).filter(Boolean))].slice(0, 20).map(s => s.slice(0, 30))
+    : [];
+  const minSalary = Math.max(0, Math.min(1000000, parseInt(r.minSalary, 10) || 0));
+  return {
+    modalities:    pick(r.modalities, PREF_MODALITIES),
+    levels:        pick(r.levels, PREF_LEVELS),
+    contractTypes: pick(r.contractTypes, PREF_CONTRACTS),
+    skills,
+    minSalary,
+  };
+}
+function getUserPrefs(db, userId) {
+  const u = (db.users || []).find(x => x.id === userId);
+  return normalizeJobPrefs(u && u.jobPreferences);
+}
+
+// GET /api/preferences/me — preferências de vaga do dev (filtros avançados)
+server.get('/api/preferences/me', requireAuth, (req, res) => {
+  return res.status(200).json({ preferences: getUserPrefs(getDb(), req.user.id) });
+});
+
+// PUT /api/preferences/me — salva os filtros (persistem em dashboard E oportunidades)
+server.put('/api/preferences/me', requireAuth, (req, res) => {
+  const db  = getDb();
+  const idx = (db.users || []).findIndex(u => u.id === req.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'Usuário não encontrado.' });
+  const prefs = normalizeJobPrefs(req.body && req.body.preferences ? req.body.preferences : req.body);
+  db.users[idx].jobPreferences = prefs;
+  db.users[idx].updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json({ preferences: prefs });
+});
+
+// ── ATIVIDADE (sinal comportamental p/ recomendação: views de vaga + buscas) ──
+// POST /api/activity { type:'job_view'|'search', jobId?, query? }
+server.post('/api/activity', requireAuth, (req, res) => {
+  const type = (req.body && req.body.type) || '';
+  if (!['job_view', 'search'].includes(type)) return res.status(400).json({ error: 'Tipo de atividade inválido.' });
+  const db  = getDb();
+  let topics = [];
+  let refId  = null;
+  if (type === 'job_view') {
+    const job = (db.jobs || []).find(j => j.id === (req.body && req.body.jobId));
+    if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
+    topics = (job.skills || []).map(normTopic);
+    refId  = job.id;
+  } else {
+    const q = String((req.body && req.body.query) || '').trim().slice(0, 120);
+    if (!q) return res.status(400).json({ error: 'Busca vazia.' });
+    topics = q.toLowerCase().split(/[\s,]+/).filter(t => t.length >= 2);
+  }
+  db.activity = db.activity || [];
+  db.activity.push({ id: generateId(), userId: req.user.id, type, refId, topics, createdAt: new Date().toISOString() });
+  // mantém só os 60 eventos mais recentes por usuário (db.json enxuto)
+  const mine = db.activity.filter(a => a.userId === req.user.id);
+  if (mine.length > 60) {
+    const keep = new Set(mine.slice(-60).map(a => a.id));
+    db.activity = db.activity.filter(a => a.userId !== req.user.id || keep.has(a.id));
+  }
+  saveDb(db);
+  return res.status(201).json({ ok: true });
+});
+
+// Tópicos recentes que o dev acessou/pesquisou, com peso por recência → Map<tópico, peso>
+function behaviorTopics(db, userId) {
+  const events = (db.activity || []).filter(a => a.userId === userId).slice(-40);
+  const weight = new Map();
+  events.forEach((a, i) => {
+    const w = 1 + (events.length ? i / events.length : 0); // evento mais recente pesa mais
+    (a.topics || []).forEach(t => weight.set(t, (weight.get(t) || 0) + w));
+  });
+  return weight;
+}
+
+// A faixa de salário da vaga atende ao mínimo desejado pelo dev?
+// Trata os formatos do compositor: "R$ 3.500 - R$ 5.000" (teto = 5000),
+// "Até R$ X" (teto = X), "A partir de R$ X" (piso aberto → pode subir, não exclui),
+// "A combinar"/vazio (desconhecido → não exclui).
+function jobSalaryOk(salaryRange, minSalary) {
+  if (!minSalary || minSalary <= 0) return true;
+  const s = String(salaryRange || '');
+  if (/a partir de/i.test(s)) return true;           // piso aberto: salário pode passar do mínimo
+  const nums = s.match(/\d[\d.]*/g);
+  if (!nums) return true;                            // desconhecido (ex.: "A combinar")
+  const max = Math.max(...nums.map(n => parseInt(n.replace(/\./g, ''), 10) || 0));
+  return max >= minSalary;
+}
+
+// A vaga passa nos filtros (hard) das preferências do dev?
+function jobMatchesPrefs(job, prefs, opts) {
+  if (prefs.modalities.length && !prefs.modalities.includes(job.modality)) return false;
+  if (prefs.levels.length && !prefs.levels.includes(job.level)) return false;
+  if (prefs.contractTypes.length && !prefs.contractTypes.includes(job.contractType)) return false;
+  if (!(opts && opts.ignoreSalary) && prefs.minSalary > 0 && !jobSalaryOk(job.salaryRange, prefs.minSalary)) return false;
+  return true;
+}
+
+// ── RECOMENDAÇÃO DE VAGAS EM GRAFO ───────────────────────────────────────────
+// A rede é um grafo: dev —tem→ skill ←exige— vaga; dev —segue→ usuário —dono→
+// empresa —publica→ vaga; dev —acessa/busca→ tópicos. O score combina:
+//   (1) skills/interesses do dev × skills da vaga  (sinal principal)
+//   (2) social — empresa próxima de quem o dev segue (grafo de follows, FoF)
+//   (3) comportamento — vagas/buscas recentes do dev
+//   (4) preferências (filtros avançados) — filtro hard + boost das skills desejadas
+function recommendJobs(db, userId) {
+  const interest  = interestProfile(db, userId);            // Set de tópicos (skills, interesses, projetos, posts)
+  const behavior  = behaviorTopics(db, userId);             // Map<tópico, peso>
+  const prefs     = getUserPrefs(db, userId);
+  const prefSkill = new Set(prefs.skills.map(normTopic));
+  const graph     = buildFollowGraph(db);
+  const iFollow   = graph.following.get(userId) || new Set();
+
   const activeJobs = (db.jobs || []).filter(j => (j.status || 'active') === 'active');
 
-  // Recomendações pré-calculadas no seed
-  const stored = (db.recommendations || []).filter(r => r.userId === req.user.id);
+  // Filtros hard; relaxa EM CAMADAS para não descartar as restrições mais fortes:
+  // 1) todos os filtros; 2) solta só o salário (mantém modalidade/nível/contrato);
+  // 3) último recurso, mostra todas — nunca deixa a lista em branco.
+  let pool = activeJobs.filter(j => jobMatchesPrefs(j, prefs));
+  if (!pool.length) pool = activeJobs.filter(j => jobMatchesPrefs(j, prefs, { ignoreSalary: true }));
+  if (!pool.length) pool = activeJobs;
 
-  // Enriquecе com a vaga; se não houver seed, calcula match on-the-fly pelas skills
-  let list;
-  if (stored.length) {
-    list = stored
-      .map(r => ({ ...r, job: activeJobs.find(j => j.id === r.jobId) || null }))
-      .filter(r => r.job);
-  } else {
-    const me = db.users.find(u => u.id === req.user.id);
-    const mySkills = (me && Array.isArray(me.skills) ? me.skills : []).map(s => s.toLowerCase());
-    list = activeJobs.map(job => {
-      const skills = job.skills || [];
-      const matched = skills.filter(s => mySkills.includes(s.toLowerCase()));
-      const ratio = skills.length ? matched.length / skills.length : 0;
-      return {
-        id: `rec-dyn-${job.id}`,
-        userId: req.user.id,
-        jobId: job.id,
-        matchScore: Math.round(40 + ratio * 60),
-        matchedSkills: matched,
-        reason: matched.length
-          ? `Compatível com suas habilidades em ${matched.slice(0, 3).join(', ')}.`
-          : 'Selecionada para ampliar seu repertório técnico.',
-        job,
-      };
-    });
+  // Índices (1x) para o sinal social — evita varrer db.jobs/applications por vaga
+  const companyById     = new Map((db.companies || []).map(c => [c.id, c]));
+  const jobsByCompany   = new Map();
+  (db.jobs || []).forEach(j => {
+    if (!jobsByCompany.has(j.companyId)) jobsByCompany.set(j.companyId, []);
+    jobsByCompany.get(j.companyId).push(j.id);
+  });
+  const applicantsByJob = new Map();
+  (db.applications || []).forEach(a => {
+    if (!applicantsByJob.has(a.jobId)) applicantsByJob.set(a.jobId, new Set());
+    applicantsByJob.get(a.jobId).add(a.userId);
+  });
+
+  // Empresa "próxima" no grafo social do dev (dono seguido, amigo-de-amigo, ou peer candidatado)
+  function companySocialScore(job) {
+    const company = companyById.get(job.companyId);
+    if (!company || !company.userId) return 0;
+    if (iFollow.has(company.userId)) return 1;                       // sigo a própria empresa
+    const fof = commonNeighbors(graph, userId, company.userId);     // amigos-de-amigos (profundidade 2)
+    if (fof > 0) return Math.min(0.8, 0.4 + fof * 0.2);
+    const companyJobIds = jobsByCompany.get(company.id) || [];
+    const peerApplied = companyJobIds.some(jid => { const s = applicantsByJob.get(jid); return s && [...s].some(uid => iFollow.has(uid)); });
+    return peerApplied ? 0.5 : 0;                                    // alguém que sigo se candidatou ali
   }
 
-  list.sort((a, b) => b.matchScore - a.matchScore);
-  return res.status(200).json(list);
+  const scored = pool.map(job => {
+    const jobTopics = (job.skills || []).map(normTopic);
+    const denom = jobTopics.length || 1;
+
+    const matchedInterest = jobTopics.filter(t => interest.has(t));
+    const skillScore = matchedInterest.length / denom;
+
+    const matchedPref = jobTopics.filter(t => prefSkill.has(t));
+    const prefScore = prefSkill.size ? matchedPref.length / denom : 0;
+
+    let behScore = 0;
+    jobTopics.forEach(t => { if (behavior.has(t)) behScore += behavior.get(t); });
+    behScore = Math.min(1, behScore / (denom * 1.5));
+
+    const socialScore = companySocialScore(job);
+
+    const combined = (skillScore * 0.45) + (prefScore * 0.2) + (behScore * 0.15) + (socialScore * 0.2);
+    const matchScore = Math.round(40 + Math.min(1, combined) * 60); // mantém a faixa 40–100
+
+    const matchedSet = new Set([...matchedInterest, ...matchedPref]);
+    const matchedSkills = (job.skills || []).filter(s => matchedSet.has(normTopic(s)));
+
+    let reason;
+    if (matchedSkills.length)    reason = `Compatível com suas habilidades em ${matchedSkills.slice(0, 3).join(', ')}.`;
+    else if (socialScore >= 0.5) reason = 'Empresa próxima da sua rede de conexões.';
+    else if (behScore > 0.3)     reason = 'Alinhada ao que você tem explorado na plataforma.';
+    else                         reason = 'Selecionada para ampliar seu repertório técnico.';
+
+    return { id: `rec-${userId}-${job.id}`, userId, jobId: job.id, matchScore, matchedSkills, reason, _social: socialScore, job };
+  });
+
+  scored.sort((a, b) => b.matchScore - a.matchScore || b._social - a._social);
+  scored.forEach(s => { delete s._social; });
+  return scored;
+}
+
+// GET /api/recommendations/me — vagas recomendadas (grafo: skills + social + comportamento + filtros)
+server.get('/api/recommendations/me', requireAuth, (req, res) => {
+  return res.status(200).json(recommendJobs(getDb(), req.user.id));
 });
 
 // ── FOLLOWS (sistema de seguir) ──────────────────────────────────────────────
@@ -3246,6 +3404,7 @@ server.use('/api/jobs', requireAuth, (req, res, next) => {
   '/api/users', '/api/companies', '/api/applications', '/api/notifications',
   '/api/messages', '/api/conversations', '/api/saved_jobs', '/api/recommendations',
   '/api/follows', '/api/password_reset_tokens', '/api/deactivation_codes', '/api/sent_emails',
+  '/api/activity', '/api/preferences',
 ].forEach((p) => {
   server.use(p, requireAuth, (req, res) => {
     return res.status(403).json({ error: 'Operação não permitida por esta rota.' });

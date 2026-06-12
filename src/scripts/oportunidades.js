@@ -124,10 +124,21 @@
   }
 
   function populateTech() {
+    const sel = $('#filter-tech');
+    // zera mantendo o placeholder (1ª option) — evita duplicar ao recarregar
+    sel.length = 1;
     const set = new Set();
     recs.forEach(r => ((r.job && (r.job.skills || r.job.tech)) || []).forEach(t => set.add(t)));
-    const sel = $('#filter-tech');
     [...set].sort().forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+  }
+
+  // Re-busca as recomendações no servidor (já refletindo as preferências salvas)
+  // e re-renderiza. Usada no init e após salvar os Filtros Avançados.
+  async function reloadRecs() {
+    const res = await api('/api/recommendations/me');
+    recs = await res.json();
+    populateTech();
+    render();
   }
 
   /* ===== CANDIDATURA RÁPIDA ===== */
@@ -164,6 +175,11 @@
       if (btn.getAttribute('data-action') === 'apply') apply(jobId, btn);
       else if (btn.getAttribute('data-action') === 'details') window.location.href = `/pages/vaga-detalhes.html?id=${encodeURIComponent(jobId)}`;
     });
+    // Filtros Avançados: abre o modal e, ao salvar, re-busca as recomendações
+    const advBtn = $('#opp-adv-toggle');
+    if (advBtn) advBtn.addEventListener('click', () => {
+      if (window.OrbitJobPrefs) window.OrbitJobPrefs.open(reloadRecs);
+    });
     $('#btn-logout').addEventListener('click', () => {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');
@@ -175,15 +191,12 @@
   async function init() {
     setupEvents();
     try {
-      const res = await api('/api/recommendations/me');
-      recs = await res.json();
       // marca quais já tenho candidatura (via applications/me, se existir)
       try {
         const ap = await api('/api/applications/me');
         if (ap.ok) (await ap.json()).forEach(a => applied.add(a.jobId));
       } catch { /* opcional */ }
-      populateTech();
-      render();
+      await reloadRecs(); // busca recomendações + popula tech + render
     } catch (err) {
       if (err.message !== 'Token expirado') {
         $('#opp-grid').innerHTML = `<div class="opp-loading">Não foi possível carregar as recomendações.</div>`;

@@ -132,6 +132,12 @@
     const box = $('#busca-results');
     if (!q) { summary.textContent = ''; box.innerHTML = '<p class="busca-empty">Digite algo para buscar.</p>'; return; }
     box.innerHTML = '<p class="busca-empty">Buscando…</p>';
+    // Tracking best-effort: sinaliza o termo buscado p/ o algoritmo de recomendação
+    fetch(`${API_URL}/api/activity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'search', query: q }),
+    }).catch(() => {});
     try {
       const res = await api('/api/search?q=' + encodeURIComponent(q));
       const d = await res.json();

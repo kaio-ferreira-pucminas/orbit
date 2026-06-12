@@ -115,7 +115,7 @@
         <section class="dash-section" aria-label="Meus Projetos">
           <div class="dash-section__header">
             <h2 class="dash-section__title">Meus Projetos</h2>
-            <a href="/pages/feed.html" class="dash-section__link">
+            <a href="/pages/meus-projetos.html" class="dash-section__link">
               Ver todos
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -132,7 +132,7 @@
         <section class="dash-section" aria-label="Oportunidades Recomendadas">
           <div class="dash-section__header">
             <h2 class="dash-section__title">Oportunidades Recomendadas</h2>
-            <button type="button" class="dash-section__link">Filtros Avançados</button>
+            <button type="button" class="dash-section__link" id="btn-adv-filters">Filtros Avançados</button>
           </div>
           <div class="dash-jobs-list" id="jobs-list">
             <!-- Injetado via dashboard.js -->
@@ -162,30 +162,14 @@
           </button>
         </div>
 
-        <!-- Eventos da Comunidade -->
+        <!-- Minha Agenda (lembretes + entrevistas) -->
         <div class="dash-widget">
-          <h3 class="dash-widget__title">Eventos da Comunidade</h3>
-          <ul class="dash-events-list" aria-label="Eventos">
-            <li class="dash-event">
-              <div class="dash-event__date">
-                <span class="dash-event__month">DEZ</span>
-                <span class="dash-event__day">14</span>
-              </div>
-              <div class="dash-event__info">
-                <span class="dash-event__name">Web3 &amp; Oportunidades</span>
-                <span class="dash-event__meta">Workshop Online &bull; 19:00</span>
-              </div>
-            </li>
-            <li class="dash-event">
-              <div class="dash-event__date">
-                <span class="dash-event__month">DEZ</span>
-                <span class="dash-event__day">18</span>
-              </div>
-              <div class="dash-event__info">
-                <span class="dash-event__name">Coffee &amp; Code: React Native</span>
-                <span class="dash-event__meta">São Paulo, SP &bull; 09:00</span>
-              </div>
-            </li>
+          <div class="dash-widget__head">
+            <h3 class="dash-widget__title">Minha Agenda</h3>
+            <a href="/pages/agenda.html" class="dash-widget__link">Ver agenda</a>
+          </div>
+          <ul class="dash-events-list" id="agenda-list" aria-label="Próximos itens da agenda">
+            <li class="dash-loading">Carregando agenda...</li>
           </ul>
         </div>
 
@@ -225,6 +209,7 @@
   <script src="../scripts/toast.js"></script>
   <script src="../scripts/notifications.js"></script>
   <script src="../scripts/sidebar.js"></script>
+  <script src="../scripts/job-prefs.js"></script>
   <script src="../scripts/dashboard.js"></script>
 </body>
 </html>

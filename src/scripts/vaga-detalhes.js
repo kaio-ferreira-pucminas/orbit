@@ -107,6 +107,9 @@
     job = data;
     const company = data.company || {};
 
+    // Tracking best-effort: sinaliza visualização da vaga p/ o algoritmo de recomendação
+    api('/api/activity', { method: 'POST', body: JSON.stringify({ type: 'job_view', jobId }) }).catch(() => {});
+
     $('#vd-logo').textContent     = company.logoInitials || initials(data.companyName);
     $('#vd-title').textContent    = data.title;
     $('#vd-company').textContent  = `${data.companyName || ''}${data.location ? ' • ' + data.location : ''}`;
