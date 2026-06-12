@@ -168,6 +168,7 @@
     new_follower: true, new_message: true, new_like: true, new_comment: true,
     reminder: true, interview_scheduled: true, interview_updated: true,
     interview_canceled: true, interview_reschedule_request: true,
+    new_application: true,
   };
   let seenIds = null; // ids já conhecidos; null = primeira carga (não notifica histórico)
 

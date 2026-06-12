@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publicar Nova Oportunidade — Orbit</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles/empresa-nova-vaga.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       SIDEBAR EMPRESA
+  ====================================================== -->
+  <aside class="emp-sidebar" aria-label="Menu lateral da empresa">
+    <a href="/pages/profile.html" class="emp-sidebar__brand emp-sidebar__brand--link" title="Ver meu perfil">
+      <div class="emp-sidebar__logo-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+          <path d="M3 12 Q7 6 12 12 Q17 18 21 12" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="emp-sidebar__brand-text">
+        <span class="emp-sidebar__brand-name" id="sidebar-company-name">Orbit Corp</span>
+        <span class="emp-sidebar__brand-sub">RECRUTAMENTO ATIVO</span>
+      </div>
+    </a>
+
+    <nav class="emp-sidebar__nav" aria-label="Navegação da empresa">
+      <a href="/pages/empresa-dashboard.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="/pages/feed.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Feed</span>
+      </a>
+      <a href="/pages/agenda.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Agenda</span>
+      </a>
+      <a href="/pages/empresa-talentos.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Busca de Talentos</span>
+      </a>
+      <a href="/pages/empresa-vagas.html" class="emp-nav__link emp-nav__link--active" aria-current="page">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span>Gerenciar Vagas</span>
+      </a>
+      <a href="/pages/entrevistas.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        <span>Entrevistas</span>
+      </a>
+      <a href="/pages/mensagens.html" class="emp-nav__link">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensagens</span>
+      </a>
+    </nav>
+
+    <div class="emp-sidebar__bottom">
+      <div class="emp-sidebar__divider"></div>
+      <button type="button" class="emp-nav__link emp-nav__link--btn" id="btn-logout">
+        <svg class="emp-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CONTEÚDO — Publicar/Editar Oportunidade
+  ====================================================== -->
+  <main class="nv-main">
+    <div class="nv-wrap">
+
+      <!-- Breadcrumb -->
+      <nav class="nv-breadcrumb" aria-label="Trilha de navegação">
+        <a href="/pages/empresa-vagas.html" class="nv-breadcrumb__link">Gerenciar Vagas</a>
+        <span class="nv-breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
+        <span class="nv-breadcrumb__current" id="nv-crumb-current">Nova Oportunidade</span>
+      </nav>
+
+      <!-- Título da página -->
+      <header class="nv-head">
+        <h1 class="nv-head__title" id="nv-page-title">Publicar Nova Oportunidade</h1>
+        <p class="nv-head__sub">Defina os detalhes da sua vaga para atrair os melhores desenvolvedores em início de carreira na nossa órbita.</p>
+      </header>
+
+      <form id="nv-form" novalidate>
+
+        <!-- ── LINHA: Informações Básicas ── -->
+        <div class="nv-row">
+          <div class="nv-row__info">
+            <h2 class="nv-section__title">Informações Básicas</h2>
+            <p class="nv-section__aux">Comece pelo título e o modelo de trabalho. Seja claro para aumentar o engajamento.</p>
+          </div>
+          <div class="nv-fields">
+            <div class="nv-field">
+              <label class="nv-label" for="nv-title">Título da Vaga</label>
+              <input type="text" id="nv-title" class="nv-input" maxlength="120" placeholder="Ex: Desenvolvedor Frontend Junior (React)" />
+            </div>
+            <div class="nv-field">
+              <span class="nv-label" id="nv-modality-label">Tipo de Vaga</span>
+              <div class="nv-cards" id="nv-modality" role="radiogroup" aria-labelledby="nv-modality-label">
+                <label class="nv-card">
+                  <input type="radio" class="nv-card__input" name="nv-modality" value="Remoto" checked />
+                  <span class="nv-card__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  </span>
+                  <span class="nv-card__title">Remoto</span>
+                  <span class="nv-card__sub">De qualquer lugar</span>
+                </label>
+                <label class="nv-card">
+                  <input type="radio" class="nv-card__input" name="nv-modality" value="Híbrido" />
+                  <span class="nv-card__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="7" x2="9.01" y2="7"/><line x1="15" y1="7" x2="15.01" y2="7"/><line x1="9" y1="12" x2="9.01" y2="12"/><line x1="15" y1="12" x2="15.01" y2="12"/><path d="M10 22v-4h4v4"/></svg>
+                  </span>
+                  <span class="nv-card__title">Híbrido</span>
+                  <span class="nv-card__sub">Escritório + Casa</span>
+                </label>
+                <label class="nv-card">
+                  <input type="radio" class="nv-card__input" name="nv-modality" value="Presencial" />
+                  <span class="nv-card__icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <span class="nv-card__title">Presencial</span>
+                  <span class="nv-card__sub">No escritório</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LINHA: Descrição e Escopo ── -->
+        <div class="nv-row">
+          <div class="nv-row__info">
+            <h2 class="nv-section__title">Descrição e Escopo</h2>
+            <p class="nv-section__aux">Descreva o dia a dia, os desafios do projeto e o que a empresa espera do novo talento.</p>
+          </div>
+          <div class="nv-fields">
+            <div class="nv-field">
+              <label class="nv-label" for="nv-desc">Descrição da Vaga</label>
+              <div class="nv-editor">
+                <div class="nv-toolbar" id="nv-toolbar" role="toolbar" aria-label="Formatação da descrição">
+                  <button type="button" class="nv-toolbar__btn" data-fmt="bold" title="Negrito" aria-label="Negrito">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+                  </button>
+                  <button type="button" class="nv-toolbar__btn" data-fmt="italic" title="Itálico" aria-label="Itálico">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+                  </button>
+                  <span class="nv-toolbar__sep" aria-hidden="true"></span>
+                  <button type="button" class="nv-toolbar__btn" data-fmt="list" title="Lista" aria-label="Lista">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  </button>
+                  <button type="button" class="nv-toolbar__btn" data-fmt="link" title="Link" aria-label="Link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  </button>
+                  <button type="button" class="nv-toolbar__toggle" id="nv-preview-toggle">Pré-visualizar</button>
+                </div>
+                <textarea id="nv-desc" class="nv-textarea" maxlength="5000" placeholder="Escreva aqui os requisitos, responsabilidades e benefícios..."></textarea>
+                <div class="nv-preview" id="nv-preview" hidden aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LINHA: Detalhes da Contratação ── -->
+        <div class="nv-row">
+          <div class="nv-row__info">
+            <h2 class="nv-section__title">Detalhes da Contratação</h2>
+            <p class="nv-section__aux">Nível, contrato e remuneração ajudam o dev a decidir se aplica.</p>
+          </div>
+          <div class="nv-fields">
+            <div class="nv-grid">
+              <div class="nv-field">
+                <label class="nv-label" for="nv-level">Nível</label>
+                <select id="nv-level" class="nv-input nv-select">
+                  <option value="Júnior" selected>Júnior</option>
+                  <option value="Pleno">Pleno</option>
+                  <option value="Sênior">Sênior</option>
+                </select>
+              </div>
+              <div class="nv-field">
+                <label class="nv-label" for="nv-contract">Tipo de Contrato</label>
+                <select id="nv-contract" class="nv-input nv-select">
+                  <option value="CLT" selected>CLT</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+              <div class="nv-field">
+                <label class="nv-label" for="nv-location">Localização</label>
+                <input type="text" id="nv-location" class="nv-input" maxlength="120" placeholder="Ex: Belo Horizonte, MG" />
+                <p class="nv-hint" id="nv-location-hint" hidden>Definida automaticamente para vagas remotas.</p>
+              </div>
+              <div class="nv-field">
+                <label class="nv-label" for="nv-salary">Faixa Salarial</label>
+                <input type="text" id="nv-salary" class="nv-input" maxlength="60" placeholder="Ex: R$ 3.500 - R$ 5.000" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LINHA: Habilidades Técnicas ── -->
+        <div class="nv-row">
+          <div class="nv-row__info">
+            <h2 class="nv-section__title">Habilidades Técnicas</h2>
+            <p class="nv-section__aux">Selecione as tecnologias mandatórias. Isso ajudará nosso algoritmo a encontrar o match perfeito.</p>
+          </div>
+          <div class="nv-fields">
+            <div class="nv-field">
+              <div class="nv-skillwrap">
+                <span class="nv-skillwrap__icon" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </span>
+                <input type="text" id="nv-skill-input" class="nv-input" maxlength="30" placeholder="Digite uma tecnologia (ex: TypeScript, Docker...)" aria-label="Adicionar habilidade técnica (Enter ou vírgula para incluir)" />
+              </div>
+              <div class="nv-chips" id="nv-chips" aria-label="Habilidades adicionadas" hidden></div>
+              <div class="nv-suggest">
+                <p class="nv-suggest__title">Sugestões para sua vaga:</p>
+                <div class="nv-suggest__list" id="nv-suggest-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RODAPÉ ── -->
+        <hr class="nv-divider" />
+        <footer class="nv-footer">
+          <p class="nv-visibility">
+            <span class="nv-visibility__icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <span id="nv-visibility">Sua vaga ficará visível para <strong>todos os desenvolvedores</strong> na Orbit</span>
+          </p>
+          <div class="nv-actions">
+            <button type="button" class="nv-btn-text" id="nv-draft">Salvar Rascunho</button>
+            <button type="button" class="nv-btn-primary" id="nv-publish">Publicar Vaga</button>
+          </div>
+        </footer>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- notifications.js é carregado pelo mobile-sidebar.js DEPOIS do sino existir -->
+  <script src="../scripts/config.js"></script>
+  <script src="../scripts/toast.js"></script>
+  <script src="../scripts/empresa-nova-vaga.js"></script>
+  <script src="../scripts/orbit-select.js"></script>
+  <script src="../scripts/mobile-sidebar.js"></script>
+</body>
+</html>

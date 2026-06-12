@@ -65,15 +65,18 @@
   /* ===== MÉTRICAS + ATIVIDADES ===== */
   async function loadDashboard() {
     try {
-      const resJobs = await api('/api/jobs');
-      const jobs = await resJobs.json();
+      // Só as vagas DA EMPRESA logada (antes usava /api/jobs e agregava a
+      // plataforma inteira — métricas de outras empresas vazavam para cá)
+      const resJobs = await api('/api/jobs/mine');
+      const mine = await resJobs.json();
+      const jobs = mine.jobs || [];
       const activeJobs = jobs.filter(j => j.status === 'active');
 
-      // Para cada vaga, busca candidatos (em paralelo)
+      // Para cada vaga própria, busca candidatos (em paralelo)
       const details = await Promise.all(
         jobs.map(j => api(`/api/jobs/${j.id}/applications`).then(r => r.json()).catch(() => null))
       );
-      const valid = details.filter(Boolean);
+      const valid = details.filter(Boolean).filter(d => d.job);
 
       const totalCandidates = valid.reduce((acc, d) => acc + d.funnel.total, 0);
       const totalInterviews = valid.reduce((acc, d) => acc + d.funnel.entrevista, 0);
@@ -145,7 +148,7 @@
       window.location.href = '/pages/auth.html?tab=login';
     });
     $('#btn-novo-job').addEventListener('click', () => {
-      toast('A criação de vagas estará disponível em breve.', 'info');
+      window.location.href = '/pages/empresa-nova-vaga.html';
     });
     // O sino de notificações é controlado pelo notifications.js (markup #orbit-notif).
   }

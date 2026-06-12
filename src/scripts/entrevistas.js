@@ -590,7 +590,11 @@
       return;
     }
     try {
-      const results = await Promise.all(companyJobs.map(j =>
+      // se a URL também trouxe ?vaga=, prioriza a candidatura daquela vaga
+      const jobsToSearch = vaga
+        ? [...companyJobs.filter(j => j.id === vaga), ...companyJobs.filter(j => j.id !== vaga)]
+        : companyJobs;
+      const results = await Promise.all(jobsToSearch.map(j =>
         loadApplicants(j.id).then(list => ({ job: j, list })).catch(() => null)
       ));
       let hit = null;

@@ -56,7 +56,7 @@
     { key: 'feed',      href: '/pages/feed.html',              label: 'Feed',              icon: ICONS.feed },
     { key: 'agenda',    href: '/pages/agenda.html',            label: 'Agenda',            icon: ICONS.agenda },
     { key: 'talentos',  href: '/pages/empresa-talentos.html',  label: 'Busca de Talentos', icon: ICONS.talentos },
-    { key: 'vagas',     href: '/pages/empresa-candidatos.html', label: 'Gerenciar Vagas',   icon: ICONS.oportunidades },
+    { key: 'vagas',     href: '/pages/empresa-vagas.html',      label: 'Gerenciar Vagas',   icon: ICONS.oportunidades },
     { key: 'entrevistas', href: '/pages/entrevistas.html',     label: 'Entrevistas',       icon: ICONS.entrevistas },
     { key: 'mensagens', href: '/pages/mensagens.html',         label: 'Mensagens',         icon: ICONS.mensagens },
   ] : [
@@ -75,6 +75,8 @@
     'feed.html': 'feed',
     'agenda.html': 'agenda',
     'empresa-talentos.html':  'talentos',
+    'empresa-vagas.html': 'vagas',
+    'empresa-nova-vaga.html': 'vagas',
     'empresa-candidatos.html': 'vagas',
     'entrevistas.html': 'entrevistas',
     'mensagens.html': 'mensagens',

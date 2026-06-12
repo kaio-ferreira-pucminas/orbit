@@ -225,7 +225,7 @@
       }
     });
 
-    $('#btn-novo-job').addEventListener('click', () => toast('A criação de vagas estará disponível em breve.', 'info'));
+    $('#btn-novo-job').addEventListener('click', () => { window.location.href = '/pages/empresa-nova-vaga.html'; });
     $('#btn-logout').addEventListener('click', () => {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');

@@ -146,7 +146,7 @@
     { key: 'dashboard', href: '/pages/empresa-dashboard.html',  label: 'Dashboard' },
     { key: 'feed',      href: '/pages/feed.html',               label: 'Feed' },
     { key: 'talentos',  href: '/pages/empresa-talentos.html',   label: 'Busca de Talentos' },
-    { key: 'vagas',     href: '/pages/empresa-candidatos.html', label: 'Gerenciar Vagas' },
+    { key: 'vagas',     href: '/pages/empresa-vagas.html',      label: 'Gerenciar Vagas' },
     { key: 'mensagens', href: '/pages/mensagens.html',          label: 'Mensagens' },
   ] : [
     { key: 'feed',          href: '/pages/feed.html',          label: 'Feed' },
@@ -161,6 +161,8 @@
     'feed.html':'feed',
     'empresa-talentos.html':'talentos',
     'empresa-talento.html':'talentos',
+    'empresa-vagas.html':'vagas',
+    'empresa-nova-vaga.html':'vagas',
     'empresa-candidatos.html':'vagas',
     'mensagens.html':'mensagens',
   } : {

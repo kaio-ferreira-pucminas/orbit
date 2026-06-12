@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Candidatos da Vaga — Orbit</title>
+  <title>Gerenciar Vagas — Orbit</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="../styles/empresa-candidatos.css" />
+  <link rel="stylesheet" href="../styles/empresa-vagas.css" />
 </head>
 <body>
 
@@ -72,56 +72,55 @@
   </aside>
 
   <!-- =====================================================
-       CONTEÚDO
+       CONTEÚDO — GERENCIAR VAGAS
   ====================================================== -->
-  <main class="cand-main">
-    <a href="/pages/empresa-vagas.html" class="cand-back">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      VOLTAR PARA VAGAS
-    </a>
+  <main class="ev-main">
 
-    <div class="cand-loading" id="cand-loading">Carregando candidatos...</div>
+    <!-- Header da página -->
+    <header class="ev-head">
+      <div class="ev-head__text">
+        <span class="ev-head__eyebrow">GESTÃO</span>
+        <h1 class="ev-head__title">Gerenciar Vagas</h1>
+        <p class="ev-head__subtitle">Publique vagas, acompanhe candidaturas e mova os melhores para entrevista.</p>
+      </div>
+      <div class="ev-head__actions">
+        <select id="filter-status" class="ev-filter" aria-label="Filtrar vagas por status">
+          <option value="">Todos os status</option>
+          <option value="active">Publicadas</option>
+          <option value="draft">Rascunhos</option>
+          <option value="paused">Pausadas</option>
+          <option value="closed">Encerradas</option>
+        </select>
+        <button type="button" class="ev-btn-primary" id="btn-new-job">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Vaga
+        </button>
+      </div>
+    </header>
 
-    <div id="cand-content" hidden>
-      <!-- Header da vaga -->
-      <header class="cand-head">
-        <div class="cand-head__text">
-          <h1 class="cand-head__title" id="cand-job-title">—</h1>
-          <p class="cand-head__meta">
-            <span id="cand-job-location">—</span> • <span class="accent" id="cand-job-count">0 Candidatos Aplicados</span>
-          </p>
-        </div>
-        <div class="cand-head__actions">
-          <select id="filter-status" class="cand-filter" aria-label="Filtrar por status">
-            <option value="">Todos os status</option>
-            <option value="enviada">Enviada</option>
-            <option value="em_analise">Em Análise</option>
-            <option value="entrevista">Entrevista</option>
-            <option value="recusado">Recusado</option>
-            <option value="contratado">Contratado</option>
-            <option value="finalizado">Finalizado</option>
-          </select>
-        </div>
-      </header>
+    <!-- Faixa de resumo (global, não filtra) -->
+    <section class="ev-summary" id="ev-summary" aria-label="Resumo das vagas">
+      <div class="ev-summary__card"><span class="ev-summary__label">PUBLICADAS</span><span class="ev-summary__value" id="sum-active">0</span></div>
+      <div class="ev-summary__card"><span class="ev-summary__label">RASCUNHOS</span><span class="ev-summary__value ev-summary__value--accent" id="sum-draft">0</span></div>
+      <div class="ev-summary__card"><span class="ev-summary__label">CANDIDATURAS PENDENTES</span><span class="ev-summary__value ev-summary__value--accent" id="sum-pending">0</span></div>
+      <div class="ev-summary__card"><span class="ev-summary__label">ENTREVISTAS ATIVAS</span><span class="ev-summary__value ev-summary__value--accent" id="sum-interviews">0</span></div>
+    </section>
 
-      <!-- Funil -->
-      <section class="cand-funnel" aria-label="Funil de candidatos">
-        <div class="cand-funnel__card"><span class="cand-funnel__label">TOTAL</span><span class="cand-funnel__value" id="funnel-total">0</span></div>
-        <div class="cand-funnel__card"><span class="cand-funnel__label">EM ANÁLISE</span><span class="cand-funnel__value cand-funnel__value--accent" id="funnel-analise">0</span></div>
-        <div class="cand-funnel__card"><span class="cand-funnel__label">ENTREVISTAS</span><span class="cand-funnel__value cand-funnel__value--accent" id="funnel-entrevista">0</span></div>
-        <div class="cand-funnel__card"><span class="cand-funnel__label">RECUSADOS</span><span class="cand-funnel__value cand-funnel__value--accent" id="funnel-recusado">0</span></div>
-        <div class="cand-funnel__card"><span class="cand-funnel__label">CONTRATADOS</span><span class="cand-funnel__value cand-funnel__value--accent" id="funnel-contratado">0</span></div>
-        <div class="cand-funnel__card"><span class="cand-funnel__label">FINALIZADOS</span><span class="cand-funnel__value cand-funnel__value--accent" id="funnel-finalizado">0</span></div>
-      </section>
-
-      <!-- Lista de candidatos -->
-      <section class="cand-list" id="cand-list" aria-label="Candidatos"></section>
+    <!-- Skeleton de carregamento -->
+    <div class="ev-skeleton" id="ev-loading" aria-hidden="true">
+      <div class="ev-skeleton__card"><div class="ev-skeleton__line ev-skeleton__line--title"></div><div class="ev-skeleton__line"></div><div class="ev-skeleton__line ev-skeleton__line--short"></div></div>
+      <div class="ev-skeleton__card"><div class="ev-skeleton__line ev-skeleton__line--title"></div><div class="ev-skeleton__line"></div><div class="ev-skeleton__line ev-skeleton__line--short"></div></div>
+      <div class="ev-skeleton__card"><div class="ev-skeleton__line ev-skeleton__line--title"></div><div class="ev-skeleton__line"></div><div class="ev-skeleton__line ev-skeleton__line--short"></div></div>
     </div>
+
+    <!-- Lista de vagas -->
+    <section class="ev-list" id="ev-list" aria-label="Suas vagas" hidden></section>
   </main>
 
+  <!-- notifications.js é carregado pelo mobile-sidebar.js DEPOIS do sino existir -->
   <script src="../scripts/config.js"></script>
   <script src="../scripts/toast.js"></script>
-  <script src="../scripts/empresa-candidatos.js"></script>
+  <script src="../scripts/empresa-vagas.js"></script>
   <script src="../scripts/orbit-select.js"></script>
   <script src="../scripts/mobile-sidebar.js"></script>
 </body>

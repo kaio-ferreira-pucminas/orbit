@@ -114,6 +114,7 @@
         <div class="cand-card__actions">
           <span class="cand-status cand-status--${st}">${escapeHtml(STATUS_LABEL[st] || st)}</span>
           ${statusControls}
+          ${(isOwner && !hired && st !== 'recusado') ? `<a class="cand-btn-ghost" href="/pages/entrevistas.html?dev=${encodeURIComponent(c.id || '')}&vaga=${encodeURIComponent(jobId || '')}">Agendar entrevista</a>` : ''}
           <a class="cand-btn-ghost" href="/pages/empresa-talento.html?id=${encodeURIComponent(c.id || '')}">Ver Perfil</a>
         </div>
       </article>`;
@@ -279,23 +280,9 @@
   }
 
   /* ===== CARGA ===== */
-  async function resolveJobId() {
-    if (jobId) return jobId;
-    try {
-      const res = await api('/api/jobs');
-      const jobs = await res.json();
-      let best = null, bestCount = -1;
-      for (const j of jobs) {
-        const r = await api(`/api/jobs/${j.id}/applications`).then(x => x.json()).catch(() => null);
-        if (r && r.funnel.total > bestCount) { bestCount = r.funnel.total; best = j.id; }
-      }
-      return best || (jobs[0] && jobs[0].id);
-    } catch { return null; }
-  }
-
   async function load() {
-    if (!jobId) jobId = await resolveJobId();
-    if (!jobId) { $('#cand-loading').textContent = 'Nenhuma vaga encontrada.'; return; }
+    // Esta tela é o DETALHE de uma vaga; sem ?id= o lugar certo é a lista
+    if (!jobId) { window.location.replace('/pages/empresa-vagas.html'); return; }
     try {
       const res = await api(`/api/jobs/${jobId}/applications`);
       if (!res.ok) { $('#cand-loading').textContent = 'Vaga não encontrada.'; return; }

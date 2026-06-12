@@ -196,7 +196,7 @@
     $('#btn-interview').addEventListener('click', () => {
       window.location.href = `/pages/entrevistas.html?dev=${encodeURIComponent(targetId)}`;
     });
-    const novo = $('#btn-novo-job'); if (novo) novo.addEventListener('click', () => toast('A criação de vagas estará disponível em breve.', 'info'));
+    const novo = $('#btn-novo-job'); if (novo) novo.addEventListener('click', () => { window.location.href = '/pages/empresa-nova-vaga.html'; });
     $('#btn-logout').addEventListener('click', () => {
       localStorage.removeItem('orbit_token');
       localStorage.removeItem('orbit_user');

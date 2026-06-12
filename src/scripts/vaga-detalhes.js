@@ -38,6 +38,55 @@
   }
   function toast(msg, type) { if (window.orbitToast) window.orbitToast(msg, type || 'info'); }
 
+  // Renderiza a formatação leve da descrição — MESMO parser do compositor de
+  // vagas (empresa-nova-vaga.js) e do preview, para o dev ver exatamente o que
+  // a empresa aprovou: **negrito**, *itálico*, `código`, [link](https://...) e
+  // listas com "- ". Escapa o HTML antes (sem XSS).
+  function renderBlocks(part) {
+    const out = [];
+    let buf  = [];  // linhas de texto corrente (vira parágrafos)
+    let list = [];  // itens da lista corrente
+    function flushText() {
+      buf.join('\n')
+        .split(/\n\n+/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .forEach(p => out.push(`<p>${p.replace(/\n/g, '<br>')}</p>`));
+      buf = [];
+    }
+    function flushList() {
+      if (list.length) out.push(`<ul>${list.map(i => `<li>${i}</li>`).join('')}</ul>`);
+      list = [];
+    }
+    part.split('\n').forEach((line) => {
+      const m = line.match(/^\s*-\s+(.+)$/);
+      if (m) { flushText(); list.push(m[1].trim()); }
+      else   { flushList(); buf.push(line); }
+    });
+    flushText();
+    flushList();
+    return out.join('');
+  }
+
+  function parseMarkdown(text) {
+    if (!text) return '';
+    let html = escapeHtml(text);
+    html = html.replace(/```([\s\S]*?)```/g, (_, code) => `<pre><code>${code.trim()}</code></pre>`);
+    html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    // listas + parágrafos FORA dos <pre> (code blocks ficam intactos)
+    const parts  = html.split(/<pre>[\s\S]*?<\/pre>/g);
+    const blocks = html.match(/<pre>[\s\S]*?<\/pre>/g) || [];
+    let result = '';
+    parts.forEach((part, i) => {
+      result += renderBlocks(part);
+      if (blocks[i]) result += blocks[i];
+    });
+    return result;
+  }
+
   async function api(path, options) {
     const res = await fetch(`${API_URL}${path}`, Object.assign({}, options, {
       headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, (options && options.headers) || {}),
@@ -66,7 +115,7 @@
     $('#vd-level').textContent    = data.level || '—';
     $('#vd-contract').textContent = data.contractType || 'PJ ou CLT';
     $('#vd-modality').textContent = data.modality || '—';
-    $('#vd-about').textContent    = data.description || 'Descrição não informada.';
+    $('#vd-about').innerHTML      = parseMarkdown(data.description) || 'Descrição não informada.';
 
     // Skills
     $('#vd-skills').innerHTML = (data.skills || []).map(s => `<span class="vd-tag">${escapeHtml(s)}</span>`).join('');
@@ -90,9 +139,14 @@
 
     // Estados de aplicar / salvar
     const applyBtn = $('#btn-apply');
+    const jobStatus = data.status || 'active';
     if (data.appliedByMe) {
       applyBtn.disabled = true;
       applyBtn.innerHTML = 'Candidatura enviada';
+    } else if (jobStatus !== 'active') {
+      // vaga pausada/encerrada não recebe candidaturas — reflete antes do clique
+      applyBtn.disabled = true;
+      applyBtn.innerHTML = jobStatus === 'paused' ? 'Vaga pausada' : 'Vaga encerrada';
     }
     const saveBtn = $('#btn-save');
     if (data.savedByMe) {

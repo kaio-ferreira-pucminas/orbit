@@ -1101,7 +1101,12 @@ server.get('/api/jobs', requireAuth, (req, res) => {
   const db = getDb();
   const { tech, modality, level, q, status } = req.query;
 
-  let jobs = [...(db.jobs || [])];
+  // Visibilidade: vagas 'active' para todos; rascunho/pausada/encerrada só para
+  // a própria empresa (a gestão completa fica em GET /api/jobs/mine)
+  const myCompany = (db.companies || []).find(c => c.userId === req.user.id) || null;
+  let jobs = (db.jobs || []).filter(j =>
+    (j.status || 'active') === 'active' || (myCompany && j.companyId === myCompany.id)
+  );
 
   if (status)   jobs = jobs.filter(j => j.status === status);
   if (modality) jobs = jobs.filter(j => j.modality === modality);
@@ -1123,6 +1128,31 @@ server.get('/api/jobs', requireAuth, (req, res) => {
   return res.status(200).json(enriched);
 });
 
+// GET /api/jobs/mine — vagas da empresa logada (todos os status) + contagens.
+// IMPORTANTE: registrado ANTES de /api/jobs/:id (senão ':id' captura 'mine')
+server.get('/api/jobs/mine', requireAuth, (req, res) => {
+  if (req.user.type !== 'company') return res.status(403).json({ error: 'Apenas empresas têm vagas próprias.' });
+  const db      = getDb();
+  const company = (db.companies || []).find(c => c.userId === req.user.id);
+  if (!company) return res.status(200).json({ company: null, jobs: [] });
+
+  const jobs = (db.jobs || [])
+    .filter(j => j.companyId === company.id)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(j => {
+      const apps = (db.applications || []).filter(a => a.jobId === j.id);
+      const interviews = (db.interviews || []).filter(i => i.jobId === j.id && ['agendada', 'remarcacao_solicitada'].includes(i.status));
+      return {
+        ...j,
+        status: j.status || 'active',
+        applicantsCount:   apps.length,
+        pendingCount:      apps.filter(a => ['enviada', 'em_analise'].includes(a.status)).length,
+        activeInterviews:  interviews.length,
+      };
+    });
+  return res.status(200).json({ company: { id: company.id, name: company.name }, jobs });
+});
+
 // GET /api/jobs/:id — detalhe da vaga + empresa + flags do usuário + similares
 server.get('/api/jobs/:id', requireAuth, (req, res) => {
   const db  = getDb();
@@ -1130,16 +1160,163 @@ server.get('/api/jobs/:id', requireAuth, (req, res) => {
   if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
 
   const company = (db.companies || []).find(c => c.id === job.companyId) || null;
+  const isOwner = !!(company && company.userId === req.user.id);
+  // rascunho é privado da empresa
+  if ((job.status || 'active') === 'draft' && !isOwner) {
+    return res.status(404).json({ error: 'Vaga não encontrada.' });
+  }
   const savedByMe   = !!(db.saved_jobs || []).find(s => s.jobId === job.id && s.userId === req.user.id);
   const appliedByMe = !!(db.applications || []).find(a => a.jobId === job.id && a.userId === req.user.id);
 
-  // vagas similares: compartilham pelo menos 1 skill, exceto a própria
+  // vagas similares: ativas que compartilham pelo menos 1 skill, exceto a própria
   const similar = (db.jobs || [])
-    .filter(j => j.id !== job.id && (j.skills || []).some(s => (job.skills || []).includes(s)))
+    .filter(j => j.id !== job.id && (j.status || 'active') === 'active' && (j.skills || []).some(s => (job.skills || []).includes(s)))
     .slice(0, 3)
     .map(j => ({ id: j.id, title: j.title, companyName: j.companyName, modality: j.modality, level: j.level, salaryRange: j.salaryRange }));
 
-  return res.status(200).json({ ...job, company, savedByMe, appliedByMe, similar });
+  return res.status(200).json({ ...job, company, savedByMe, appliedByMe, isOwner, similar });
+});
+
+// ── JOBS: CRUD da empresa (criar, editar, publicar/pausar/encerrar, excluir) ─
+
+const JOB_MODALITIES = ['Remoto', 'Híbrido', 'Presencial'];
+const JOB_LEVELS     = ['Júnior', 'Pleno', 'Sênior'];
+const JOB_CONTRACTS  = ['CLT', 'Freelance'];
+const JOB_STATUSES   = ['draft', 'active', 'paused', 'closed'];
+
+// Normaliza/valida o body de criação/edição de vaga. Retorna { error } ou { data }.
+function validateJobPayload(b, { partial = false } = {}) {
+  const out = {};
+  if (!partial || 'title' in b) {
+    const title = String((b && b.title) || '').trim();
+    if (!title) return { error: 'Dê um título para a vaga.' };
+    if (title.length > 120) return { error: 'O título excede 120 caracteres.' };
+    out.title = title;
+  }
+  if (!partial || 'description' in b) {
+    const description = String((b && b.description) || '').trim();
+    if (description.length > 5000) return { error: 'A descrição excede 5000 caracteres.' };
+    out.description = description; // obrigatória só ao PUBLICAR (validado no handler)
+  }
+  if (!partial || 'modality' in b) {
+    if (b.modality && !JOB_MODALITIES.includes(b.modality)) return { error: 'Tipo de vaga inválido.' };
+    out.modality = b.modality || 'Remoto';
+  }
+  if (!partial || 'skills' in b) {
+    const raw = Array.isArray(b && b.skills) ? b.skills : [];
+    const seen = new Set();
+    const skills = [];
+    for (const s of raw) {
+      const skill = String(s).trim().slice(0, 30);
+      if (!skill || seen.has(skill.toLowerCase())) continue;
+      seen.add(skill.toLowerCase());
+      skills.push(skill);
+      if (skills.length >= 15) break;
+    }
+    out.skills = skills;
+  }
+  if ('level' in (b || {})) {
+    if (b.level && !JOB_LEVELS.includes(b.level)) return { error: 'Nível inválido.' };
+    out.level = b.level || 'Júnior';
+  }
+  if ('contractType' in (b || {})) {
+    if (b.contractType && !JOB_CONTRACTS.includes(b.contractType)) return { error: 'Tipo de contrato inválido.' };
+    out.contractType = b.contractType || 'CLT';
+  }
+  if ('location' in (b || {}))    out.location    = String(b.location || '').trim().slice(0, 120);
+  if ('salaryRange' in (b || {})) out.salaryRange = String(b.salaryRange || '').trim().slice(0, 60);
+  return { data: out };
+}
+
+// POST /api/jobs — empresa cria vaga (status 'active' publica, 'draft' rascunho)
+server.post('/api/jobs', requireAuth, (req, res) => {
+  if (req.user.type !== 'company') return res.status(403).json({ error: 'Apenas empresas podem publicar vagas.' });
+  const db      = getDb();
+  const company = (db.companies || []).find(c => c.userId === req.user.id);
+  if (!company) return res.status(403).json({ error: 'Complete o perfil da empresa antes de publicar vagas.' });
+
+  const b = req.body || {};
+  const v = validateJobPayload(b);
+  if (v.error) return res.status(400).json({ error: v.error });
+
+  const status = JOB_STATUSES.includes(b.status) ? b.status : 'active';
+  if (!['draft', 'active'].includes(status)) return res.status(400).json({ error: 'Uma vaga nova só pode ser publicada ou salva como rascunho.' });
+  if (status === 'active' && !v.data.description) {
+    return res.status(400).json({ error: 'Descreva a vaga antes de publicar (requisitos, responsabilidades, benefícios).' });
+  }
+
+  const now = new Date().toISOString();
+  const job = {
+    id:           generateId(),
+    companyId:    company.id,
+    companyName:  company.name,
+    title:        v.data.title,
+    description:  v.data.description,
+    skills:       v.data.skills,
+    modality:     v.data.modality,
+    level:        ('level' in b) ? v.data.level : 'Júnior',
+    contractType: ('contractType' in b) ? v.data.contractType : 'CLT',
+    location:     ('location' in b) && v.data.location ? v.data.location : (v.data.modality === 'Remoto' ? 'Remoto' : (company.location || '')),
+    salaryRange:  ('salaryRange' in b) ? v.data.salaryRange : '',
+    status,
+    createdAt:    now,
+    updatedAt:    now,
+  };
+  db.jobs = db.jobs || [];
+  db.jobs.push(job);
+  saveDb(db);
+  return res.status(201).json(job);
+});
+
+// PATCH /api/jobs/:id — empresa dona edita campos e/ou muda o status
+server.patch('/api/jobs/:id', requireAuth, (req, res) => {
+  const db      = getDb();
+  const idx     = (db.jobs || []).findIndex(j => j.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Vaga não encontrada.' });
+  const job     = db.jobs[idx];
+  const company = (db.companies || []).find(c => c.id === job.companyId);
+  if (!company || company.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Você só pode editar vagas da sua empresa.' });
+  }
+
+  const b = req.body || {};
+  const v = validateJobPayload(b, { partial: true });
+  if (v.error) return res.status(400).json({ error: v.error });
+  Object.assign(job, v.data);
+
+  if ('status' in b) {
+    if (!JOB_STATUSES.includes(b.status)) return res.status(400).json({ error: 'Status inválido.' });
+    const temCandidaturas = (db.applications || []).some(a => a.jobId === job.id);
+    if (b.status === 'draft' && temCandidaturas) {
+      return res.status(400).json({ error: 'Vagas com candidaturas não podem voltar a rascunho — pause ou encerre.' });
+    }
+    if (b.status === 'active' && !String(job.description || '').trim()) {
+      return res.status(400).json({ error: 'Descreva a vaga antes de publicar (requisitos, responsabilidades, benefícios).' });
+    }
+    job.status = b.status;
+  }
+  job.updatedAt = new Date().toISOString();
+  saveDb(db);
+  return res.status(200).json(job);
+});
+
+// DELETE /api/jobs/:id — só sem candidaturas (com candidatos, encerre a vaga)
+server.delete('/api/jobs/:id', requireAuth, (req, res) => {
+  const db      = getDb();
+  const job     = (db.jobs || []).find(j => j.id === req.params.id);
+  if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
+  const company = (db.companies || []).find(c => c.id === job.companyId);
+  if (!company || company.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Você só pode excluir vagas da sua empresa.' });
+  }
+  if ((db.applications || []).some(a => a.jobId === job.id)) {
+    return res.status(400).json({ error: 'Esta vaga já recebeu candidaturas — encerre-a em vez de excluir.' });
+  }
+  db.jobs            = db.jobs.filter(j => j.id !== job.id);
+  db.saved_jobs      = (db.saved_jobs || []).filter(s => s.jobId !== job.id);
+  db.recommendations = (db.recommendations || []).filter(r => r.jobId !== job.id);
+  saveDb(db);
+  return res.status(200).json({ ok: true });
 });
 
 // ── APPLICATIONS (#3 candidatura, #12 candidatos por vaga) ───────────────────
@@ -1150,8 +1327,12 @@ server.post('/api/applications', requireAuth, (req, res) => {
   if (!jobId) return res.status(400).json({ error: 'jobId é obrigatório.' });
 
   const db = getDb();
-  if (!(db.jobs || []).find(j => j.id === jobId)) {
+  const jobAlvo = (db.jobs || []).find(j => j.id === jobId);
+  if (!jobAlvo) {
     return res.status(404).json({ error: 'Vaga não encontrada.' });
+  }
+  if ((jobAlvo.status || 'active') !== 'active') {
+    return res.status(400).json({ error: 'Esta vaga não está mais recebendo candidaturas.' });
   }
 
   db.applications = db.applications || [];
@@ -1217,6 +1398,12 @@ server.get('/api/jobs/:id/applications', requireAuth, (req, res) => {
   const db  = getDb();
   const job = (db.jobs || []).find(j => j.id === req.params.id);
   if (!job) return res.status(404).json({ error: 'Vaga não encontrada.' });
+
+  // Dados pessoais dos candidatos: somente a empresa dona da vaga pode ver
+  const ownerCheck = (db.companies || []).find(c => c.id === job.companyId);
+  if (!ownerCheck || ownerCheck.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Apenas a empresa dona da vaga pode ver os candidatos.' });
+  }
 
   const applicants = (db.applications || [])
     .filter(a => a.jobId === req.params.id)
@@ -1488,17 +1675,22 @@ server.get('/api/saved-jobs/me', requireAuth, (req, res) => {
 server.get('/api/recommendations/me', requireAuth, (req, res) => {
   const db = getDb();
 
+  // Só vagas ATIVAS entram em recomendação (rascunho/pausada/encerrada não)
+  const activeJobs = (db.jobs || []).filter(j => (j.status || 'active') === 'active');
+
   // Recomendações pré-calculadas no seed
   const stored = (db.recommendations || []).filter(r => r.userId === req.user.id);
 
   // Enriquecе com a vaga; se não houver seed, calcula match on-the-fly pelas skills
   let list;
   if (stored.length) {
-    list = stored.map(r => ({ ...r, job: (db.jobs || []).find(j => j.id === r.jobId) || null }));
+    list = stored
+      .map(r => ({ ...r, job: activeJobs.find(j => j.id === r.jobId) || null }))
+      .filter(r => r.job);
   } else {
     const me = db.users.find(u => u.id === req.user.id);
     const mySkills = (me && Array.isArray(me.skills) ? me.skills : []).map(s => s.toLowerCase());
-    list = (db.jobs || []).map(job => {
+    list = activeJobs.map(job => {
       const skills = job.skills || [];
       const matched = skills.filter(s => mySkills.includes(s.toLowerCase()));
       const ratio = skills.length ? matched.length / skills.length : 0;
@@ -1844,6 +2036,16 @@ function enrichNotification(db, n, meId) {
     return { ...n, actor: null, link: '/pages/agenda.html' };
   }
 
+  if (n.type === 'new_application') {
+    const app   = (db.applications || []).find(a => a.id === n.refId);
+    const actor = app ? db.users.find(u => u.id === app.userId) : null;
+    return {
+      ...n,
+      actor: mini(actor),
+      link:  app ? `/pages/empresa-candidatos.html?id=${app.jobId}` : '/pages/empresa-vagas.html',
+    };
+  }
+
   if (['interview_scheduled', 'interview_updated', 'interview_canceled', 'interview_reschedule_request'].includes(n.type)) {
     const actor = n.actorId ? db.users.find(u => u.id === n.actorId) : null;
     return { ...n, actor: mini(actor), link: '/pages/entrevistas.html' };
@@ -2169,8 +2371,9 @@ server.get('/api/search', requireAuth, (req, res) => {
     .slice(0, limit)
     .map(x => ({ ...x.c, _score: +x.score.toFixed(2) }));
 
-  // VAGAS (ativas primeiro)
+  // VAGAS (somente ativas — rascunho/pausada/encerrada não aparecem na busca)
   const jobs = (db.jobs || [])
+    .filter(j => (j.status || 'active') === 'active')
     .map(j => ({ j, score: relevance([
       { text: j.title, w: 5 },
       { text: j.companyName, w: 3 },
@@ -3023,6 +3226,27 @@ server.get('/api/agenda/me', requireAuth, (req, res) => {
 // Agenda: dados pessoais — bloqueia QUALQUER acesso direto às coleções
 // (leitura/escrita só pelos endpoints custom /me acima, que filtram por dono)
 ['/api/tasks', '/api/reminders', '/api/interviews'].forEach((p) => {
+  server.use(p, requireAuth, (req, res) => {
+    return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
+  });
+});
+
+// Vagas: escrita só pelos endpoints custom (POST/PATCH/DELETE com ownership,
+// registrados acima). Isto bloqueia o CRUD cru do json-server em /api/jobs.
+server.use('/api/jobs', requireAuth, (req, res, next) => {
+  if (req.method === 'GET') return next();
+  return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
+});
+
+// Coleções com dados pessoais/sensíveis: NENHUM acesso pelo router cru do
+// json-server (nem GET — /api/users cru vazaria passwordHash; applications,
+// conversas, notificações e tokens são privados). Toda leitura/escrita passa
+// pelos endpoints customizados registrados ANTES daqui, que filtram por dono.
+[
+  '/api/users', '/api/companies', '/api/applications', '/api/notifications',
+  '/api/messages', '/api/conversations', '/api/saved_jobs', '/api/recommendations',
+  '/api/follows', '/api/password_reset_tokens', '/api/deactivation_codes', '/api/sent_emails',
+].forEach((p) => {
   server.use(p, requireAuth, (req, res) => {
     return res.status(403).json({ error: 'Operação não permitida por esta rota.' });
   });

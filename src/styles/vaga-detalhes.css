@@ -61,6 +61,17 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .vd-section__link{font-size:14px;font-weight:700;color:var(--primary);}
 .vd-section__link:hover{opacity:.75;}
 .vd-section__text{font-size:15px;color:var(--text-muted);line-height:24px;white-space:pre-line;}
+/* Descrição formatada (markdown leve do compositor de vagas) */
+.vd-section__text--rich{white-space:normal;}
+.vd-section__text--rich p{margin:0 0 10px;}
+.vd-section__text--rich p:last-child{margin-bottom:0;}
+.vd-section__text--rich strong{color:var(--text-dark);font-weight:700;}
+.vd-section__text--rich ul{margin:0 0 10px;padding-left:22px;}
+.vd-section__text--rich li{margin-bottom:4px;}
+.vd-section__text--rich a{color:var(--primary);font-weight:600;text-decoration:underline;}
+.vd-section__text--rich code{background:var(--lightest-purple);padding:2px 6px;border-radius:4px;font-family:'Courier New',monospace;font-size:13px;}
+.vd-section__text--rich pre{background:#131b2e;color:#e2e7ff;padding:14px 16px;border-radius:var(--radius);overflow-x:auto;margin:0 0 10px;}
+.vd-section__text--rich pre code{background:none;color:inherit;padding:0;}
 
 .vd-tags{display:flex;flex-wrap:wrap;gap:8px;}
 .vd-tag{background:var(--lightest-purple);color:var(--text-muted);font-size:13px;font-weight:700;padding:6px 14px;border-radius:var(--radius);}
