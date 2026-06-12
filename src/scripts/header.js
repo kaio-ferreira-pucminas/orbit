@@ -44,7 +44,7 @@
       .oh-left{display:flex;align-items:center;gap:32px;}
       .oh-logo{font-weight:700;font-size:24px;letter-spacing:-1.2px;color:#4648d4;text-decoration:none;line-height:32px;}
       .oh-nav{display:flex;gap:24px;}
-      .oh-link{font-family:'Manrope','Inter',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.45px;line-height:28px;color:rgba(19,27,46,.6);text-decoration:none;padding-bottom:6px;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+      .oh-link{font-family:'Manrope','Inter',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.45px;line-height:28px;color:rgba(19,27,46,.6);text-decoration:none;padding-bottom:6px;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;}
       .oh-link:hover{color:#131b2e;}
       .oh-link--active{color:#4648d4;border-bottom-color:#4648d4;}
       .oh-burger{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:6px;color:#131b2e;align-items:center;justify-content:center;}
@@ -96,15 +96,24 @@
       .oh-search__footer:hover{background:#f2f3ff;}
       .oh-search__empty{padding:18px 14px;text-align:center;font-size:13px;color:#8a8a99;}
 
-      @media (max-width:680px){
-        .oh-inner{padding:10px 16px;}
+      /* Empresa, faixa logo acima do breakpoint: a busca aberta (260px) não cabe
+         junto do nav de 5 itens — encolhe o input para não estourar o header */
+      ${isCompany ? `@media (min-width:${NAV_BP + 1}px) and (max-width:1230px){
+        .oh-search--open .oh-search__input{width:150px;}
+      }` : ''}
+      /* Colapso do nav para o hambúrguer — breakpoint maior para empresa (5 itens
+         com rótulos longos não cabem em uma linha em telas médias) */
+      @media (max-width:${NAV_BP}px){
         .oh-left{gap:10px;}
         .oh-burger{display:flex;}
         /* Nav vira menu dropdown (abre pelo hambúrguer) */
         .oh-nav{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:2px;background:#fff;border-top:1px solid #e2e7ff;box-shadow:0 14px 28px rgba(19,27,46,.12);padding:8px 12px;z-index:350;}
         .oh-header--menu-open .oh-nav{display:flex;animation:oh-slidedown .18s ease;}
-        .oh-nav .oh-link{font-size:16px;padding:12px 10px;border-bottom:none;border-radius:8px;}
+        .oh-nav .oh-link{font-size:16px;padding:12px 10px;border-bottom:none;border-radius:8px;white-space:normal;}
         .oh-nav .oh-link--active{background:#f2f3ff;border-bottom:none;}
+      }
+      @media (max-width:680px){
+        .oh-inner{padding:10px 16px;}
         /* Busca: fixa, ocupando a tela com margem (o dropdown do sino é tratado pelo notifications.js) */
         .oh-search--open .oh-search__input{position:fixed;top:8px;left:8px;right:8px;width:auto;z-index:400;height:42px;padding:0 12px;border-color:#4648d4;margin:0;}
         .oh-search__modal{position:fixed;top:58px;left:8px;right:8px;width:auto;max-height:70vh;}
@@ -125,7 +134,18 @@
   const DASH_HREF = (currentUser.type === 'company') ? '/pages/empresa-dashboard.html' : '/pages/dashboard.html';
   const LOGOUT_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`;
 
-  const NAV = [
+  // NAV adapta por tipo de conta — empresa espelha o menu do sidebar do
+  // dashboard de empresa (mesmos itens/destinos do emp-sidebar e do sidebar.js)
+  const isCompany = currentUser.type === 'company';
+  // Abaixo desta largura o nav colapsa no hambúrguer (empresa precisa de mais espaço)
+  const NAV_BP = isCompany ? 1100 : 680;
+  const NAV = isCompany ? [
+    { key: 'dashboard', href: '/pages/empresa-dashboard.html',  label: 'Dashboard' },
+    { key: 'feed',      href: '/pages/feed.html',               label: 'Feed' },
+    { key: 'talentos',  href: '/pages/empresa-talentos.html',   label: 'Busca de Talentos' },
+    { key: 'vagas',     href: '/pages/empresa-candidatos.html', label: 'Gerenciar Vagas' },
+    { key: 'mensagens', href: '/pages/mensagens.html',          label: 'Mensagens' },
+  ] : [
     { key: 'feed',          href: '/pages/feed.html',          label: 'Feed' },
     { key: 'oportunidades', href: '/pages/oportunidades.html', label: 'Oportunidades' },
     { key: 'projetos',      href: '/pages/meus-projetos.html', label: 'Projetos' },
@@ -133,7 +153,16 @@
   ];
   // aba ativa pela URL atual
   const FILE = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
-  const ACTIVE = { 'feed.html':'feed', 'oportunidades.html':'oportunidades', 'meus-projetos.html':'projetos', 'mensagens.html':'mensagens' }[FILE] || '';
+  const ACTIVE = (isCompany ? {
+    'empresa-dashboard.html':'dashboard',
+    'feed.html':'feed',
+    'empresa-talentos.html':'talentos',
+    'empresa-talento.html':'talentos',
+    'empresa-candidatos.html':'vagas',
+    'mensagens.html':'mensagens',
+  } : {
+    'feed.html':'feed', 'oportunidades.html':'oportunidades', 'meus-projetos.html':'projetos', 'mensagens.html':'mensagens',
+  })[FILE] || '';
 
   function buildHTML() {
     const navLinks = NAV.map(n =>
