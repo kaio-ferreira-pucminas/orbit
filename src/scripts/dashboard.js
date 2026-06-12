@@ -115,15 +115,14 @@
 
   function buildProjectCard(project, idx) {
     const [bg, fg] = THUMB_COLORS[idx % THUMB_COLORS.length];
-    const tags     = Array.isArray(project.stack)
-      ? project.stack
-      : (project.stack || '').split(',').map(s => s.trim()).filter(Boolean);
+    // shape real do projeto: title, technologies[], coverImage, description
+    const tags     = (Array.isArray(project.technologies) ? project.technologies : []).slice(0, 3);
+    const tagsHtml = tags.map(t => `<span class="dash-tag">${escapeHtml(t)}</span>`).join('');
+    const title    = project.title || 'Projeto';
 
-    const tagsHtml = tags.slice(0, 4).map(t => `<span class="dash-tag">${escapeHtml(t)}</span>`).join('');
-
-    const thumbHtml = project.thumbnailUrl
-      ? `<img src="${escapeHtml(project.thumbnailUrl)}" alt="${escapeHtml(project.name)}" />`
-      : `<span class="dash-project-card__thumb-placeholder">${escapeHtml(project.name || 'Projeto')}</span>`;
+    const thumbHtml = project.coverImage
+      ? `<img src="${escapeHtml(project.coverImage)}" alt="${escapeHtml(title)}" />`
+      : `<span class="dash-project-card__thumb-placeholder">${escapeHtml(title)}</span>`;
 
     return `
       <article class="dash-project-card">
@@ -131,7 +130,7 @@
           ${thumbHtml}
         </div>
         <div class="dash-project-card__body">
-          <h3 class="dash-project-card__name">${escapeHtml(project.name || 'Projeto')}</h3>
+          <h3 class="dash-project-card__name" title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
           <p class="dash-project-card__desc">${escapeHtml(project.description || '')}</p>
           ${tagsHtml ? `<div class="dash-project-card__tags">${tagsHtml}</div>` : ''}
         </div>
@@ -153,10 +152,49 @@
           <p class="dash-projects-empty__text">Nenhum projeto cadastrado ainda.</p>
           <a href="/pages/meus-projetos.html?new=1" class="dash-projects-empty__cta">Adicionar meu primeiro projeto</a>
         </div>`;
+      updateCarouselArrows();
       return;
     }
 
-    grid.innerHTML = projects.slice(0, 4).map((p, i) => buildProjectCard(p, i)).join('');
+    grid.innerHTML = projects.map((p, i) => buildProjectCard(p, i)).join('');
+    updateCarouselArrows();
+  }
+
+  // Carrega TODOS os projetos do usuário (inclusive rascunhos) — fonte: GET /api/projects?userId=
+  async function loadProjects() {
+    try {
+      const res = await api(`/api/projects?userId=${encodeURIComponent(currentUser.id)}`);
+      if (!res.ok) { renderProjects([]); return []; }
+      let projects = await res.json();
+      projects = Array.isArray(projects) ? projects : [];
+      projects.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); // recentes primeiro
+      renderProjects(projects);
+      return projects;
+    } catch (err) {
+      if (err.message !== 'Token expirado') renderProjects([]);
+      return [];
+    }
+  }
+
+  /* Carrossel de projetos: setas + scroll horizontal com snap */
+  function updateCarouselArrows() {
+    const track = $('#projects-grid'), prev = $('#proj-prev'), next = $('#proj-next');
+    if (!track || !prev || !next) return;
+    const scrollable = track.scrollWidth - track.clientWidth > 4;
+    prev.hidden = !scrollable || track.scrollLeft <= 2;
+    next.hidden = !scrollable || track.scrollLeft >= track.scrollWidth - track.clientWidth - 2;
+  }
+  function setupProjectsCarousel() {
+    const track = $('#projects-grid'), prev = $('#proj-prev'), next = $('#proj-next');
+    if (!track || !prev || !next) return;
+    const step = () => {
+      const card = track.querySelector('.dash-project-card');
+      return card ? card.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
+    };
+    prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
+    track.addEventListener('scroll', () => window.requestAnimationFrame(updateCarouselArrows), { passive: true });
+    window.addEventListener('resize', updateCarouselArrows);
   }
 
   /* =========================================================
@@ -170,14 +208,18 @@
     const initials = (job.companyName || '?').slice(0, 2).toUpperCase();
     const isApplied = applied.has(job.id);
     const loc = job.modality === 'Remoto' ? 'Remoto' : (job.location || job.modality || '');
+    const salary = job.salaryRange || 'A combinar';
+    const fullTitle = job.title || 'Vaga';
+    // tooltip com tudo (título, empresa, local, salário, match) — para o que for cortado
+    const tip = `${fullTitle} · ${job.companyName || ''} · ${loc} · ${salary} · ${rec.matchScore || 0}% match${rec.reason ? ' — ' + rec.reason : ''}`;
     return `
-      <div class="dash-job-card" data-job-id="${escapeHtml(job.id)}">
+      <div class="dash-job-card" data-job-id="${escapeHtml(job.id)}" title="${escapeHtml(tip)}">
         <div class="dash-job-card__left">
           <div class="dash-job-card__logo">${escapeHtml(initials)}</div>
           <div class="dash-job-card__info">
-            <span class="dash-job-card__title">${escapeHtml(job.title || 'Vaga')}</span>
+            <span class="dash-job-card__title" title="${escapeHtml(fullTitle)}">${escapeHtml(fullTitle)}</span>
             <div class="dash-job-card__meta">
-              <span class="dash-job-card__location">
+              <span class="dash-job-card__location" title="${escapeHtml(loc)}">
                 <svg width="10" height="12" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -185,8 +227,8 @@
                 </svg>
                 ${escapeHtml(loc)}
               </span>
-              <span class="dash-job-card__salary">${escapeHtml(job.salaryRange || 'A combinar')}</span>
-              <span class="dash-job-card__match" title="${escapeHtml(rec.reason || '')}">${rec.matchScore || 0}% match</span>
+              <span class="dash-job-card__salary" title="${escapeHtml(salary)}">${escapeHtml(salary)}</span>
+              <span class="dash-job-card__match" title="${escapeHtml(rec.reason || (rec.matchScore || 0) + '% de compatibilidade')}">${rec.matchScore || 0}% match</span>
             </div>
           </div>
         </div>
@@ -380,35 +422,26 @@
     setupFab();
     setupFabContrast();
     setupJobsEvents();
+    setupProjectsCarousel();
     loadAgenda();
 
     // candidaturas (para o stat e o estado dos botões) antes de renderizar as recomendações
     await loadAppliedSet();
     loadRecommendations();
 
+    // projetos do usuário (todos, via /api/projects) → carrossel + stat de visualizações
+    const projects = await loadProjects();
+
     try {
-      const res = await api(`/api/users/${currentUser.id}/profile`);
-
-      if (!res.ok) {
-        renderWelcome(currentUser);
-        renderStats(currentUser, []);
-        renderProjects([]);
-        return;
-      }
-
-      const data     = await res.json();
-      const user     = data.user     || currentUser;
-      const projects = data.projects || [];
-
+      const res  = await api(`/api/users/${currentUser.id}/profile`);
+      const data = res.ok ? await res.json() : {};
+      const user = data.user || currentUser;
       renderWelcome(user);
       renderStats(user, projects);
-      renderProjects(projects);
-
     } catch (err) {
       if (err.message !== 'Token expirado') {
         renderWelcome(currentUser);
-        renderStats(currentUser, []);
-        renderProjects([]);
+        renderStats(currentUser, projects);
       }
     }
   }

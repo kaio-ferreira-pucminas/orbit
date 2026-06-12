@@ -123,8 +123,16 @@
               </svg>
             </a>
           </div>
-          <div class="dash-projects-grid" id="projects-grid">
-            <div class="dash-loading">Carregando projetos...</div>
+          <div class="dash-carousel">
+            <button type="button" class="dash-carousel__arrow dash-carousel__arrow--prev" id="proj-prev" aria-label="Projetos anteriores" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="dash-projects-track" id="projects-grid">
+              <div class="dash-loading">Carregando projetos...</div>
+            </div>
+            <button type="button" class="dash-carousel__arrow dash-carousel__arrow--next" id="proj-next" aria-label="Próximos projetos" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </section>
 
