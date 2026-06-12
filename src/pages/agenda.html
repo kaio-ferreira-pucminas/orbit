@@ -167,6 +167,28 @@
           </div>
         </div>
 
+        <span class="agd-form__label">Avisar-me antes</span>
+        <div class="agd-notify" id="task-notify">
+          <div class="agd-notify__list" id="task-notify-list"></div>
+          <div class="agd-notify__presets">
+            <button type="button" class="agd-notify__preset" data-min="0">Na hora</button>
+            <button type="button" class="agd-notify__preset" data-min="10">10 min</button>
+            <button type="button" class="agd-notify__preset" data-min="30">30 min</button>
+            <button type="button" class="agd-notify__preset" data-min="60">1 hora</button>
+            <button type="button" class="agd-notify__preset" data-min="1440">1 dia</button>
+          </div>
+          <div class="agd-notify__add">
+            <input type="number" id="task-notify-num" class="agd-form__input agd-notify__num" min="1" max="999" placeholder="Nº" />
+            <select id="task-notify-unit" class="agd-form__select agd-notify__unit">
+              <option value="1">minutos</option>
+              <option value="60">horas</option>
+              <option value="1440">dias</option>
+            </select>
+            <button type="button" class="agd-notify__addbtn" id="task-notify-add">Adicionar</button>
+          </div>
+        </div>
+        <p class="agd-form__hint">Defina uma data e adicione avisos para receber email + notificação antes da tarefa.</p>
+
         <footer class="agd-modal__footer">
           <button type="button" class="agd-btn-ghost" data-close="task">Cancelar</button>
           <button type="submit" class="agd-btn-primary" id="task-submit">Salvar tarefa</button>
@@ -197,7 +219,28 @@
 
         <label class="agd-form__label" for="rem-at">Quando lembrar <span class="agd-form__req">*</span></label>
         <input type="datetime-local" id="rem-at" class="agd-form__input" />
-        <p class="agd-form__hint">Você receberá um email e uma notificação na Orbit na hora marcada.</p>
+
+        <span class="agd-form__label">Avisar-me antes</span>
+        <div class="agd-notify" id="rem-notify">
+          <div class="agd-notify__list" id="rem-notify-list"></div>
+          <div class="agd-notify__presets">
+            <button type="button" class="agd-notify__preset" data-min="0">Na hora</button>
+            <button type="button" class="agd-notify__preset" data-min="10">10 min</button>
+            <button type="button" class="agd-notify__preset" data-min="30">30 min</button>
+            <button type="button" class="agd-notify__preset" data-min="60">1 hora</button>
+            <button type="button" class="agd-notify__preset" data-min="1440">1 dia</button>
+          </div>
+          <div class="agd-notify__add">
+            <input type="number" id="rem-notify-num" class="agd-form__input agd-notify__num" min="1" max="999" placeholder="Nº" />
+            <select id="rem-notify-unit" class="agd-form__select agd-notify__unit">
+              <option value="1">minutos</option>
+              <option value="60">horas</option>
+              <option value="1440">dias</option>
+            </select>
+            <button type="button" class="agd-notify__addbtn" id="rem-notify-add">Adicionar</button>
+          </div>
+        </div>
+        <p class="agd-form__hint">Você receberá um email e uma notificação na Orbit em cada aviso acima.</p>
 
         <footer class="agd-modal__footer">
           <button type="button" class="agd-btn-ghost" data-close="rem">Cancelar</button>

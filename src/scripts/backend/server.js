@@ -3017,7 +3017,8 @@ server.post('/api/tasks', requireAuth, (req, res) => {
   }
   const db  = getDb();
   const now = new Date().toISOString();
-  const task = { id: generateId(), userId: req.user.id, title, description, dueAt, priority, status: 'pendente', completedAt: null, createdAt: now, updatedAt: now };
+  const notifyOffsets = normalizeOffsets(req.body && req.body.notifyOffsets); // tarefa só avisa se tiver data + offsets
+  const task = { id: generateId(), userId: req.user.id, title, description, dueAt, priority, status: 'pendente', completedAt: null, notifyOffsets, dispatchedOffsets: [], createdAt: now, updatedAt: now };
   db.tasks = db.tasks || [];
   db.tasks.push(task);
   saveDb(db);
@@ -3046,6 +3047,11 @@ server.patch('/api/tasks/:id', requireAuth, (req, res) => {
       if (!d) return res.status(400).json({ error: 'Data da tarefa inválida.' });
       t.dueAt = d.toISOString();
     }
+    t.dispatchedOffsets = []; // mudou a data → rearma os avisos
+  }
+  if ('notifyOffsets' in b) {
+    t.notifyOffsets = normalizeOffsets(b.notifyOffsets);
+    t.dispatchedOffsets = [];
   }
   if (typeof b.priority === 'string') {
     if (!TASK_PRIORITIES.includes(b.priority)) return res.status(400).json({ error: 'Prioridade inválida.' });
@@ -3094,7 +3100,9 @@ server.post('/api/reminders', requireAuth, (req, res) => {
   if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'O lembrete deve ser em uma data futura.' });
   const db  = getDb();
   const now = new Date().toISOString();
-  const reminder = { id: generateId(), userId: req.user.id, title, notes, remindAt: d.toISOString(), dispatchedAt: null, createdAt: now, updatedAt: now };
+  let notifyOffsets = normalizeOffsets(req.body && req.body.notifyOffsets);
+  if (!notifyOffsets.length) notifyOffsets = [0]; // lembrete sempre avisa pelo menos na hora
+  const reminder = { id: generateId(), userId: req.user.id, title, notes, remindAt: d.toISOString(), notifyOffsets, dispatchedOffsets: [], dispatchedAt: null, createdAt: now, updatedAt: now };
   db.reminders = db.reminders || [];
   db.reminders.push(reminder);
   saveDb(db);
@@ -3121,7 +3129,15 @@ server.patch('/api/reminders/:id', requireAuth, (req, res) => {
     if (!d) return res.status(400).json({ error: 'Data do lembrete inválida.' });
     if (d.getTime() <= Date.now()) return res.status(400).json({ error: 'O lembrete deve ser em uma data futura.' });
     r.remindAt = d.toISOString();
-    r.dispatchedAt = null; // rearma
+    r.dispatchedAt = null;            // rearma
+    r.dispatchedOffsets = [];
+  }
+  if ('notifyOffsets' in b) {
+    let no = normalizeOffsets(b.notifyOffsets);
+    if (!no.length) no = [0];
+    r.notifyOffsets = no;
+    r.dispatchedAt = null;            // nova config de avisos → rearma
+    r.dispatchedOffsets = [];
   }
   r.updatedAt = new Date().toISOString();
   saveDb(db);
@@ -3139,32 +3155,80 @@ server.delete('/api/reminders/:id', requireAuth, (req, res) => {
   return res.status(200).json({ ok: true });
 });
 
-// Dispatcher: roda a cada 1min (e no boot) — lembretes vencidos viram
-// notificação no app + email para o usuário, e são marcados como disparados.
-let remindersDispatchRunning = false;
-async function dispatchDueReminders() {
-  if (remindersDispatchRunning) return;
-  remindersDispatchRunning = true;
+// Offsets de notificação (minutos ANTES do evento): inteiros 0..43200 (30 dias),
+// únicos, do maior para o menor, no máximo 10.
+function normalizeOffsets(raw) {
+  if (!Array.isArray(raw)) return [];
+  const set = new Set();
+  for (const v of raw) {
+    const n = parseInt(v, 10);
+    if (Number.isInteger(n) && n >= 0 && n <= 43200) set.add(n);
+  }
+  return [...set].sort((a, b) => b - a).slice(0, 10);
+}
+// Frase legível de um offset, p/ a mensagem da notificação ("em 1 dia", "em 10 min")
+function offsetPhrase(min) {
+  if (!min) return 'agora';
+  if (min % 1440 === 0) { const d = min / 1440; return `em ${d} dia${d > 1 ? 's' : ''}`; }
+  if (min % 60 === 0)   { const h = min / 60;  return `em ${h} hora${h > 1 ? 's' : ''}`; }
+  return `em ${min} min`;
+}
+
+// Dispatcher: roda a cada 1min — lembretes E tarefas (com data) viram notificação
+// no app + email a CADA offset de antecedência configurado pelo usuário.
+let agendaDispatchRunning = false;
+async function dispatchDueNotifications() {
+  if (agendaDispatchRunning) return;
+  agendaDispatchRunning = true;
   try {
     const db  = getDb();
     const now = Date.now();
-    const due = (db.reminders || []).filter(r => !r.dispatchedAt && new Date(r.remindAt).getTime() <= now);
-    if (!due.length) return;
-    for (const r of due) {
-      r.dispatchedAt = new Date().toISOString();
-      const user = db.users.find(u => u.id === r.userId);
-      if (!user || user.disabledAt) continue;
-      db.notifications = db.notifications || [];
-      db.notifications.push({ id: generateId(), userId: user.id, type: 'reminder', refId: r.id, message: `⏰ Lembrete: ${r.title}`, read: false, createdAt: new Date().toISOString() });
-      const tpl = reminderEmail({ name: user.name, title: r.title, notes: r.notes || '', whenStr: fmtDateTimePtBr(r.remindAt), appUrl: APP_URL });
-      await sendEmail(db, { to: user.email, subject: tpl.subject, html: tpl.html, type: 'reminder', userId: user.id });
+    let fired = 0;
+
+    // dispara os offsets vencidos de um item (lembrete/tarefa) ainda não enviados
+    async function fire(kind, item, baseIso, title, notes) {
+      if (!baseIso) return;
+      const offsets = Array.isArray(item.notifyOffsets) ? item.notifyOffsets : (kind === 'reminder' ? [0] : []);
+      if (!offsets.length) return;
+      if (!Array.isArray(item.dispatchedOffsets)) item.dispatchedOffsets = [];
+      const user = db.users.find(u => u.id === item.userId);
+      if (!user || user.disabledAt) return;
+      const base = new Date(baseIso).getTime();
+      for (const off of offsets) {
+        if (item.dispatchedOffsets.includes(off)) continue;
+        if (base - off * 60000 > now) continue;       // ainda não chegou a hora desse aviso
+        db.notifications = db.notifications || [];
+        db.notifications.push({
+          id: generateId(), userId: user.id, type: 'reminder', refId: item.id,
+          message: `${kind === 'task' ? '📋 Tarefa' : '⏰ Lembrete'}: ${title}${off ? ' (' + offsetPhrase(off) + ')' : ''}`,
+          read: false, createdAt: new Date().toISOString(),
+        });
+        const tpl = reminderEmail({ name: user.name, title, notes: notes || '', whenStr: fmtDateTimePtBr(baseIso), appUrl: APP_URL });
+        await sendEmail(db, { to: user.email, subject: tpl.subject, html: tpl.html, type: 'reminder', userId: user.id });
+        item.dispatchedOffsets.push(off);
+        fired++;
+      }
+      // lembrete totalmente disparado → marca dispatchedAt (compat. com o contador da agenda)
+      if (kind === 'reminder' && item.dispatchedOffsets.length >= offsets.length && !item.dispatchedAt) {
+        item.dispatchedAt = new Date().toISOString();
+      }
     }
-    saveDb(db);
-    console.log(`⏰ ${due.length} lembrete(s) disparado(s).`);
+
+    for (const r of (db.reminders || []).filter(r => !r.dispatchedAt)) {
+      await fire('reminder', r, r.remindAt, r.title, r.notes);
+    }
+    for (const t of (db.tasks || []).filter(t => t.status !== 'concluida' && t.dueAt)) {
+      await fire('task', t, t.dueAt, t.title, t.description);
+    }
+
+    if (fired) {
+      saveDb(db);
+      console.log(`⏰ ${fired} notificação(ões) de agenda disparada(s).`);
+    }
   } catch (e) {
-    console.error('Erro ao disparar lembretes:', e.message);
+    console.error('Erro ao disparar notificações da agenda:', e.message);
   } finally {
-    remindersDispatchRunning = false;
+    agendaDispatchRunning = false;
   }
 }
 
@@ -3447,8 +3511,8 @@ server.listen(PORT, async () => {
   await cleanupExpiredAccounts();
   setInterval(cleanupExpiredAccounts, 60 * 60 * 1000);
 
-  // Lembretes da agenda: verifica vencidos no boot e a cada 1min
-  await dispatchDueReminders();
-  setInterval(dispatchDueReminders, 60 * 1000);
+  // Agenda (lembretes + tarefas): verifica avisos vencidos no boot e a cada 1min
+  await dispatchDueNotifications();
+  setInterval(dispatchDueNotifications, 60 * 1000);
   console.log('');
 });

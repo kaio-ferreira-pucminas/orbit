@@ -48,6 +48,55 @@
   function timeLabel(iso) { return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+  /* ===== AVISOS DE NOTIFICAÇÃO (offsets em minutos antes do evento) ===== */
+  // O usuário pode escolher VÁRIOS tempos de antecedência por lembrete/tarefa.
+  const notifySel = { rem: [], task: [] };
+  function offsetLabel(min) {
+    if (!min) return 'Na hora';
+    if (min % 1440 === 0) { const d = min / 1440; return `${d} dia${d > 1 ? 's' : ''} antes`; }
+    if (min % 60 === 0)   { const h = min / 60;  return `${h} h antes`; }
+    return `${min} min antes`;
+  }
+  function renderNotify(prefix) {
+    const box = $(`#${prefix}-notify-list`);
+    if (!box) return;
+    const arr = notifySel[prefix];
+    box.innerHTML = arr.length
+      ? arr.map(m => `<span class="agd-notify__chip">${offsetLabel(m)}<button type="button" class="agd-notify__rm" data-rm="${m}" aria-label="Remover aviso">×</button></span>`).join('')
+      : '<span class="agd-notify__empty">Nenhum aviso — você não será notificado.</span>';
+    const wrap = $(`#${prefix}-notify`);
+    if (wrap) wrap.querySelectorAll('.agd-notify__preset').forEach(b =>
+      b.classList.toggle('agd-notify__preset--on', arr.includes(Number(b.getAttribute('data-min')))));
+  }
+  function addNotify(prefix, min) {
+    if (!Number.isInteger(min) || min < 0 || min > 43200) return;
+    const arr = notifySel[prefix];
+    if (arr.includes(min)) return;
+    if (arr.length >= 10) { toast('Máximo de 10 avisos por item.', 'info'); return; }
+    arr.push(min); arr.sort((a, b) => b - a); renderNotify(prefix);
+  }
+  function setupNotify(prefix) {
+    const wrap = $(`#${prefix}-notify`);
+    if (!wrap) return;
+    wrap.querySelectorAll('.agd-notify__preset').forEach(b => b.addEventListener('click', () => {
+      const m = Number(b.getAttribute('data-min'));
+      if (notifySel[prefix].includes(m)) { notifySel[prefix] = notifySel[prefix].filter(x => x !== m); renderNotify(prefix); }
+      else addNotify(prefix, m);
+    }));
+    $(`#${prefix}-notify-list`).addEventListener('click', (e) => {
+      const b = e.target.closest('[data-rm]'); if (!b) return;
+      const m = Number(b.getAttribute('data-rm'));
+      notifySel[prefix] = notifySel[prefix].filter(x => x !== m); renderNotify(prefix);
+    });
+    $(`#${prefix}-notify-add`).addEventListener('click', () => {
+      const num  = parseInt($(`#${prefix}-notify-num`).value, 10);
+      const unit = parseInt($(`#${prefix}-notify-unit`).value, 10) || 1;
+      if (!Number.isInteger(num) || num < 1) { toast('Informe quantos minutos/horas/dias antes.', 'error'); return; }
+      addNotify(prefix, num * unit);
+      $(`#${prefix}-notify-num`).value = '';
+    });
+  }
+
   /* ===== ESTADO ===== */
   const today = new Date();
   const state = {
@@ -353,6 +402,8 @@
       ? (task.dueAt ? toInputValue(new Date(task.dueAt)) : '')
       : defaultDue();
     $('#task-priority').value = task ? (task.priority || 'media') : 'media';
+    notifySel.task = (task && Array.isArray(task.notifyOffsets)) ? task.notifyOffsets.slice() : [];
+    renderNotify('task');
     openModal(taskModal);
   }
 
@@ -363,6 +414,8 @@
     $('#rem-title').value = rem ? rem.title : '';
     $('#rem-notes').value = rem ? (rem.notes || '') : '';
     $('#rem-at').value = rem ? toInputValue(new Date(rem.remindAt)) : defaultDue();
+    notifySel.rem = (rem && Array.isArray(rem.notifyOffsets)) ? rem.notifyOffsets.slice() : [0];
+    renderNotify('rem');
     openModal(remModal);
   }
 
@@ -385,6 +438,7 @@
       title,
       description: $('#task-desc').value.trim(),
       priority: $('#task-priority').value,
+      notifyOffsets: notifySel.task.slice(),
     };
     const dueVal = $('#task-due').value;
     const editing = state.editing && state.editing.type === 'task' ? state.editing : null;
@@ -430,6 +484,7 @@
     const payload = {
       title,
       notes: $('#rem-notes').value.trim(),
+      notifyOffsets: notifySel.rem.slice(),
     };
     if (dateChanged) payload.remindAt = newAt;
 
@@ -578,6 +633,10 @@
     // Submits
     $('#task-form').addEventListener('submit', submitTask);
     $('#rem-form').addEventListener('submit', submitReminder);
+
+    // Picker de avisos (offsets) dos dois modais
+    setupNotify('rem');
+    setupNotify('task');
   }
 
   /* ===== CARGA DE DADOS ===== */
