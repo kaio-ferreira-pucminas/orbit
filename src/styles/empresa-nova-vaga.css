@@ -61,6 +61,13 @@ a{text-decoration:none;color:inherit;} button{cursor:pointer;border:none;backgro
 .nv-label{display:block;font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:8px;}
 .nv-hint{font-size:12px;color:var(--text-muted);margin-top:6px;}
 
+/* Faixa salarial: dois campos monetários (De / Até) + "A combinar" */
+.nv-salary-range{display:flex;align-items:center;gap:10px;}
+.nv-salary-range .nv-input{flex:1;min-width:0;}
+.nv-salary-sep{flex:0 0 auto;color:var(--text-muted);font-weight:700;}
+.nv-check{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--text-muted);cursor:pointer;user-select:none;}
+.nv-check input{width:16px;height:16px;accent-color:var(--primary);cursor:pointer;}
+
 /* Inputs (família visual do app: fundo lilás, borda transparente, ring no focus) */
 .nv-input{width:100%;padding:13px 16px;background:var(--input-bg);border:1px solid transparent;border-radius:10px;font:inherit;font-size:14px;color:var(--text-dark);transition:border-color .15s,box-shadow .15s,background .15s;}
 .nv-input::placeholder{color:#8a8fa8;}

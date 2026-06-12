@@ -197,8 +197,16 @@
                 <p class="nv-hint" id="nv-location-hint" hidden>Definida automaticamente para vagas remotas.</p>
               </div>
               <div class="nv-field">
-                <label class="nv-label" for="nv-salary">Faixa Salarial</label>
-                <input type="text" id="nv-salary" class="nv-input" maxlength="60" placeholder="Ex: R$ 3.500 - R$ 5.000" />
+                <label class="nv-label" for="nv-salary-min">Faixa Salarial</label>
+                <div class="nv-salary-range">
+                  <input type="text" id="nv-salary-min" class="nv-input" inputmode="numeric" maxlength="14" placeholder="De R$ 3.500" aria-label="Salário mínimo" />
+                  <span class="nv-salary-sep" aria-hidden="true">–</span>
+                  <input type="text" id="nv-salary-max" class="nv-input" inputmode="numeric" maxlength="14" placeholder="Até R$ 5.000" aria-label="Salário máximo" />
+                </div>
+                <label class="nv-check">
+                  <input type="checkbox" id="nv-salary-tbd" />
+                  <span>A combinar</span>
+                </label>
               </div>
             </div>
           </div>

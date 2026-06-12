@@ -277,8 +277,59 @@
       level:        $('#nv-level').value,
       contractType: $('#nv-contract').value,
       location:     modality === 'Remoto' ? 'Remoto' : $('#nv-location').value.trim(),
-      salaryRange:  $('#nv-salary').value.trim(),
+      salaryRange:  buildSalaryRange(),
     };
+  }
+
+  /* ===== FAIXA SALARIAL (máscara monetária + "A combinar") ===== */
+  // Máscara monetária pt-BR sem centavos (salário): "50000" → "R$ 50.000".
+  function maskMoney(raw) {
+    const digits = String(raw == null ? '' : raw).replace(/\D/g, '').replace(/^0+/, '');
+    if (!digits) return '';
+    return 'R$ ' + digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+  // Valor numérico de um campo monetário (0 se vazio)
+  function moneyValue(el) {
+    return parseInt(String(el.value).replace(/\D/g, '') || '0', 10);
+  }
+  // Liga a máscara a um input enquanto o usuário digita (caret ao fim)
+  function wireMoneyInput(el) {
+    el.addEventListener('input', () => {
+      el.value = maskMoney(el.value);
+      const end = el.value.length;
+      el.setSelectionRange(end, end);
+    });
+  }
+  // "A combinar" desabilita os dois campos de valor
+  function syncSalaryTbd() {
+    const tbd = $('#nv-salary-tbd').checked;
+    $('#nv-salary-min').disabled = tbd;
+    $('#nv-salary-max').disabled = tbd;
+  }
+  // Monta o salaryRange salvo (mesmo formato exibido nas vagas)
+  function buildSalaryRange() {
+    if ($('#nv-salary-tbd').checked) return 'A combinar';
+    const min = $('#nv-salary-min').value.trim();
+    const max = $('#nv-salary-max').value.trim();
+    if (min && max) return `${min} - ${max}`;
+    if (min) return `A partir de ${min}`;
+    if (max) return `Até ${max}`;
+    return '';
+  }
+  // Reconverte um salaryRange salvo para os dois campos / checkbox (modo edição)
+  function fillSalary(str) {
+    const txt = String(str || '').trim();
+    if (!txt) return;
+    if (/a combinar/i.test(txt)) { $('#nv-salary-tbd').checked = true; syncSalaryTbd(); return; }
+    const valores = txt.match(/R\$\s*[\d.]+/g) || [];
+    if (/a partir de/i.test(txt)) {
+      if (valores[0]) $('#nv-salary-min').value = maskMoney(valores[0]);
+    } else if (/^at[ée]/i.test(txt)) {
+      if (valores[0]) $('#nv-salary-max').value = maskMoney(valores[0]);
+    } else {
+      if (valores[0]) $('#nv-salary-min').value = maskMoney(valores[0]);
+      if (valores[1]) $('#nv-salary-max').value = maskMoney(valores[1]);
+    }
   }
 
   function setSaving(on) {
@@ -297,6 +348,16 @@
       toast('Dê um título para a vaga.', 'error');
       $('#nv-title').focus();
       return;
+    }
+    // Faixa salarial coerente: mínimo não pode ser maior que o máximo
+    if (!$('#nv-salary-tbd').checked) {
+      const min = moneyValue($('#nv-salary-min'));
+      const max = moneyValue($('#nv-salary-max'));
+      if (min && max && min > max) {
+        toast('O salário mínimo não pode ser maior que o máximo.', 'error');
+        $('#nv-salary-min').focus();
+        return;
+      }
     }
     if (kind === 'publish') {
       if (!body.description) {
@@ -365,7 +426,7 @@
       $('#nv-desc').value     = data.description || '';
       $('#nv-level').value    = data.level || 'Júnior';
       $('#nv-contract').value = data.contractType || 'CLT';
-      $('#nv-salary').value   = data.salaryRange || '';
+      fillSalary(data.salaryRange);
       // Ordem importa: o radio + syncModality vêm ANTES da localização — a
       // transição Remoto→outra restaura savedLocation e apagaria o valor carregado
       const radio = document.querySelector(`input[name="nv-modality"][value="${data.modality || 'Remoto'}"]`)
@@ -441,6 +502,11 @@
       const chip = ev.target.closest('[data-skill]');
       if (chip) addSkill(chip.getAttribute('data-skill'));
     });
+
+    // Faixa salarial: máscara monetária ao digitar + "A combinar"
+    wireMoneyInput($('#nv-salary-min'));
+    wireMoneyInput($('#nv-salary-max'));
+    $('#nv-salary-tbd').addEventListener('change', syncSalaryTbd);
 
     // Ações do rodapé
     $('#nv-draft').addEventListener('click', () => save('draft'));
