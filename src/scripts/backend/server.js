@@ -510,6 +510,12 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     return res.status(404).json({ error: 'Usuário não encontrado.' });
   }
 
+  // Vistas no perfil: conta quando OUTRO usuário acessa o perfil (não o próprio dono)
+  if (req.user.id !== req.params.id) {
+    user.profileViews = (user.profileViews || 0) + 1;
+    saveDb(db);
+  }
+
   // Só projetos ATIVOS e públicos no perfil (rascunhos do GitHub ficam só em "Meus Projetos";
   // privados só aparecem para o próprio dono).
   const projects = (db.projects || []).filter(p =>
@@ -565,6 +571,17 @@ server.get('/api/users/:id/profile', requireAuth, (req, res) => {
     },
     qa: computeQaStats(db, req.params.id),
   });
+});
+
+// GET /api/me/stats — métricas do card do feed (vistas no perfil + impressões dos posts)
+server.get('/api/me/stats', requireAuth, (req, res) => {
+  const db = getDb();
+  const me = db.users.find(u => u.id === req.user.id);
+  const profileViews    = (me && me.profileViews) || 0;
+  const postImpressions = (db.posts || [])
+    .filter(p => p.userId === req.user.id)
+    .reduce((sum, p) => sum + (p.impressions || 0), 0);
+  return res.status(200).json({ profileViews, postImpressions });
 });
 
 // PATCH /api/users/:id — atualiza próprio perfil
@@ -640,6 +657,13 @@ server.get('/api/posts', requireAuth, (req, res) => {
     new Date(b.createdAt) - new Date(a.createdAt)
   );
 
+  // Impressões: cada post exibido a quem NÃO é o autor conta como 1 impressão
+  let touched = false;
+  for (const post of sorted) {
+    if (post.userId !== req.user.id) { post.impressions = (post.impressions || 0) + 1; touched = true; }
+  }
+  if (touched) saveDb(db);
+
   const enriched = sorted.map(post => {
     const author        = db.users.find(u => u.id === post.userId);
     const likesCount    = db.likes.filter(l => l.postId === post.id).length;
@@ -686,12 +710,13 @@ server.post('/api/posts', requireAuth, (req, res) => {
   const now = new Date().toISOString();
 
   const newPost = {
-    id:        generateId(),
-    userId:    req.user.id,
+    id:          generateId(),
+    userId:      req.user.id,
     type,
-    content:   content.trim(),
-    createdAt: now,
-    updatedAt: now,
+    content:     content.trim(),
+    impressions: 0,
+    createdAt:   now,
+    updatedAt:   now,
   };
   if (type === 'duvida') {
     newPost.title  = title;
@@ -3492,6 +3517,30 @@ server.use('/api/jobs', requireAuth, (req, res, next) => {
 server.use(jsonServer.rewriter({ '/api/*': '/$1' }));
 server.use(router);
 
+// Migração 1x: dá um baseline às métricas do feed para o conteúdo que precede
+// o tracking, derivado do engajamento REAL (likes/comentários/seguidores). Itens
+// novos já nascem com o campo (0) e crescem com o tracking — aqui nada é reescrito.
+function backfillEngagementStats() {
+  const db = getDb();
+  let changed = false;
+  for (const p of (db.posts || [])) {
+    if (typeof p.impressions !== 'number') {
+      const likes    = (db.likes || []).filter(l => l.postId === p.id).length;
+      const comments = (db.comments || []).filter(c => c.postId === p.id).length;
+      const answers  = (db.answers || []).filter(a => a.postId === p.id).length;
+      p.impressions = likes * 7 + comments * 13 + answers * 9 + 5;
+      changed = true;
+    }
+  }
+  for (const u of (db.users || [])) {
+    if (typeof u.profileViews !== 'number') {
+      u.profileViews = (db.follows || []).filter(f => f.followingId === u.id).length * 9;
+      changed = true;
+    }
+  }
+  if (changed) saveDb(db);
+}
+
 // ── Start ────────────────────────────────────────────────────────────────────
 server.listen(PORT, async () => {
   console.log(`\n🚀 Orbit API rodando em http://localhost:${PORT}`);
@@ -3506,6 +3555,9 @@ server.listen(PORT, async () => {
   } else {
     console.log(`\n✉️  Resend configurado (de: ${process.env.RESEND_FROM_EMAIL})`);
   }
+
+  // Baseline 1x das métricas do feed (seed antigo) — derivado do engajamento real
+  backfillEngagementStats();
 
   // Roda cleanup uma vez ao iniciar e depois a cada 1h
   await cleanupExpiredAccounts();

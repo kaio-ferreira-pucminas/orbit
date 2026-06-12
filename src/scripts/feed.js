@@ -163,6 +163,21 @@
     setAvatar($('.profile-card__avatar'),  currentUser.avatarUrl, currentUser.name, '#profile-card-initials');
     setAvatar($('.composer__avatar'),      currentUser.avatarUrl, currentUser.name, '#composer-initials');
     // Header (avatar + menu do usuário) agora é responsabilidade do componente header.js
+    loadProfileStats();
+  }
+
+  // Métricas reais do card (vistas no perfil + impressões dos posts) via /api/me/stats
+  async function loadProfileStats() {
+    try {
+      const res = await api('/api/me/stats');
+      if (!res.ok) return;
+      const data = await res.json();
+      const fmt = (n) => Number(n || 0).toLocaleString('pt-BR');
+      const v = $('#stat-profile-views');
+      const i = $('#stat-post-impressions');
+      if (v) v.textContent = fmt(data.profileViews);
+      if (i) i.textContent = fmt(data.postImpressions);
+    } catch (e) { /* silencioso — mantém o "—" */ }
   }
 
   // Helper: aplica imagem ou iniciais a um elemento avatar
