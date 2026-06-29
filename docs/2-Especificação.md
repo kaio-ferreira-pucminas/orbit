@@ -106,15 +106,17 @@ As tabelas a seguir apresentam os requisitos funcionais e não funcionais do sis
 
 ## Restrições
 
-O projeto está restrito pelos seguintes fatores:
+O projeto está sujeito às seguintes restrições:
 
 |ID| Restrição |
 |--|----------|
-|01| O projeto deve ser desenvolvido apenas com HTML, CSS e JavaScript |
-|02| Não será implementado back-end nesta fase |
-|03| O sistema não terá persistência de dados |
-|04| O projeto deve ser entregue até o final do semestre |
-|05| O desenvolvimento deve focar apenas na interface (front-end) |
+|01| O **front-end** é desenvolvido com HTML, CSS e JavaScript puro (sem frameworks) |
+|02| O **back-end é simulado via JSON Server** (Node.js/Express), não sendo um servidor de produção dedicado |
+|03| A **persistência é temporária**: os dados ficam salvos no arquivo **`db.json`**, não havendo banco de dados relacional ou NoSQL |
+|04| A hospedagem é feita em camada gratuita (Render), podendo hibernar após período de inatividade |
+|05| O projeto deve ser entregue até o final do semestre |
+
+> **Observação:** o back-end da aplicação é **simulado com o JSON Server** — uma API REST construída sobre um arquivo JSON. Dessa forma, os dados criados durante o uso (perfis, posts, vagas, candidaturas, avaliações, etc.) ficam **salvos temporariamente no arquivo `db.json`**, que atua como base de dados do projeto. Essa abordagem é adequada ao escopo acadêmico, porém sem as garantias (escalabilidade, concorrência, integridade) de um banco de dados de produção.
 
 ---
 
