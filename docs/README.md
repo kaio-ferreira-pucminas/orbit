@@ -550,4 +550,102 @@ As ferramentas empregadas no projeto foram selecionadas com base na simplicidade
 - **HTML, CSS e JavaScript**: tecnologias utilizadas no desenvolvimento da aplicação.  
 
 - **Ferramentas de comunicação (WhatsApp/Discord)**: utilizadas para alinhamento da equipe.
-- **Ferramenta para controle de tarefas: Trello (https://trello.com/invite/b/69dbd14864d2202e560801be/ATTIf943c158f70a5f578cda13d9629196ba267B20EF/tiau-puc) 
+- **Ferramenta para controle de tarefas: Trello** (https://trello.com/invite/b/69dbd14864d2202e560801be/ATTIf943c158f70a5f578cda13d9629196ba267B20EF/tiau-puc)
+
+> **Atualização (fase de Implementação):** além das ferramentas acima, o projeto passou a utilizar **Node.js, Express e json-server** (back-end/API REST), **JWT + bcrypt** (autenticação), **Resend** (e-mail) e **Render** (hospedagem). O detalhamento completo está na seção 5 a seguir.
+
+
+## 5. Implementação
+
+Na fase de implementação, o Orbit deixou de ser apenas um protótipo de front-end e passou a ser uma **aplicação web full-stack** com back-end próprio, autenticação e persistência de dados.
+
+### Tecnologias Utilizadas
+
+- **Front-end:** HTML5, CSS3 e JavaScript (Vanilla JS, sem frameworks).
+- **Back-end:** Node.js, Express e json-server (API REST), com **JWT** (autenticação), **bcryptjs** (hash de senha), **CORS** e **Resend** (e-mail).
+- **Integrações externas:** GitHub REST/GraphQL (repositórios e contribuições).
+- **Hospedagem:** Render (servindo API + front-end + uploads), com `db.json` como base de dados persistente.
+
+### Arquitetura
+
+Arquitetura cliente-servidor em três camadas: **Navegador (HTML/CSS/JS)** → **API REST (Node/Express + json-server)** → **Persistência (`db.json` + `/uploads`)**. A autenticação usa **JWT** (token Bearer) validado por um middleware nas rotas protegidas; as senhas são protegidas com **bcrypt**.
+
+### Funcionalidades
+
+Cada funcionalidade abaixo indica a descrição, a estrutura de dados associada (coleções do `db.json`) e como acessá-la.
+
+| Funcionalidade | Descrição | Estrutura de dados | Acesso |
+|----------------|-----------|--------------------|--------|
+| Cadastro/Login | Conta de **dev** ou **empresa**, com JWT e recuperação de senha por e-mail | `users`, `password_reset_tokens` | `auth.html` |
+| Perfil do dev | Avatar, headline, bio, skills, currículo, disponibilidade, experiências | `users` | `profile.html` |
+| Perfil público | Skills, projetos, reputação, contribuições GitHub e depoimentos | `users`, `projects`, `engagementReviews` | `perfil-publico.html` |
+| Perfil da empresa | Cultura, estatísticas, vagas e avaliações | `companies`, `jobs`, `engagementReviews` | `empresa-perfil.html` |
+| Meus Projetos | CRUD de projetos com capa, tecnologias e status | `projects` | `meus-projetos.html` |
+| Integração GitHub | Importa repositórios públicos como rascunho de projeto | `projects`, `users` | "Sincronizar GitHub" |
+| Feed | Posts em Markdown, curtir e comentar | `posts`, `likes`, `comments` | `feed.html` |
+| Dúvidas e Respostas (Q&A) | Dúvida + respostas avaliadas (1–5), "útil" e "melhor resposta" | `posts`, `answers`, `answerRatings`, `answerHelpful` | `feed.html` |
+| Reputação Q&A | Nota média + contadores no perfil de quem responde | `answers`, `answerRatings`, `answerHelpful` | `profile.html` |
+| Seguir / Conexões | Seguir usuários e listar conexões | `follows` | Perfil público |
+| Busca global | Pessoas, empresas, vagas, posts e tópicos | `users`, `companies`, `jobs`, `posts` | `busca.html` |
+| Busca de talentos | Painel da empresa para encontrar devs | `users` | `empresa-talentos.html` |
+| Vagas | Listar, detalhar, salvar e ver vagas similares | `jobs`, `saved_jobs` | `vagas.html` / `vaga-detalhes.html` |
+| Publicar vaga | Empresa cria/edita vaga (rascunho/ativa) | `jobs` | `empresa-nova-vaga.html` |
+| Candidatura | Dev se candidata; empresa é notificada | `applications` | `vaga-detalhes.html` |
+| Gerenciar candidatos | Funil (enviada → análise → entrevista → recusado) | `applications`, `users` | `empresa-candidatos.html` |
+| Ciclo de contratação | Contratar **CLT/freelance**, renovar e encerrar | `applications` | `empresa-candidatos.html` |
+| Avaliação mútua dev↔empresa | Avaliação por critérios após o vínculo | `engagementReviews` | `empresa-candidatos.html` / `empresa-perfil.html` |
+| Agenda / Entrevistas | Calendário com tarefas, lembretes e entrevistas | `tasks`, `reminders`, `interviews` | `agenda.html` / `entrevistas.html` |
+| Mensagens | Chat 1:1 entre conexões | `conversations`, `messages` | `mensagens.html` |
+| Notificações | Central de notificações (sino) | `notifications` | Cabeçalho |
+| Dashboards | Painéis do dev e da empresa | `users`, `jobs`, `applications`, `interviews` | `dashboard.html` / `empresa-dashboard.html` |
+
+### Estruturas de Dados (exemplos)
+
+**`users`**
+```json
+{ "id": "a1b2-0001", "type": "dev", "name": "João Silva", "email": "joao@dev.com", "passwordHash": "$2a$10$...", "skills": ["React","Node.js"], "github": "joaosilva", "available": true }
+```
+**`posts` (dúvida)**
+```json
+{ "id": "8a45-7d1e", "userId": "a1b2-0001", "type": "duvida", "title": "Como centralizar uma div?", "content": "Tentei flexbox...", "status": "aberta" }
+```
+**`answers` / `answerRatings`**
+```json
+{ "id": "43e5-5bd0", "postId": "8a45-7d1e", "authorId": "415f-7e24", "content": "Use display:flex...", "isBest": true, "ratingAvg": 5, "ratingCount": 1 }
+```
+```json
+{ "id": "r-001", "answerId": "43e5-5bd0", "authorId": "a1b2-0001", "rating": 5, "comment": "Resolveu!" }
+```
+**`jobs` / `applications`**
+```json
+{ "id": "job-001", "companyId": "comp-001", "title": "Front-end React", "level": "Júnior", "modality": "Remoto", "contractType": "CLT", "skills": ["React","CSS"], "status": "active" }
+```
+```json
+{ "id": "app-001", "userId": "b34e-65c0", "jobId": "job-001", "status": "contratado", "contractType": "freelance", "contractEnd": "2026-08-01T00:00:00.000Z" }
+```
+**`engagementReviews`**
+```json
+{ "id": "er-001", "applicationId": "app-001", "authorType": "dev", "targetType": "company", "targetCompanyId": "comp-001", "criteria": {"ambiente":5,"infraestrutura":4,"organizacao":5,"compromisso":5}, "overall": 4.8 }
+```
+
+> Demais coleções: `comments`, `likes`, `projectReviews`, `reviews`, `companies`, `saved_jobs`, `recommendations`, `conversations`, `messages`, `notifications`, `follows`, `tasks`, `reminders`, `interviews`, `deactivation_codes`, `password_reset_tokens` e `sent_emails`.
+
+### Módulos e APIs
+
+- **Bibliotecas:** express, json-server, jsonwebtoken, bcryptjs, cors, resend, dotenv (+ módulos nativos `crypto`, `fs`, `path`).
+- **APIs externas:** GitHub REST e GraphQL (repositórios e contribuições) e Resend (e-mail).
+- **API REST interna:** endpoints REST agrupados por domínio (auth, usuários, feed/posts, Q&A, projetos/GitHub, rede/busca, vagas/candidaturas/avaliação, empresas, agenda/entrevistas, mensagens e notificações). O detalhamento completo está em [5-Implementação.md](./5-Implementação.md).
+
+🔗 **Aplicação publicada:** https://orbit-web-wlgm.onrender.com/
+
+
+## 6. Conclusão
+
+O **Orbit** evoluiu de um protótipo de interface para uma **aplicação web full-stack publicada**, atendendo ao objetivo de aproximar profissionais iniciantes de oportunidades reais. Entre os resultados, destacam-se o perfil com portfólio integrado ao GitHub, o feed social com **dúvidas e respostas (Q&A)** e reputação, e o **ciclo completo de contratação** (vaga → candidatura → entrevista → contratação CLT/freelance → avaliação mútua dev↔empresa).
+
+Como **limitações**, a persistência em arquivo `db.json` e a hospedagem em camada gratuita não são ideais para produção, e ainda faltam testes automatizados e validações de autorização mais rígidas. Como **trabalhos futuros**, propõem-se a migração para um banco de dados dedicado, testes/CI-CD, chat em tempo real, recomendação mais sofisticada e melhorias de segurança e acessibilidade. O detalhamento está em [6-Conclusão.md](./6-Conclusão.md).
+
+
+## 7. Referências
+
+As referências completas (contexto, tecnologias e apoio metodológico) estão em [7-Referências.md](./7-Referências.md). Destacam-se: BRASSCOM e IBGE (fundamentação do problema); documentação oficial de **Node.js, Express, json-server, JWT, bcrypt, Resend, GitHub API, Render e Figma** (tecnologias); e *Design Thinking Brasil*, *Value Proposition Design* e o *Guia do Scrum* (apoio metodológico).

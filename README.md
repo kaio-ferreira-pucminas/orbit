@@ -29,10 +29,11 @@ Os membros do grupo são:
 1. [Contexto](./docs/1-Contexto.md)  
 2. [Especificações do Projeto](./docs/2-Especificação.md)  
 3. [Projeto da Interface](./docs/3-Interface.md)  
-4. [Gerenciamento do Projeto](./docs/4-Gerenciamento-Projeto.md)  
+4. [Planejamento do Projeto](./docs/4-Planejamento-Projeto.md)  
 5. [Implementação](./docs/5-Implementação.md)  
-6. [Referências](./docs/6-Referências.md)  
-7. [Apresentação do trabalho](./docs/apresentacao/README.md)  
+6. [Conclusão](./docs/6-Conclusão.md)  
+7. [Referências](./docs/7-Referências.md)  
+8. [Apresentação do trabalho](./docs/apresentacao/README.md)  
 
 ---
 
@@ -55,16 +56,23 @@ Na pasta `docs/images` são armazenadas todas as imagens utilizadas, como:
 
 ## Pasta src  
 
-Este diretório armazena o código fonte do projeto, desenvolvido utilizando tecnologias web básicas:
+Este diretório armazena o código-fonte do projeto, que evoluiu de um protótipo front-end para uma **aplicação web full-stack**:
 
+**Front-end**
 - HTML5  
 - CSS3  
-- JavaScript  
+- JavaScript (Vanilla JS, sem frameworks)  
 
-A estrutura segue um padrão simples de aplicação front-end, contendo:  
-- Páginas HTML  
-- Arquivos de estilo (CSS)  
-- Scripts JavaScript  
+**Back-end** (`src/scripts/backend`)
+- Node.js + Express + json-server (API REST)  
+- Autenticação JWT, hash de senha (bcrypt), envio de e-mails (Resend)  
+- Persistência em `db.json` e uploads de arquivos  
+
+A estrutura contém:  
+- Páginas HTML (`src/pages`)  
+- Arquivos de estilo (`src/styles`)  
+- Scripts JavaScript (`src/scripts`)  
+- Back-end e base de dados (`src/scripts/backend`)  
 - Recursos visuais (imagens, ícones, etc.)  
 
 ---

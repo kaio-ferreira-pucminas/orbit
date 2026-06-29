@@ -87,16 +87,50 @@ Legenda:
 
 ---
 
+## Quadro de Controle de Tarefas (Kanban)
+
+O acompanhamento das tarefas foi feito em um **quadro Kanban no Trello**, organizado nas colunas:
+
+- **A Fazer (Backlog):** tarefas planejadas para a sprint;
+- **Em Andamento:** tarefas sendo desenvolvidas;
+- **Em Revisão:** tarefas concluídas aguardando revisão/testes;
+- **Concluído:** tarefas finalizadas e validadas.
+
+Cada cartão representa uma tarefa/requisito, com responsável e prazo, espelhando as tabelas de sprint acima.
+
+🔗 **Quadro Trello:** https://trello.com/invite/b/69dbd14864d2202e560801be/ATTIf943c158f70a5f578cda13d9629196ba267B20EF/tiau-puc
+
+As capturas de tela do quadro preenchido estão disponíveis na pasta `docs/images` (ex.: `kanban-sprint1.png`, `kanban-sprint2.png`, `kanban-sprint3.png`).
+
+---
+
 ## Ferramentas
 
-As ferramentas empregadas no projeto foram selecionadas com base na simplicidade, acessibilidade e adequação ao nível do desenvolvimento proposto.
+As ferramentas empregadas no projeto foram selecionadas com base na adequação a cada etapa do desenvolvimento — do design à hospedagem.
 
-- **Visual Studio Code**: utilizado como editor de código para desenvolvimento do front-end.  
+**Editor de código**
+- **Visual Studio Code** — desenvolvimento do front-end e do back-end.
 
-- **Figma**: utilizado para criação dos protótipos e wireframes da interface.  
+**Comunicação**
+- **WhatsApp / Discord** — alinhamento diário e reuniões da equipe.
 
-- **GitHub**: utilizado para versionamento de código e organização da documentação.  
+**Diagramação e design**
+- **Figma** — wireframes e protótipo interativo da interface.
 
-- **HTML, CSS e JavaScript**: tecnologias utilizadas no desenvolvimento da aplicação.  
+**Controle de versão**
+- **Git + GitHub** — versionamento do código e organização da documentação.
 
-- **Ferramentas de comunicação (WhatsApp/Discord)**: utilizadas para alinhamento da equipe.  
+**Gerenciamento de tarefas**
+- **Trello** — quadro Kanban para acompanhamento das tarefas por sprint.
+
+**Tecnologias de desenvolvimento**
+- **Front-end:** HTML5, CSS3 e JavaScript (Vanilla JS, sem frameworks).
+- **Back-end:** Node.js, Express e json-server (API REST), com autenticação JWT (jsonwebtoken), hash de senha (bcryptjs), CORS e envio de e-mails (Resend).
+
+**Hospedagem (Deploy)**
+- **Render** — publicação da aplicação (API + front-end + uploads), com o `db.json` como base de dados persistente.
+
+**Integrações externas**
+- **GitHub API (REST e GraphQL)** — importação de repositórios e gráfico de contribuições dos desenvolvedores.
+
+> A justificativa para a escolha dessas ferramentas está na **gratuidade**, na **curva de aprendizado acessível** ao nível da equipe e na **boa integração entre elas** (especialmente Git/GitHub, VS Code e Render), permitindo evoluir de um protótipo para uma aplicação full-stack sem mudar o ecossistema de trabalho.
